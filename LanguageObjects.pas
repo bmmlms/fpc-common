@@ -1132,7 +1132,14 @@ begin
         TM.AddText(string(PropName), OldValue, Result);
       end;
     end else
+    begin
       Result := Language.Get(OldValue);
+
+      // Ich bin mir nicht sicher ob das hier hin muss, aber es behebt
+      // http://www.delphipraxis.net/146618-lingus-ubersetzungswerkzeug-3.html#post1036234
+      // von drschubi.
+      TM.AddText(string(PropName), OldValue, Result);
+    end;
   end else
   begin
     OldValue := S;

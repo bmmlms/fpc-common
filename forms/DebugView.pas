@@ -27,8 +27,6 @@ uses
 
 type
   TDebugView = class(TVirtualStringTree)
-  private
-
   protected
     procedure DoGetText(Node: PVirtualNode; Column: TColumnIndex;
       TextType: TVSTTextType; var Text: UnicodeString); override;
@@ -102,10 +100,8 @@ function TDebugView.AddData(Time: TDateTime; Text: string; Data: string): PVirtu
 var
   No, No2: PVirtualNode;
   N: PNodeData;
+  OldAdded: Integer;
 begin
-  //if RootNodeCount > 1000 then
-  //  Clear;
-
   No := Self.AddChild(nil, nil);
   MultiLine[No] := True;
   N := GetNodeData(No);
@@ -138,20 +134,19 @@ procedure TDebugView.DoBeforeCellPaint(Canvas: TCanvas; Node: PVirtualNode;
   var ContentRect: TRect);
 var
   N: PNodeData;
-  C, C2, C3: Byte;
+  G: Integer;
 begin
   inherited;
+  {
   N := GetNodeData(Node);
 
-  RandSeed := Trunc(SecondOf(N.Time));
-  C := Random(180);
-  C := C + 74;
-  C2 := Random(100);
-  C2 := C2 + 154;
-  C3 := Random(50);
-  C3 := C3 + 200;
-  Canvas.Brush.Color := RGB(C, C2, C3);
+  G := Trunc(SecondOf(N.Time));
+  G := Trunc((G / 60) * 20);
+  G := 100 + (G * 4);
+
+  Canvas.Brush.Color := RGB(G, G, G);
   Canvas.FillRect(CellRect);
+  }
 end;
 
 procedure TDebugView.DoFreeNode(Node: PVirtualNode);

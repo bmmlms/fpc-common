@@ -176,6 +176,7 @@ begin
       begin
         TPanel(Controls[n]).Enabled := False;
         TPanel(Controls[n]).BorderStyle := bsNone;
+        TPanel(Controls[n]).BevelOuter := bvNone;
         TPanel(Controls[n]).Align := alClient;
         Break;
       end;

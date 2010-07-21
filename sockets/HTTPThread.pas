@@ -122,7 +122,7 @@ end;
 procedure THTTPThread.StreamHeaderRemoved(Sender: TObject);
 begin
   DoHeaderRemoved;
-  FReceived := FTypedStream.Size;
+  //FReceived := FTypedStream.Size;
 end;
 
 constructor THTTPThread.Create(URL: string);
@@ -169,7 +169,7 @@ procedure THTTPThread.DoDisconnected;
 begin
   inherited;
   if FTypedStream.ContentLength > -1 then
-    if FTypedStream.ContentLength <> FReceived then
+    if FTypedStream.ContentLength <> Received then
       raise Exception.Create('ContentLength <> Received');
 end;
 
@@ -193,17 +193,17 @@ begin
   if (not Terminated) and (FTypedStream.HeaderRemoved) and
      (FLastReceivedUpdate + 1000 < GetTickCount) then
   begin
-    FSpeed := FReceived - FSpeedReceived;
+    FSpeed := Received - FSpeedReceived;
     FLastReceivedUpdate := GetTickCount;
     DoSpeedChange;
-    FSpeedReceived := FReceived;
+    FSpeedReceived := Received;
   end;
 
   DoDownloadProgress;
 
   if FTypedStream.ContentLength > 0 then
   begin
-    p := Round(FReceived / FTypedStream.ContentLength * 100);
+    p := Round(Received / FTypedStream.ContentLength * 100);
     if p <> FDownloadPercent then
     begin
       FDownloadPercent := p;

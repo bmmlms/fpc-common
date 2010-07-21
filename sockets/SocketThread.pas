@@ -31,6 +31,7 @@ type
     FHost: string;
     FPort: Integer;
     FSendLock: TCriticalSection;
+    FReceived: UInt64;
 
     FDebugMsg: string;
     FDebugData: string;
@@ -46,7 +47,6 @@ type
 
     function HostToAddress(Host: string): Integer;
   protected
-    FReceived: UInt64;
     FRecvStream: TSocketStream;
     FSendStream: TExtendedStream;
 
