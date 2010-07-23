@@ -122,7 +122,9 @@ end;
 procedure THTTPThread.StreamHeaderRemoved(Sender: TObject);
 begin
   DoHeaderRemoved;
-  //FReceived := FTypedStream.Size;
+  // Das muss hier bleiben, wegen Vergleich mit Received
+  // in DoDisconnected()..
+  FReceived := FTypedStream.Size;
 end;
 
 constructor THTTPThread.Create(URL: string);
@@ -170,7 +172,9 @@ begin
   inherited;
   if FTypedStream.ContentLength > -1 then
     if FTypedStream.ContentLength <> Received then
+    begin
       raise Exception.Create('ContentLength <> Received');
+    end;
 end;
 
 procedure THTTPThread.DoDownloadPercentProgress;

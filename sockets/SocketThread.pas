@@ -31,7 +31,6 @@ type
     FHost: string;
     FPort: Integer;
     FSendLock: TCriticalSection;
-    FReceived: UInt64;
 
     FDebugMsg: string;
     FDebugData: string;
@@ -49,6 +48,8 @@ type
   protected
     FRecvStream: TSocketStream;
     FSendStream: TExtendedStream;
+
+    FReceived: UInt64;
 
     procedure Execute; override;
 
