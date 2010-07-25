@@ -33,7 +33,6 @@ type
     procedure Write(Value: Integer); overload;
     procedure Write(Value: Cardinal); overload;
     procedure Write(Value: Boolean); overload;
-    // procedure Write(Value: AnsiString); overload;
     procedure Write(Value: string); overload;
     procedure Write(Value: TDateTime); overload;
     procedure Read(var Value: Integer); overload;
@@ -80,18 +79,6 @@ begin
   if Result > -1 then
     Result := Result + FromOffset;
 end;
-
-{
-procedure TExtendedStream.Write(Value: AnsiString);
-var
-  Len: Integer;
-begin
-  Len := Length(Value);
-  WriteBuffer(Len, SizeOf(Integer));
-  if Len > 0 then
-    WriteBuffer(Value[1], Length(Value));
-end;
-}
 
 procedure TExtendedStream.Write(Value: string);
 var

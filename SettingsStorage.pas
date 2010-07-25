@@ -866,10 +866,7 @@ begin
     Exit;
   end;
 
-  //if FileExists(FDataDir + LowerCase(FAppName) + '_' + Filename) then
   Result := FDataDir + LowerCase(FAppName) + '_' + Filename
-  //else
-  //  Result := FDataDir + Filename;
 end;
 
 { TSettingsDummy }

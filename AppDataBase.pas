@@ -464,15 +464,10 @@ begin
 end;
 
 procedure TAppDataBase.GetTempDir;
-var
- Len: DWord;
 begin
-  SetLength(FTempDir, MAX_PATH);
-  Len := GetTempPath(MAX_PATH, PChar(FTempDir));
-  if Len > 0 then
+  FTempDir := Functions.GetTempDir;
+  if FTempDir <> '' then
   begin
-    SetLength(FTempDir, Len);
-    IncludeTrailingPathDelimiter(FTempDir);
     if ForceDirectories(FTempDir + FAppName) then
       FTempDir := FTempDir + FAppName + '\';
   end else
@@ -510,9 +505,8 @@ begin
             FAppVersion.Revision := dwFileVersionLS shr 16;
             FAppVersion.Build := dwFileVersionLS and $FFFF;
           end;
-          FAppVersion.AsString := IntToStr(FAppVersion.Major) + '.' +
-            IntToStr(FAppVersion.Minor) + '.' + IntToStr(FAppVersion.Revision) +
-            '.' + IntToStr(FAppVersion.Build);
+          FAppVersion.AsString := Format('%d.%d.%d.%d', [FAppVersion.Major,
+            FAppVersion.Minor, FAppVersion.Revision, FAppVersion.Build]);
         end;
       end;
     finally

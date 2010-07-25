@@ -34,9 +34,6 @@ type
     procedure Resize; override;
     procedure DoMeasureItem(TargetCanvas: TCanvas; Node: PVirtualNode;
       var NodeHeight: Integer); override;
-    procedure DoBeforeCellPaint(Canvas: TCanvas; Node: PVirtualNode;
-      Column: TColumnIndex; CellPaintMode: TVTCellPaintMode;
-      CellRect: TRect; var ContentRect: TRect); override;
   public
     constructor Create(AOwner: TComponent); override;
     function AddData(Time: TDateTime; Text: string; Data: string): PVirtualNode;
@@ -100,17 +97,16 @@ function TDebugView.AddData(Time: TDateTime; Text: string; Data: string): PVirtu
 var
   No, No2: PVirtualNode;
   N: PNodeData;
-  OldAdded: Integer;
 begin
-  No := Self.AddChild(nil, nil);
+  No := Self.AddChild(nil);
   MultiLine[No] := True;
   N := GetNodeData(No);
-  N.Text := TimeToStr(Time) + ' - ' + Text;
   N.Time := Time;
+  N.Text := TimeToStr(Time) + ' - ' + Text;
 
   if Data <> '' then
   begin
-    No2 := Self.AddChild(No, nil);
+    No2 := Self.AddChild(No);
     MultiLine[No2] := True;
     N := GetNodeData(No2);
     N.Time := Time;
@@ -127,26 +123,6 @@ var
 begin
   N := PNodeData(GetNodeData(Node));
   Text := N.Text;
-end;
-
-procedure TDebugView.DoBeforeCellPaint(Canvas: TCanvas; Node: PVirtualNode;
-  Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
-  var ContentRect: TRect);
-var
-  N: PNodeData;
-  G: Integer;
-begin
-  inherited;
-  {
-  N := GetNodeData(Node);
-
-  G := Trunc(SecondOf(N.Time));
-  G := Trunc((G / 60) * 20);
-  G := 100 + (G * 4);
-
-  Canvas.Brush.Color := RGB(G, G, G);
-  Canvas.FillRect(CellRect);
-  }
 end;
 
 procedure TDebugView.DoFreeNode(Node: PVirtualNode);

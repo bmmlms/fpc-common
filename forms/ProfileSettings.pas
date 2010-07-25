@@ -28,9 +28,9 @@ type
     procedure btnDeleteClick(Sender: TObject);
     procedure btnCopyClick(Sender: TObject);
   private
-    { Private-Deklarationen }
+
   public
-    { Public-Deklarationen }
+
   end;
 
 implementation

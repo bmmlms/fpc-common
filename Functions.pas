@@ -29,6 +29,7 @@ function ValidURL(URL: string): Boolean;
 function StripURL(URL: string): string;
 function ParseURL(var URL: string; var Host: string; var Port: Integer; var Data: string): Boolean;
 function GetSystemDir: string;
+function GetTempDir: string;
 function ExtractLastDirName(s: string): string;
 function RemoveFileExt(const s: string): string;
 function StringToMask(s: string): string;
@@ -179,10 +180,26 @@ function GetSystemDir: string;
 var
   Dir: array [0..MAX_PATH] of Char;
 begin
-  GetSystemDirectory(Dir, MAX_PATH);
-  Result := StrPas(Dir);
-  if Result[Length(Result)] <> '\' then
-    Result := Result + '\';
+  Result := '';
+  if GetSystemDirectory(Dir, MAX_PATH) <> 0 then
+  begin
+    Result := StrPas(Dir);
+    if Result[Length(Result)] <> '\' then
+      Result := Result + '\';
+  end;
+end;
+
+function GetTempDir: string;
+var
+  Dir: array [0..MAX_PATH] of Char;
+begin
+  Result := '';
+  if GetTempPath(MAX_PATH, Dir) <> 0 then
+  begin
+    Result := StrPas(Dir);
+    if Result[Length(Result)] <> '\' then
+      Result := Result + '\';
+  end;
 end;
 
 function ExtractLastDirName(s: string): string;
@@ -289,7 +306,7 @@ begin
         end;
       end;
     until false;
-    repeat // mit vorangegangenem "*"
+    repeat
       case PatternPtr^ of
         #0: begin
           Result:=true;
@@ -383,6 +400,7 @@ var
   PI: TProcessInformation;
   OK: Boolean;
 begin
+  Handle := 0;
   FillChar(SI, SizeOf(TStartupInfo), #0);
   FillChar(PI, SizeOf(TProcessInformation), #0);
   SI.cb := SizeOf(TStartupInfo);

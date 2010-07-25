@@ -232,9 +232,8 @@ begin
   FFoundVersion.Minor := Version[1];
   FFoundVersion.Revision := Version[2];
   FFoundVersion.Build := Version[3];
-  FFoundVersion.AsString := IntToStr(FFoundVersion.Major) + '.' +
-    IntToStr(FFoundVersion.Minor) + '.' + IntToStr(FFoundVersion.Revision) +
-    '.' + IntToStr(FFoundVersion.Build);
+  FFoundVersion.AsString := Format('%d.%d.%d.%d', [FFoundVersion.Major,
+    FFoundVersion.Minor, FFoundVersion.Revision, FFoundVersion.Build]);
 end;
 
 procedure TUpdateClient.Start(Action: TUpdateAction);

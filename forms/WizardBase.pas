@@ -92,7 +92,6 @@ type
     procedure InitStep(Step: TStep); virtual;
   private
 
-    { Private-Deklarationen }
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -164,9 +163,6 @@ var
   n, i: Integer;
   ComboItem: TComboExItem;
 begin
-  //SetWindowLong(Handle, GWL_HWNDPARENT, 0);
-
-
   ClientWidth := 400;
   ClientHeight := 300;
 
