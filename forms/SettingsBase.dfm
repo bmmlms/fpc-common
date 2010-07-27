@@ -174,7 +174,7 @@ object frmSettingsBase: TfrmSettingsBase
       Left = 4
       Top = 192
       Width = 333
-      Height = 41
+      Height = 57
       Anchors = [akLeft, akTop, akRight]
       AutoSize = False
       Caption = '-'
@@ -200,7 +200,7 @@ object frmSettingsBase: TfrmSettingsBase
     end
     object btnCopyProfile: TButton
       Left = 4
-      Top = 236
+      Top = 248
       Width = 105
       Height = 29
       Caption = 'Copy profile'
