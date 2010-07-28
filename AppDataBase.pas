@@ -391,9 +391,9 @@ var
   S: TMemoryStream;
   Old: LongBool;
   Ret: Boolean;
-  RmDirectory: Boolean;
+  //RmDirectory: Boolean;
 begin
-  RmDirectory := False;
+  //RmDirectory := False;
   FPortableAllowed := True;
 
   if FRunningFromInstalledLocation then
@@ -407,11 +407,13 @@ begin
     try
       Dir := IncludeTrailingBackslash(ExtractFilePath(AppPath));
       Ret := ChangeFSRedirection(True, Old);
+      {
       if not DirectoryExists(Dir) then
       begin
         if ForceDirectories(Dir) then
           RmDirectory := True;
       end;
+      }
       Filename := GetRandomFile(Dir);
       S.SaveToFile(Filename);
       DeleteFile(Filename);
@@ -421,8 +423,8 @@ begin
       FPortableAllowed := False;
     end;
   finally
-    if RmDirectory then
-      RmDir(Dir);
+    //if RmDirectory then
+    //  RmDir(Dir);
     S.Free;
   end;
 end;

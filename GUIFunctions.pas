@@ -29,6 +29,7 @@ type
 
 function TruncateText(Text: string; MaxWidth: Integer; SrcCanvas: TCanvas): string;
 function BrowseDialog(Handle: HWnd; Title: string; Flag: Integer): string;
+procedure PropertiesDialog(Filename: string);
 function GetShellFolder(CSIDL: Integer): string;
 
 implementation
@@ -78,28 +79,42 @@ end;
 
 function BrowseDialog(Handle: HWnd; Title: string; Flag: Integer): string;
 var
-  lpItemID : PItemIDList;
-  BrowseInfo : TBrowseInfo;
-  DisplayName : array[0..MAX_PATH] of Char;
-  TempPath : array[0..MAX_PATH] of Char;
+  lpItemID: PItemIDList;
+  BrowseInfo: TBrowseInfo;
+  DisplayName: array[0..MAX_PATH] of Char;
+  TempPath: array[0..MAX_PATH] of Char;
 begin
-  Result:='';
+  Result := '';
   FillChar(BrowseInfo, sizeof(TBrowseInfo), #0);
-  with BrowseInfo do begin
+  with BrowseInfo do
+  begin
     hwndOwner := Handle;
     pszDisplayName := @DisplayName;
     lpszTitle := PChar(Title);
-    ulFlags := Flag;
+    ulFlags := Flag or BIF_NEWDIALOGSTYLE;
   end;
   lpItemID := SHBrowseForFolder(BrowseInfo);
-  if lpItemId <> nil then begin
+  if lpItemId <> nil then
+  begin
     SHGetPathFromIDList(lpItemID, TempPath);
     Result := TempPath;
     GlobalFreePtr(lpItemID);
   end;
 end;
 
-function GetShellFolder(CSIDL: integer): string;
+procedure PropertiesDialog(Filename: string);
+var
+  sei: ShellExecuteInfo;
+begin
+  FillChar(sei, SizeOf(sei), 0);
+  sei.cbSize := SizeOf(sei);
+  sei.lpFile := PChar(Filename);
+  sei.lpVerb := 'properties';
+  sei.fMask  := SEE_MASK_INVOKEIDLIST;
+  ShellExecuteEx(@sei);
+end;
+
+function GetShellFolder(CSIDL: Integer): string;
 var
   pidl: PItemIdList;
   SystemFolder: Integer;
