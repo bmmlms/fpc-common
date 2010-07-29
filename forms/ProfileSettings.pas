@@ -101,7 +101,10 @@ begin
     else
       S := TSettingsPortable.Create(AppGlobals.AppName, AppGlobals.AppPath);
     try
-      S.DeleteProfile;
+      if not S.DeleteProfile then
+      begin
+        MsgBox(Handle, _('An error occured deleting the profile, but parts of it may have been removed.'), _('Info'), MB_ICONEXCLAMATION)
+      end;
 
       if Sender = btnDelete then
       begin

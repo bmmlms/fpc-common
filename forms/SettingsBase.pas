@@ -245,7 +245,6 @@ begin
     AppGlobals.Language := Language.CurrentLanguage.ID;
   end;
 
-  AppGlobals.Save;
   Close;
 end;
 

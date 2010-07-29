@@ -138,7 +138,7 @@ begin
   AppGlobals.FirstStartShown := True;
 
   AppGlobals.WasSetup := True;
-  AppGlobals.Save;
+  AppGlobals.Save(Handle);
 
   Close;
 end;

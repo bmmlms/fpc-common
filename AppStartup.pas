@@ -77,7 +77,9 @@ begin
       end;
     finally
       AppGlobals.InstallUpdateOnStart := False;
-      AppGlobals.Save;
+      try
+        AppGlobals.Save;
+      except end;
     end;
   end;
 

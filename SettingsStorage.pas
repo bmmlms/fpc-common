@@ -509,17 +509,11 @@ var
   Ini: TIniFile;
 begin
   Result := False;
+  Ini := TIniFile.Create(FIniFile);
   try
-    Ini := TIniFile.Create(FIniFile);
-  except
-    Exit;
-  end;
-  try
-    try
-      Ini.DeleteKey(Section, Name);
-      Ini.UpdateFile;
-      Result := True;
-    except end;
+    Ini.DeleteKey(Section, Name);
+    Ini.UpdateFile;
+    Result := True;
   finally
     Ini.Free;
   end;
@@ -530,17 +524,11 @@ var
   Ini: TIniFile;
 begin
   Result := False;
+  Ini := TIniFile.Create(FIniFile);
   try
-    Ini := TIniFile.Create(FIniFile);
-  except
-    Exit;
-  end;
-  try
-    try
-      Ini.EraseSection(Section);
-      Ini.UpdateFile;
-      Result := True;
-    except end;
+    Ini.EraseSection(Section);
+    Ini.UpdateFile;
+    Result := True;
   finally
     Ini.Free;
   end;
@@ -729,16 +717,10 @@ procedure TSettingsPortable.Write(Name, Value, Section: string);
 var
   Ini: TIniFile;
 begin
+  Ini := TIniFile.Create(FIniFile);
   try
-    Ini := TIniFile.Create(FIniFile);
-  except
-    Exit;
-  end;
-  try
-    try
-      Ini.WriteString(Section, Name, Value);
-      Ini.UpdateFile;
-    except end;
+    Ini.WriteString(Section, Name, Value);
+    Ini.UpdateFile;
   finally
     Ini.Free;
   end;
@@ -749,16 +731,10 @@ procedure TSettingsPortable.Write(Name: string; Value: Integer;
 var
   Ini: TIniFile;
 begin
+  Ini := TIniFile.Create(FIniFile);
   try
-    Ini := TIniFile.Create(FIniFile);
-  except
-    Exit;
-  end;
-  try
-    try
-      Ini.WriteInteger(Section, Name, Value);
-      Ini.UpdateFile;
-    except end;
+    Ini.WriteInteger(Section, Name, Value);
+    Ini.UpdateFile;
   finally
     Ini.Free;
   end;
@@ -769,16 +745,10 @@ procedure TSettingsPortable.Write(Name: string; Value: Boolean;
 var
   Ini: TIniFile;
 begin
+  Ini := TIniFile.Create(FIniFile);
   try
-    Ini := TIniFile.Create(FIniFile);
-  except
-    Exit;
-  end;
-  try
-    try
-      Ini.WriteBool(Section, Name, Value);
-      Ini.UpdateFile;
-    except end;
+    Ini.WriteBool(Section, Name, Value);
+    Ini.UpdateFile;
   finally
     Ini.Free;
   end;

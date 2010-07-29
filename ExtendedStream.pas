@@ -35,12 +35,14 @@ type
     procedure Write(Value: Boolean); overload;
     procedure Write(Value: string); overload;
     procedure Write(Value: TDateTime); overload;
+    procedure Write(Value: UInt64); overload;
     procedure Read(var Value: Integer); overload;
     procedure Read(var Value: Cardinal); overload;
     procedure Read(var Value: Boolean); overload;
     procedure Read(var Value: AnsiString); overload;
     procedure Read(var Value: UnicodeString); overload;
     procedure Read(var Value: TDateTime); overload;
+    procedure Read(var Value: UInt64); overload;
     procedure SetData(Value: AnsiString);
     procedure Add(Value: AnsiString);
     procedure RemoveRange(FromOffset, Count: Integer);
@@ -119,6 +121,11 @@ begin
   WriteBuffer(Value, SizeOf(TDateTime));
 end;
 
+procedure TExtendedStream.Write(Value: UInt64);
+begin
+  WriteBuffer(Value, SizeOf(UInt64));
+end;
+
 procedure TExtendedStream.Read(var Value: AnsiString);
 var
   Len: Integer;
@@ -165,6 +172,11 @@ end;
 procedure TExtendedStream.Read(var Value: TDateTime);
 begin
   ReadBuffer(Value, SizeOf(TDateTime));
+end;
+
+procedure TExtendedStream.Read(var Value: UInt64);
+begin
+  ReadBuffer(Value, SizeOf(UInt64));
 end;
 
 procedure TExtendedStream.RemoveRange(FromOffset, Count: Integer);

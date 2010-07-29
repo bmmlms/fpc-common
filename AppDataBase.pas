@@ -87,11 +87,12 @@ type
     function FGetInfoShown(Idx: Integer): Boolean;
   protected
     FStorage: TSettingsStorage;
+    procedure DoSave; virtual;
   public
     constructor Create(AppName: String; OnlyOne: Boolean; DefWidth, DefHeight: Integer); reintroduce;
     destructor Destroy; override;
     procedure Load; virtual;
-    procedure Save; virtual;
+    procedure Save(Handle: Cardinal = 0);
     procedure Lock;
     procedure Unlock;
 
@@ -128,9 +129,6 @@ type
   end;
 
 implementation
-
-uses
-  Main;
 
 constructor TAppDataBase.Create(AppName: string; OnlyOne: Boolean; DefWidth, DefHeight: Integer);
 begin
@@ -181,7 +179,9 @@ begin
   if Val then
     FStorage.Write('InfoShown' + IntToStr(Idx), Val, 'Infos')
   else
-    FStorage.Delete('InfoShown' + IntToStr(Idx), 'Infos');
+    try
+      FStorage.Delete('InfoShown' + IntToStr(Idx), 'Infos');
+    except end;
 end;
 
 procedure TAppDataBase.GetPortable;
@@ -266,7 +266,7 @@ begin
   FStorage.Read('FirstStartShown', FFirstStartShown, False);
 end;
 
-procedure TAppDataBase.Save;
+procedure TAppDataBase.DoSave;
 begin
   FStorage.PrepareSave;
 
@@ -344,6 +344,31 @@ begin
     end;
     CloseHandle(hFileMapping);
   end;
+end;
+
+procedure TAppDataBase.Save(Handle: Cardinal);
+var
+  Res: Boolean;
+  Res2: Integer;
+begin
+  Res := False;
+  while not Res do
+    try
+      DoSave;
+      Res := True;
+    except
+      if Handle = 0 then
+        raise
+      else
+      begin
+        Res2 := MsgBox(Handle, _('An error occured while saving application settings. Please make sure you can write to ' +
+                                 'the registry if the application was installed or to the application path if it is used ' +
+                                 'in portable mode. Click "Yes" to try again, "No" to exit without saving settings.'),
+                                 _('Info'), MB_ICONEXCLAMATION or MB_YESNO or MB_DEFBUTTON1);
+        if Res2 = IDNO then
+          Res := True
+      end;
+    end;
 end;
 
 procedure TAppDataBase.WriteHandle(Handle: Cardinal);
