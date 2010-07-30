@@ -23,7 +23,7 @@ interface
 
 uses
   Windows, SysUtils, StrUtils, Classes, AppData, AppDataBase,
-  HTTPThread, Functions;
+  HTTPThread, Functions, ShellApi, LanguageObjects;
 
 type
   TUpdateAction = (uaVersion, uaUpdate);
@@ -76,7 +76,7 @@ type
     destructor Destroy; override;
 
     procedure Start(Action: TUpdateAction);
-    procedure RunUpdate;
+    procedure RunUpdate(Handle: Cardinal = 0);
     procedure SetVersion(Data: string);
 
     property Action: TUpdateAction read FAction;
@@ -210,9 +210,43 @@ begin
   inherited;
 end;
 
-procedure TUpdateClient.RunUpdate;
+procedure TUpdateClient.RunUpdate(Handle: Cardinal);
+var
+  osvi: _OSVERSIONINFOW;
+  ConditionMask: DWORDLONG;
+  op: Integer;
+  SEI: TShellExecuteInfo;
+const
+  VER_GREATER_EQUAL = 3;
 begin
-  RunProcess('"' + FUpdateFile + '" /NOICONS /SP /SILENT /UPDATE /PATH="' + AppGlobals.AppPath + '"')
+  op := VER_GREATER_EQUAL;
+
+  ZeroMemory(@osvi, SizeOf(_OSVERSIONINFOW));
+  osvi.dwOSVersionInfoSize := SizeOf(_OSVERSIONINFOW);
+  osvi.dwMajorVersion := 6;
+  osvi.dwMinorVersion := 0;
+
+  ConditionMask := 0;
+  ConditionMask := VerSetConditionMask(ConditionMask, VER_MAJORVERSION, op);
+  ConditionMask := VerSetConditionMask(ConditionMask, VER_MINORVERSION, op);
+
+  // Bei >= Vista gehts über das Manifest, ansonsten 'runas'...
+  if VerifyVersionInfo(osvi, VER_MAJORVERSION or VER_MINORVERSION, ConditionMask) or IsAdmin then
+    RunProcess('"' + FUpdateFile + '" /NOICONS /SP /SILENT /UPDATE /RUN /PATH="' + AppGlobals.AppPath + '"')
+  else
+  begin
+    MsgBox(Handle, _('You do not have administrative rights.'#13#10'Please enter the credentials of a user with administrative rights now.'), _('Info'), MB_ICONINFORMATION);
+
+    FillChar(SEI, SizeOf(SEI), 0);
+    SEI.cbSize := SizeOf(SEI);
+    SEI.Wnd := Handle;
+    SEI.fMask := SEE_MASK_FLAG_DDEWAIT or SEE_MASK_FLAG_NO_UI;
+    SEI.lpVerb := 'runas';
+    SEI.lpFile := PChar(FUpdateFile);
+    SEI.lpParameters := PChar('/NOICONS /SP /SILENT /UPDATE /PATH="' + AppGlobals.AppPath + '"');
+    SEI.nShow := SW_SHOWNORMAL;
+    ShellExecuteEx(@SEI);
+  end;
 end;
 
 procedure TUpdateClient.SetVersion(Data: string);

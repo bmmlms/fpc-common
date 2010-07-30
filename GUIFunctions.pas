@@ -27,14 +27,14 @@ uses
 type
   TAccessCanvas = class(TCanvas);
 
-function TruncateText(Text: string; MaxWidth: Integer; SrcCanvas: TCanvas): string;
+function TruncateText(Text: string; MaxWidth: Integer; Font: TFont): string;
 function BrowseDialog(Handle: HWnd; Title: string; Flag: Integer): string;
 procedure PropertiesDialog(Filename: string);
 function GetShellFolder(CSIDL: Integer): string;
 
 implementation
 
-function TruncateText(Text: string; MaxWidth: Integer; SrcCanvas: TCanvas): string;
+function TruncateText(Text: string; MaxWidth: Integer; Font: TFont): string;
 var
   w: Integer;
   Canvas: TAccessCanvas;
@@ -43,7 +43,7 @@ begin
   Canvas := TAccessCanvas.Create;
   try
     Canvas.Handle := GetDC(GetDesktopWindow);
-    SelectObject(Canvas.Handle, SrcCanvas.Font.Handle);
+    SelectObject(Canvas.Handle, Font.Handle);
 
     if MaxWidth > -1 then
     begin

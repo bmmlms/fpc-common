@@ -47,6 +47,10 @@ function HashString(Value: string): Cardinal;
 function IsAnsi(const s: string): Boolean;
 function ChangeFSRedirection(Disable: Boolean; var OldVal: LongBool): Boolean;
 function OccurenceCount(C: Char; Str: string): Integer;
+function IsAdmin: Boolean;
+
+function VerSetConditionMask(dwlConditionMask: LONGLONG; TypeBitMask: DWORD; ConditionMask: Byte): LONGLONG; stdcall;
+  external 'kernel32.dll';
 
 implementation
 
@@ -525,6 +529,22 @@ begin
   for i := 1 to Length(Str) - 1 do
     if Str[i] = C then
       Inc(Result);
+end;
+
+function IsAdmin: Boolean;
+var
+  H: Cardinal;
+  IsUserAnAdmin: function(): BOOL; stdcall;
+begin
+  Result := True;
+  H := LoadLibrary('shell32');
+  if H > 0 then
+  begin
+    IsUserAnAdmin := GetProcAddress(H, 'IsUserAnAdmin');
+    if Assigned(IsUserAnAdmin) then
+      Result := IsUserAnAdmin;
+    FreeLibrary(H);
+  end;
 end;
 
 end.
