@@ -383,9 +383,8 @@ type
   TFileSections = (fsNone, fsSettings, fsOptions, fsLanguages, fsEntries);
 var
   Section: TFileSections;
-  i, LastNL, NL, P: Integer;
+  i, LastNL, NL: Integer;
   PriLang, LangID, Line: string;
-  Lang: TLanguage;
   Entry: TEntry;
   n: Integer;
   j: Integer;
@@ -546,10 +545,10 @@ begin
           Entries[n].Translations.Add(TTranslation.Create(Languages[i], ''))
       end;
   except
-    FLanguages.Free;
+    FreeAndNil(FLanguages);
     for i := 0 to FEntries.Count - 1 do
       FEntries[i].Free;
-    FEntries.Free;
+    FreeAndNil(FEntries);
     raise;
   end;
 end;
@@ -558,10 +557,14 @@ destructor TProject.Destroy;
 var
   i: Integer;
 begin
-  FLanguages.Free;
-  for i := 0 to FEntries.Count - 1 do
-    TEntry(FEntries[i]).Free;
-  FEntries.Free;
+  if FLanguages <> nil then
+    FLanguages.Free;
+  if FEntries <> nil then
+  begin
+    for i := 0 to FEntries.Count - 1 do
+      TEntry(FEntries[i]).Free;
+    FEntries.Free;
+  end;
   inherited;
 end;
 

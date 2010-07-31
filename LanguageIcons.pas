@@ -59,35 +59,29 @@ var
   i, Idx: Integer;
   HIco: Cardinal;
   Ico: TIcon;
-  LangList: TLanguageList;
 begin
   FList := TCustomImageList.Create(nil);
   try
     FList.Width := 16;
     FList.Height := 16;
     FLanguageIcons := TList.Create;
-    LangList := TLanguageList.Create(True);
-    try
-      for i := 0 to LangList.Count - 1 do
-      begin
+    for i := 0 to LanguageList.Count - 1 do
+    begin
+      try
+        Ico := TIcon.Create;
         try
-          Ico := TIcon.Create;
-          try
-            HIco := LoadIcon(HInstance, PChar(LangList[i].ID));
-            if HIco > 0 then
-            begin
-              Ico.Handle := HIco;
-              Idx := FList.AddIcon(Ico);
-              FLanguageIcons.Add(TLanguageIcon.Create(LangList[i].ID, Idx));
-            end;
-          finally
-            Ico.Free;
+          HIco := LoadIcon(HInstance, PChar(LanguageList[i].ID));
+          if HIco > 0 then
+          begin
+            Ico.Handle := HIco;
+            Idx := FList.AddIcon(Ico);
+            FLanguageIcons.Add(TLanguageIcon.Create(LanguageList[i].ID, Idx));
           end;
-        except
+        finally
+          Ico.Free;
         end;
+      except
       end;
-    finally
-      LangList.Free;
     end;
   except
 
