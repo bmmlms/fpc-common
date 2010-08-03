@@ -171,7 +171,6 @@ object frmAbout: TfrmAbout
     Caption = '&Close'
     TabOrder = 0
     OnClick = btnCloseClick
-    ExplicitTop = 248
   end
   object txtAbout: TMemo
     Left = 8
@@ -183,6 +182,5 @@ object frmAbout: TfrmAbout
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 1
-    ExplicitHeight = 117
   end
 end

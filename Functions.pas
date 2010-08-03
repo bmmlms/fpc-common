@@ -24,6 +24,13 @@ interface
 uses
   Windows, SysUtils, Classes, StrUtils;
 
+type
+  TPatternReplace = record
+    C: Char;
+    Replace: string;
+  end;
+  TPatternReplaceArray = array of TPatternReplace;
+
 function MsgBox(Handle: HWND; Text, Title: string; uType: Cardinal): Integer;
 function ValidURL(URL: string): Boolean;
 function StripURL(URL: string): string;
@@ -48,6 +55,7 @@ function IsAnsi(const s: string): Boolean;
 function ChangeFSRedirection(Disable: Boolean; var OldVal: LongBool): Boolean;
 function OccurenceCount(C: Char; Str: string): Integer;
 function IsAdmin: Boolean;
+function PatternReplace(S: string; ReplaceList: TPatternReplaceArray): string;
 
 function VerSetConditionMask(dwlConditionMask: LONGLONG; TypeBitMask: DWORD; ConditionMask: Byte): LONGLONG; stdcall;
   external 'kernel32.dll';
@@ -544,6 +552,46 @@ begin
     if Assigned(IsUserAnAdmin) then
       Result := IsUserAnAdmin;
     FreeLibrary(H);
+  end;
+end;
+
+function PatternReplace(S: string; ReplaceList: TPatternReplaceArray): string;
+var
+  C: Char;
+  i, n, j, From: Integer;
+  Replace: string;
+  TokenIndices: array of Integer;
+const
+  Chars = ['s', 'a', 't', 'n'];
+begin
+  Result := s;
+
+  SetLength(TokenIndices, 0);
+  for i := 1 to Length(Result) - 1 do
+    if Result[i] = '%' then
+    begin
+      for j := 0 to High(ReplaceList) do
+        if (Length(Result) >= i + 1) and (Result[i + 1] = ReplaceList[j].C) then
+        begin
+          SetLength(TokenIndices, Length(TokenIndices) + 1);
+          TokenIndices[High(TokenIndices)] := i;
+        end;
+    end;
+
+  for n := 0 to High(TokenIndices) do
+  begin
+    C := Result[TokenIndices[n] + 1];
+    for j := 0 to High(ReplaceList) do
+      if ReplaceList[j].C = C then
+      begin
+        Replace := ReplaceList[j].Replace;
+        Break;
+      end;
+
+    Result := Copy(Result, 1, TokenIndices[n] - 1) + Replace + Copy(Result, TokenIndices[n] + 2, Length(Result));
+    for j := 0 to High(TokenIndices) do
+      if TokenIndices[j] > TokenIndices[n] then
+          TokenIndices[j] := TokenIndices[j] + Length(Replace) - 2;
   end;
 end;
 

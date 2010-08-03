@@ -427,7 +427,8 @@ begin
     if Reg.OpenKey(FRegPath + Section, False) then
     begin
       try
-        Value := Reg.ReadString(Name);
+        if Reg.ValueExists(Name) then
+          Value := Reg.ReadString(Name);
       except end;
       Reg.CloseKey;
     end;
@@ -706,7 +707,8 @@ begin
   end;
   try
     try
-      Value := Ini.ReadString(Section, Name, Default);
+      if Ini.ValueExists(Section, Name) then
+        Value := Ini.ReadString(Section, Name, Default);
     except end;
   finally
     Ini.Free;

@@ -145,6 +145,12 @@ var
   NonBlock: Integer;
   Ticks, StartTime: Cardinal;
   LastTimeReceived, LastTimeSent: Cardinal;
+const
+  {$IFDEF DEBUG}
+  DataTimeout = 100000;
+  {$ELSE}
+  DataTimeout = 10000;
+  {$ENDIF}
 begin
   inherited;
 
@@ -226,10 +232,10 @@ begin
         if (Res > 0) and (FD_ISSET(FSocketHandle, exceptfds)) then
           raise Exception.Create('select(): Socket error');
 
-        if (LastTimeReceived < GetTickCount - 10000) and
-           (LastTimeSent < GetTickCount - 10000) then
+        if (LastTimeReceived < GetTickCount - DataTimeout) and
+           (LastTimeSent < GetTickCount - DataTimeout) then
         begin
-          raise Exception.Create('No data received/sent for more than 10 seconds');
+          raise Exception.Create(Format('No data received/sent for more than %d seconds', [DataTimeout div 1000]));
         end;
 
         if FD_ISSET(FSocketHandle, readfds) then
