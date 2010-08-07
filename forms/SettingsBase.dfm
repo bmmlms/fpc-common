@@ -173,7 +173,7 @@ object frmSettingsBase: TfrmSettingsBase
     object lblPortable: TLabel
       Left = 4
       Top = 192
-      Width = 333
+      Width = 321
       Height = 57
       Anchors = [akLeft, akTop, akRight]
       AutoSize = False
@@ -192,7 +192,7 @@ object frmSettingsBase: TfrmSettingsBase
     end
     object chkAutoUpdateCheck: TCheckBox
       Left = 4
-      Top = -2
+      Top = 0
       Width = 301
       Height = 21
       Caption = 'Enable automatic search for updates'

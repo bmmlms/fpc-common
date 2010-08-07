@@ -48,6 +48,7 @@ type
     procedure Put2(Index: Integer; Item: TPage);
   public
     property Items[Index: Integer]: TPage read Get2 write Put2; default;
+    function Find(P: TPanel): TPage;
   end;
 
   TfrmSettingsBase = class(TForm)
@@ -107,6 +108,19 @@ begin
 end;
 
 { TPageList }
+
+function TPageList.Find(P: TPanel): TPage;
+var
+  i: Integer;
+begin
+  Result := nil;
+  for i := 0 to Count - 1 do
+    if Items[i].FPanel = P then
+    begin
+      Result := Items[i];
+      Break;
+    end;
+end;
 
 function TPageList.Get2(Index: Integer): TPage;
 begin
@@ -168,7 +182,7 @@ begin
     if (Trim(txtHost.Text) = '') or (Trim(txtPort.Text) = '') or (StrToIntDef(txtPort.Text, 0) <= 0) then
     begin
       MsgBox(Handle, _('You need to supply a host and a port (must be a positive number) to connect to if the use of a HTTP proxy is enabled.'), _('Info'), MB_ICONINFORMATION);
-      SetPage(pnlGeneral);
+      SetPage(FPageList.Find(TPanel(txtHost.Parent)));
       Exit;
     end;
   end;

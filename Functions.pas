@@ -54,8 +54,8 @@ function HashString(Value: string): Cardinal;
 function IsAnsi(const s: string): Boolean;
 function ChangeFSRedirection(Disable: Boolean; var OldVal: LongBool): Boolean;
 function OccurenceCount(C: Char; Str: string): Integer;
-function IsAdmin: Boolean;
 function PatternReplace(S: string; ReplaceList: TPatternReplaceArray): string;
+function IsAdmin: LongBool;
 
 function VerSetConditionMask(dwlConditionMask: LONGLONG; TypeBitMask: DWORD; ConditionMask: Byte): LONGLONG; stdcall;
   external 'kernel32.dll';
@@ -539,26 +539,10 @@ begin
       Inc(Result);
 end;
 
-function IsAdmin: Boolean;
-var
-  H: Cardinal;
-  IsUserAnAdmin: function(): BOOL; stdcall;
-begin
-  Result := True;
-  H := LoadLibrary('shell32');
-  if H > 0 then
-  begin
-    IsUserAnAdmin := GetProcAddress(H, 'IsUserAnAdmin');
-    if Assigned(IsUserAnAdmin) then
-      Result := IsUserAnAdmin;
-    FreeLibrary(H);
-  end;
-end;
-
 function PatternReplace(S: string; ReplaceList: TPatternReplaceArray): string;
 var
   C: Char;
-  i, n, j, From: Integer;
+  i, n, j: Integer;
   Replace: string;
   TokenIndices: array of Integer;
 const
@@ -592,6 +576,57 @@ begin
     for j := 0 to High(TokenIndices) do
       if TokenIndices[j] > TokenIndices[n] then
           TokenIndices[j] := TokenIndices[j] + Length(Replace) - 2;
+  end;
+end;
+
+function GetAdminSid: PSID;
+const
+  SECURITY_NT_AUTHORITY: TSIDIdentifierAuthority = (Value: (0, 0, 0, 0, 0, 5));
+  SECURITY_BUILTIN_DOMAIN_RID: DWORD = $00000020;
+  DOMAIN_ALIAS_RID_ADMINS: DWORD = $00000220;
+begin
+  Result := nil;
+  AllocateAndInitializeSid(SECURITY_NT_AUTHORITY, 2,
+    SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS,
+    0, 0, 0, 0, 0, 0, Result);
+end;
+
+function IsAdmin: LongBool;
+var
+  TokenHandle: THandle;
+  ReturnLength: DWORD;
+  TokenInformation: PTokenGroups;
+  AdminSid: PSID;
+  Loop: Integer;
+begin
+  Result := False;
+  TokenHandle := 0;
+  if OpenProcessToken(GetCurrentProcess, TOKEN_QUERY, TokenHandle) then
+  try
+    ReturnLength := 0;
+    GetTokenInformation(TokenHandle, TokenGroups, nil, 0, ReturnLength);
+    TokenInformation := GetMemory(ReturnLength);
+    if Assigned(TokenInformation) then
+    try
+      if GetTokenInformation(TokenHandle, TokenGroups, TokenInformation,
+        ReturnLength, ReturnLength) then
+      begin
+        AdminSid := GetAdminSid;
+        for Loop := 0 to TokenInformation^.GroupCount - 1 do
+        begin
+          if EqualSid(TokenInformation^.Groups[Loop].Sid, AdminSid) then
+          begin
+            Result := True;
+            Break;
+          end;
+        end;
+        FreeSid(AdminSid);
+      end;
+    finally
+      FreeMemory(TokenInformation);
+    end;
+  finally
+    CloseHandle(TokenHandle);
   end;
 end;
 

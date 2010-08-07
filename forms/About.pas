@@ -23,26 +23,35 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, LanguageObjects, StdCtrls, AppData, ExtCtrls, ShellAPI;
+  Dialogs, LanguageObjects, StdCtrls, AppData, ExtCtrls, ShellAPI, ComCtrls,
+  Buttons;
 
 type
   TfrmAbout = class(TForm)
+    pagAbout: TPageControl;
+    tabAbout: TTabSheet;
     lblAbout: TLabel;
-    Bevel2: TBevel;
-    btnClose: TButton;
     imgLogo: TImage;
     lblForumLink: TLabel;
     lblProjectLink: TLabel;
-    lblGPL: TLabel;
     lblHelpLink: TLabel;
+    tabLicense: TTabSheet;
     txtAbout: TMemo;
-    procedure btnCloseClick(Sender: TObject);
+    pnlNav: TPanel;
+    Bevel2: TBevel;
+    btnClose: TBitBtn;
+    lblGPL: TLabel;
+    lblVersion: TLabel;
+    lblCopyright: TLabel;
+    lblHomepage: TLabel;
     procedure lblProjectLinkClick(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure lblGPLClick(Sender: TObject);
     procedure lblHelpLinkClick(Sender: TObject);
     procedure lblForumLinkClick(Sender: TObject);
+    procedure btnCloseClick(Sender: TObject);
+    procedure lblHomepageClick(Sender: TObject);
   private
   public
     constructor Create(AOwner: TComponent; Caption: string); reintroduce;
@@ -66,7 +75,8 @@ begin
   Language.Translate(Self);
 
   Self.Caption := Caption;
-  lblAbout.Caption := AppGlobals.AppName + ' ' + _('version') + ' ' + AppGlobals.AppVersion.AsString;
+  lblAbout.Caption := AppGlobals.AppName;
+  lblVersion.Caption := _('Version') + ' ' + AppGlobals.AppVersion.AsString;
   lblGPL.Caption := _('Distributed under the terms of the GNU General Public License');
 
   txtAbout.Text := Format(_('%s'#13#10 +
@@ -90,10 +100,12 @@ begin
   try
     Icon.LoadFromResourceName(HInstance, 'A');
     imgLogo.Picture.Assign(Icon);
-    imgLogo.Left := ClientWidth - imgLogo.Width - 8;
+    imgLogo.Left := tabAbout.ClientWidth - imgLogo.Width - lblVersion.Left;
   finally
     Icon.Free;
   end;
+
+  pagAbout.ActivePageIndex := 0;
 end;
 
 procedure TfrmAbout.FormKeyDown(Sender: TObject; var Key: Word;
@@ -104,6 +116,11 @@ begin
     Key := 0;
     Close;
   end;
+end;
+
+procedure TfrmAbout.lblHomepageClick(Sender: TObject);
+begin
+  ShellExecute(0, 'open', 'http://mistake.ws/', '', '', 1);
 end;
 
 procedure TfrmAbout.lblGPLClick(Sender: TObject);

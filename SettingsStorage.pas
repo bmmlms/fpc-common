@@ -512,9 +512,12 @@ begin
   Result := False;
   Ini := TIniFile.Create(FIniFile);
   try
-    Ini.DeleteKey(Section, Name);
-    Ini.UpdateFile;
-    Result := True;
+    try
+      Ini.DeleteKey(Section, Name);
+      Ini.UpdateFile;
+      Result := True;
+    except
+    end;
   finally
     Ini.Free;
   end;
@@ -527,9 +530,12 @@ begin
   Result := False;
   Ini := TIniFile.Create(FIniFile);
   try
-    Ini.EraseSection(Section);
-    Ini.UpdateFile;
-    Result := True;
+    try
+      Ini.EraseSection(Section);
+      Ini.UpdateFile;
+      Result := True;
+    except
+    end;
   finally
     Ini.Free;
   end;
@@ -838,7 +844,11 @@ begin
     Exit;
   end;
 
+  {$IFDEF DEBUG}
+  Result := FDataDir + LowerCase(FAppName) + '_debug_' + Filename
+  {$ELSE}
   Result := FDataDir + LowerCase(FAppName) + '_' + Filename
+  {$ENDIF}
 end;
 
 { TSettingsDummy }

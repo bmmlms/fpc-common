@@ -103,14 +103,13 @@ object frmUpdate: TfrmUpdate
     Caption = '-'
   end
   object lblChangeLog: TLabel
-    Left = 8
+    Left = 112
     Top = 80
-    Width = 253
-    Height = 17
+    Width = 51
+    Height = 13
     Cursor = crHandPoint
     Alignment = taCenter
     Anchors = [akLeft, akTop, akRight]
-    AutoSize = False
     Caption = 'Changelog'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlue

@@ -231,10 +231,11 @@ begin
   ConditionMask := VerSetConditionMask(ConditionMask, VER_MINORVERSION, op);
 
   // Bei >= Vista gehts über das Manifest, ansonsten 'runas'...
-  if VerifyVersionInfo(osvi, VER_MAJORVERSION or VER_MINORVERSION, ConditionMask) or IsAdmin then
+  if VerifyVersionInfo(osvi, VER_MAJORVERSION or VER_MINORVERSION, ConditionMask) and IsAdmin then
     RunProcess('"' + FUpdateFile + '" /NOICONS /SP /SILENT /UPDATE /RUN /PATH="' + AppGlobals.AppPath + '"')
-  else
-  begin
+  else if VerifyVersionInfo(osvi, VER_MAJORVERSION or VER_MINORVERSION, ConditionMask) then
+    RunProcess('"' + FUpdateFile + '" /NOICONS /SP /SILENT /UPDATE /PATH="' + AppGlobals.AppPath + '"')
+  else begin
     MsgBox(Handle, _('You do not have administrative rights.'#13#10'Please enter the credentials of a user with administrative rights now.'), _('Info'), MB_ICONINFORMATION);
 
     FillChar(SEI, SizeOf(SEI), 0);

@@ -4,8 +4,8 @@ object frmAbout: TfrmAbout
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'About'
-  ClientHeight = 301
-  ClientWidth = 405
+  ClientHeight = 269
+  ClientWidth = 421
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -54,133 +54,210 @@ object frmAbout: TfrmAbout
   Position = poOwnerFormCenter
   OnKeyDown = FormKeyDown
   DesignSize = (
-    405
-    301)
+    421
+    269)
   PixelsPerInch = 96
   TextHeight = 13
-  object lblAbout: TLabel
-    Left = 8
-    Top = 8
-    Width = 7
-    Height = 19
-    Caption = '-'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -16
-    Font.Name = 'Tahoma'
-    Font.Style = [fsBold]
-    ParentFont = False
-  end
-  object Bevel2: TBevel
+  object pagAbout: TPageControl
     Left = 4
-    Top = 256
-    Width = 397
-    Height = 5
-    Anchors = [akLeft, akRight, akBottom]
-    Shape = bsTopLine
-    ExplicitTop = 128
-    ExplicitWidth = 381
-  end
-  object imgLogo: TImage
-    Left = 372
-    Top = 8
-    Width = 28
-    Height = 24
-    Anchors = [akTop, akRight]
-    AutoSize = True
-    ExplicitLeft = 324
-  end
-  object lblForumLink: TLabel
-    Left = 8
-    Top = 232
-    Width = 4
-    Height = 13
-    Cursor = crHandPoint
-    Anchors = [akLeft, akBottom]
-    Caption = '-'
-    Color = clBtnFace
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clBlue
-    Font.Height = -11
-    Font.Name = 'Tahoma'
-    Font.Style = [fsUnderline]
-    ParentColor = False
-    ParentFont = False
-    OnClick = lblForumLinkClick
-    ExplicitTop = 196
-  end
-  object lblProjectLink: TLabel
-    Left = 8
-    Top = 212
-    Width = 4
-    Height = 13
-    Cursor = crHandPoint
-    Anchors = [akLeft, akBottom]
-    Caption = '-'
-    Color = clBtnFace
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clBlue
-    Font.Height = -11
-    Font.Name = 'Tahoma'
-    Font.Style = [fsUnderline]
-    ParentColor = False
-    ParentFont = False
-    OnClick = lblProjectLinkClick
-    ExplicitTop = 176
-  end
-  object lblGPL: TLabel
-    Left = 8
-    Top = 32
-    Width = 4
-    Height = 13
-    Cursor = crHandPoint
-    Caption = '-'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clBlue
-    Font.Height = -11
-    Font.Name = 'Tahoma'
-    Font.Style = [fsUnderline]
-    ParentFont = False
-    OnClick = lblGPLClick
-  end
-  object lblHelpLink: TLabel
-    Left = 8
-    Top = 192
-    Width = 4
-    Height = 13
-    Cursor = crHandPoint
-    Anchors = [akLeft, akBottom]
-    Caption = '-'
-    Color = clBtnFace
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clBlue
-    Font.Height = -11
-    Font.Name = 'Tahoma'
-    Font.Style = [fsUnderline]
-    ParentColor = False
-    ParentFont = False
-    OnClick = lblHelpLinkClick
-    ExplicitTop = 156
-  end
-  object btnClose: TButton
-    Left = 304
-    Top = 264
-    Width = 97
-    Height = 33
-    Anchors = [akRight, akBottom]
-    Caption = '&Close'
+    Top = 4
+    Width = 413
+    Height = 213
+    ActivePage = tabAbout
+    Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 0
-    OnClick = btnCloseClick
+    object tabAbout: TTabSheet
+      Caption = 'About'
+      DesignSize = (
+        405
+        185)
+      object lblAbout: TLabel
+        Left = 4
+        Top = 2
+        Width = 7
+        Height = 19
+        Caption = '-'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -16
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+      object imgLogo: TImage
+        Left = 365
+        Top = 2
+        Width = 32
+        Height = 32
+        Anchors = [akTop, akRight]
+        AutoSize = True
+      end
+      object lblForumLink: TLabel
+        Left = 4
+        Top = 168
+        Width = 4
+        Height = 13
+        Cursor = crHandPoint
+        Anchors = [akLeft, akBottom]
+        Caption = '-'
+        Color = clBtnFace
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlue
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = [fsUnderline]
+        ParentColor = False
+        ParentFont = False
+        OnClick = lblForumLinkClick
+        ExplicitTop = 218
+      end
+      object lblProjectLink: TLabel
+        Left = 4
+        Top = 148
+        Width = 4
+        Height = 13
+        Cursor = crHandPoint
+        Anchors = [akLeft, akBottom]
+        Caption = '-'
+        Color = clBtnFace
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlue
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = [fsUnderline]
+        ParentColor = False
+        ParentFont = False
+        OnClick = lblProjectLinkClick
+      end
+      object lblHelpLink: TLabel
+        Left = 4
+        Top = 128
+        Width = 4
+        Height = 13
+        Cursor = crHandPoint
+        Anchors = [akLeft, akBottom]
+        Caption = '-'
+        Color = clBtnFace
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlue
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = [fsUnderline]
+        ParentColor = False
+        ParentFont = False
+        OnClick = lblHelpLinkClick
+        ExplicitTop = 178
+      end
+      object lblVersion: TLabel
+        Left = 3
+        Top = 24
+        Width = 4
+        Height = 13
+        Caption = '-'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ParentFont = False
+      end
+      object lblCopyright: TLabel
+        Left = 4
+        Top = 56
+        Width = 200
+        Height = 13
+        Caption = 'Copyright (c) 2010 Alexander Nottelmann'
+      end
+      object lblHomepage: TLabel
+        Left = 4
+        Top = 76
+        Width = 89
+        Height = 13
+        Cursor = crHandPoint
+        Caption = 'http://mistake.ws/'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlue
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = [fsUnderline]
+        ParentFont = False
+        OnClick = lblHomepageClick
+      end
+    end
+    object tabLicense: TTabSheet
+      Caption = 'License'
+      ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 397
+      ExplicitHeight = 265
+      DesignSize = (
+        405
+        185)
+      object lblGPL: TLabel
+        Left = 4
+        Top = 4
+        Width = 4
+        Height = 13
+        Cursor = crHandPoint
+        Caption = '-'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlue
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = [fsUnderline]
+        ParentFont = False
+        OnClick = lblGPLClick
+      end
+      object txtAbout: TMemo
+        Left = 4
+        Top = 24
+        Width = 393
+        Height = 157
+        Anchors = [akLeft, akTop, akBottom]
+        Color = clBtnFace
+        ReadOnly = True
+        ScrollBars = ssVertical
+        TabOrder = 0
+        ExplicitHeight = 207
+      end
+    end
   end
-  object txtAbout: TMemo
-    Left = 8
-    Top = 52
-    Width = 389
-    Height = 133
-    Anchors = [akLeft, akTop, akBottom]
-    Color = clBtnFace
-    ReadOnly = True
-    ScrollBars = ssVertical
+  object pnlNav: TPanel
+    Left = 0
+    Top = 220
+    Width = 421
+    Height = 49
+    Align = alBottom
+    BevelOuter = bvNone
+    Padding.Left = 4
+    Padding.Top = 4
+    Padding.Right = 4
+    Padding.Bottom = 4
     TabOrder = 1
+    object Bevel2: TBevel
+      Left = 4
+      Top = 4
+      Width = 413
+      Height = 5
+      Align = alTop
+      Shape = bsTopLine
+      ExplicitLeft = -7
+      ExplicitWidth = 396
+    end
+    object btnClose: TBitBtn
+      Left = 320
+      Top = 9
+      Width = 97
+      Height = 36
+      Align = alRight
+      Caption = '&Close'
+      Default = True
+      DoubleBuffered = True
+      Layout = blGlyphRight
+      ParentDoubleBuffered = False
+      TabOrder = 0
+      OnClick = btnCloseClick
+    end
   end
 end

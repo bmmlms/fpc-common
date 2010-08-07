@@ -102,6 +102,7 @@ begin
   lblVersion.Caption := AppGlobals.AppVersion.AsString;
   lblNewestVersion.Caption := '';
   lblChangeLog.Visible := False;
+
   Updater := TUpdateClient.Create;
   Updater.UpdateURL := UpdateURL;
   Updater.Language := Language.CurrentLanguage.ID;
@@ -128,6 +129,8 @@ end;
 procedure TfrmUpdate.FormCreate(Sender: TObject);
 begin
   Language.Translate(Self);
+  lblChangeLog.Left := ClientWidth div 2 - lblChangeLog.Width div 2;
+
   ProgressBar1.Visible := AppGlobals.RunningFromInstalledLocation;
   if not AppGlobals.RunningFromInstalledLocation then
     ClientHeight := ClientHeight - ProgressBar1.Height;
