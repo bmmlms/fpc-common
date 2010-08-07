@@ -231,22 +231,27 @@ begin
   ConditionMask := VerSetConditionMask(ConditionMask, VER_MINORVERSION, op);
 
   // Bei >= Vista gehts über das Manifest, ansonsten 'runas'...
-  if VerifyVersionInfo(osvi, VER_MAJORVERSION or VER_MINORVERSION, ConditionMask) and IsAdmin then
-    RunProcess('"' + FUpdateFile + '" /NOICONS /SP /SILENT /UPDATE /RUN /PATH="' + AppGlobals.AppPath + '"')
-  else if VerifyVersionInfo(osvi, VER_MAJORVERSION or VER_MINORVERSION, ConditionMask) then
-    RunProcess('"' + FUpdateFile + '" /NOICONS /SP /SILENT /UPDATE /PATH="' + AppGlobals.AppPath + '"')
-  else begin
-    MsgBox(Handle, _('You do not have administrative rights.'#13#10'Please enter the credentials of a user with administrative rights now.'), _('Info'), MB_ICONINFORMATION);
 
-    FillChar(SEI, SizeOf(SEI), 0);
-    SEI.cbSize := SizeOf(SEI);
-    SEI.Wnd := Handle;
-    SEI.fMask := SEE_MASK_FLAG_DDEWAIT or SEE_MASK_FLAG_NO_UI;
-    SEI.lpVerb := 'runas';
-    SEI.lpFile := PChar(FUpdateFile);
-    SEI.lpParameters := PChar('/NOICONS /SP /SILENT /UPDATE /PATH="' + AppGlobals.AppPath + '"');
-    SEI.nShow := SW_SHOWNORMAL;
-    ShellExecuteEx(@SEI);
+  if IsAdmin then
+    RunProcess('"' + FUpdateFile + '" /NOICONS /SP /SILENT /UPDATE /RUN /PATH="' + AppGlobals.AppPath + '"')
+  else
+  begin
+    if VerifyVersionInfo(osvi, VER_MAJORVERSION or VER_MINORVERSION, ConditionMask) then
+      RunProcess('"' + FUpdateFile + '" /NOICONS /SP /SILENT /UPDATE /PATH="' + AppGlobals.AppPath + '"')
+    else
+    begin
+      MsgBox(Handle, _('You do not have administrative rights.'#13#10'Please enter the credentials of a user with administrative rights now.'), _('Info'), MB_ICONINFORMATION);
+
+      FillChar(SEI, SizeOf(SEI), 0);
+      SEI.cbSize := SizeOf(SEI);
+      SEI.Wnd := Handle;
+      SEI.fMask := SEE_MASK_FLAG_DDEWAIT or SEE_MASK_FLAG_NO_UI;
+      SEI.lpVerb := 'runas';
+      SEI.lpFile := PChar(FUpdateFile);
+      SEI.lpParameters := PChar('/NOICONS /SP /SILENT /UPDATE /PATH="' + AppGlobals.AppPath + '"');
+      SEI.nShow := SW_SHOWNORMAL;
+      ShellExecuteEx(@SEI);
+    end;
   end;
 end;
 
