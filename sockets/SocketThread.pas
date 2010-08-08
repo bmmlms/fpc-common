@@ -261,7 +261,9 @@ begin
               end else
                 raise Exception.Create('recv(): Socket error: ' + IntToStr(Err));
           end;
-        end else if FD_ISSET(FSocketHandle, writefds) then
+        end;
+
+        if FD_ISSET(FSocketHandle, writefds) then
         begin
           FSendLock.Enter;
           try
@@ -281,7 +283,9 @@ begin
           finally
             FSendLock.Leave;
           end;
-        end else
+        end;
+
+        if (not FD_ISSET(FSocketHandle, readfds)) and (not FD_ISSET(FSocketHandle, writefds)) then
           Sleep(30);
       end;
       DoDisconnected;

@@ -844,11 +844,7 @@ begin
     Exit;
   end;
 
-  {$IFDEF DEBUG}
-  Result := FDataDir + LowerCase(FAppName) + '_debug_' + Filename
-  {$ELSE}
   Result := FDataDir + LowerCase(FAppName) + '_' + Filename
-  {$ENDIF}
 end;
 
 { TSettingsDummy }
