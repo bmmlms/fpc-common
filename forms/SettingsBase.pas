@@ -24,7 +24,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Buttons, ComCtrls, LanguageObjects,
-  AppData, AppDataBase, SettingsStorage, Functions;
+  AppData, AppDataBase, SettingsStorage, Functions, ListActns;
 
 type
   TPage = class
@@ -87,7 +87,8 @@ type
     procedure RegisterPages; virtual;
     procedure Finish; virtual;
     function CanFinish: Boolean; virtual;
-    procedure SetText; virtual;
+    procedure PreTranslate; virtual;
+    procedure PostTranslate; virtual;
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -133,6 +134,25 @@ begin
 end;
 
 { TfrmSettingsBase }
+
+procedure TfrmSettingsBase.PreTranslate;
+begin
+
+end;
+
+procedure TfrmSettingsBase.PostTranslate;
+begin
+  if ((AppGlobals.Portable = poNo) and (not AppGlobals.PortableAllowed)) or (AppGlobals.Portable = poUndefined) then
+  begin
+    lblPortable.Visible := False;
+    btnCopyProfile.Visible := False;
+    Exit;
+  end;
+  if AppGlobals.Portable = poYes then
+    lblPortable.Caption := _('This application is using portable settings. ' + 'To copy these settings to the registry/application data folder, press ''Copy profile''.')
+  else if AppGlobals.Portable = poNo then
+    lblPortable.Caption := _('This application is using settings from the registry/application data folder. ' + 'To copy these settings to a portable profile, press ''Copy profile''.');
+end;
 
 procedure TfrmSettingsBase.btnCopyProfileClick(Sender: TObject);
 var
@@ -183,6 +203,10 @@ begin
     begin
       MsgBox(Handle, _('You need to supply a host and a port (must be a positive number) to connect to if the use of a HTTP proxy is enabled.'), _('Info'), MB_ICONINFORMATION);
       SetPage(FPageList.Find(TPanel(txtHost.Parent)));
+      if Trim(txtHost.Text) = '' then
+        txtHost.SetFocus
+      else
+        txtPort.SetFocus;
       Exit;
     end;
   end;
@@ -243,7 +267,7 @@ begin
     FPageList[i].Button := Btn;
   end;
 
-  Language.Translate(Self, SetText);
+  Language.Translate(Self, PreTranslate, PostTranslate);
 end;
 
 procedure TfrmSettingsBase.Finish;
@@ -294,9 +318,16 @@ begin
       ComboItem.Caption := LanguageList[i].Name;
       ComboItem.Data := LanguageList[i];
       ComboItem.ImageIndex := AppGlobals.LanguageIcons.GetIconIndex(LanguageList[i].ID);
-      if Language.CurrentLanguage.ID = LanguageList[i].ID then
-        lstLanguages.ItemIndex := ComboItem.Index;
     end;
+  lstLanguages.ItemsEx.SortType := stText;
+  lstLanguages.ItemsEx.Sort;
+  for i := 0 to lstLanguages.ItemsEx.Count - 1 do
+    if Language.CurrentLanguage.ID = TLanguage(lstLanguages.ItemsEx[i].Data).ID then
+    begin
+      lstLanguages.ItemIndex := i;
+      Break;
+    end;
+
   SetPage(FPageList[0]);
 end;
 
@@ -325,7 +356,7 @@ begin
   if lstLanguages.ItemIndex > -1 then
   begin
     Language.CurrentLanguage := TLanguage(lstLanguages.ItemsEx[lstLanguages.ItemIndex].Data);
-    Language.Translate(Self, SetText);
+    Language.Translate(Self, PreTranslate, PostTranslate);
   end;
 end;
 
@@ -379,20 +410,6 @@ begin
   FActivePage.Button.Down := True;
   FActivePage.Panel.Enabled := True;
   FActivePage.Panel.BringToFront;
-end;
-
-procedure TfrmSettingsBase.SetText;
-begin
-  if ((AppGlobals.Portable = poNo) and (not AppGlobals.PortableAllowed)) or (AppGlobals.Portable = poUndefined) then
-  begin
-    lblPortable.Visible := False;
-    btnCopyProfile.Visible := False;
-    Exit;
-  end;
-  if AppGlobals.Portable = poYes then
-    lblPortable.Caption := _('This application is using portable settings. ' + 'To copy these settings to the registry/application data folder, press ''Copy profile''.')
-  else if AppGlobals.Portable = poNo then
-    lblPortable.Caption := _('This application is using settings from the registry/application data folder. ' + 'To copy these settings to a portable profile, press ''Copy profile''.');
 end;
 
 end.

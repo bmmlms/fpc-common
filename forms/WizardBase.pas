@@ -24,7 +24,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Buttons, ExtCtrls, LanguageObjects, AppData,
-  Functions, ComCtrls, AppDataBase, SettingsStorage;
+  Functions, ComCtrls, AppDataBase, SettingsStorage, ListActns;
 
 type
   TStep = class
@@ -186,8 +186,14 @@ begin
       ComboItem.Caption := LanguageList[i].Name;
       ComboItem.Data := LanguageList[i];
       ComboItem.ImageIndex := AppGlobals.LanguageIcons.GetIconIndex(LanguageList[i].ID);
-      if Language.CurrentLanguage.ID = LanguageList[i].ID then
-        lstLanguages.ItemIndex := ComboItem.Index;
+    end;
+  lstLanguages.ItemsEx.SortType := stText;
+  lstLanguages.ItemsEx.Sort;
+  for i := 0 to lstLanguages.ItemsEx.Count - 1 do
+    if Language.CurrentLanguage.ID = TLanguage(lstLanguages.ItemsEx[i].Data).ID then
+    begin
+      lstLanguages.ItemIndex := i;
+      Break;
     end;
 
   SetStep(0);

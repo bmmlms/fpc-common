@@ -412,7 +412,7 @@ var
   PI: TProcessInformation;
   OK: Boolean;
 begin
-  Handle := 0;
+  Handle := High(Cardinal);
   FillChar(SI, SizeOf(TStartupInfo), #0);
   FillChar(PI, SizeOf(TProcessInformation), #0);
   SI.cb := SizeOf(TStartupInfo);

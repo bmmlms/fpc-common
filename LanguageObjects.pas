@@ -179,7 +179,7 @@ type
     property Obj: TObject read FObj write FObj;
   end;
 
-  TPostTranslateProc = procedure() of object;
+  TTranslateProc = procedure() of object;
 
   TLanguageManager = class
   private
@@ -196,7 +196,7 @@ type
     destructor Destroy; override;
     function Get(s: string): string;
     procedure Translate(C: TComponent); overload;
-    procedure Translate(C: TComponent; PostTranslate: TPostTranslateProc); overload;
+    procedure Translate(C: TComponent; PreTranslate, PostTranslate: TTranslateProc); overload;
     procedure SetLanguage(Language: string);
     procedure LoadFromFile(LanguageFile: string);
     property CurrentLanguage: TLanguage read FCurrentLanguage write FCurrentLanguage;
@@ -1254,9 +1254,10 @@ begin
 end;
 
 procedure TLanguageManager.Translate(C: TComponent;
-  PostTranslate: TPostTranslateProc);
+  PreTranslate, PostTranslate: TTranslateProc);
 begin
   try
+    PreTranslate;
     Translate(C);
   finally
     PostTranslate;

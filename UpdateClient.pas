@@ -165,7 +165,7 @@ begin
             CL := AnsiString(StringReplace(string(GetValue(Data, 'changelog')), '\r', #13#10, [rfReplaceAll]));
             FChangeLog := UTF8ToUnicodeString(CL);
             if FUpdateURL = '' then
-              raise Exception.Create('Fehler');
+              raise Exception.Create('-');
             Sync(FOnVersionFound);
           except
             Sync(FOnError);
