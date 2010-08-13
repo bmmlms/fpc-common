@@ -24,15 +24,29 @@ interface
 uses
   Windows, WinSock, Forms, AppData, UpdateClient, Update, Wizard,
   ProfileSettings, Functions, SettingsStorage, LanguageObjects,
-  AppDataBase, About;
+  AppDataBase, About, Menus;
+
+type
+  TPatch = packed record
+    Call: Byte;
+    Proc: Pointer;
+    Ret: Byte;
+  end;
 
 function InitApp: Boolean;
 
 implementation
 
+function PatchedIsAltGRPressed: Boolean;
+begin
+  Result := False;
+end;
+
 function InitApp: Boolean;
 var
   Res: Integer;
+  OldProtect: Cardinal;
+  Patch: TPatch;
   Updater: TUpdateClient;
   About: TfrmAbout;
   Wizard: TfrmWizard;
@@ -41,6 +55,17 @@ begin
   Result := True;
 
   SetErrorMode(SEM_FAILCRITICALERRORS);
+
+  // Gibt manchmal bei ALT-GR eine Exception. Die möchten wir nicht.
+  Patch.Call := $E8;
+  Patch.Proc := Pointer(Integer(Pointer(@PatchedIsAltGRPressed)) - Integer(Pointer(@IsAltGRPressed)) - 5);
+  Patch.Ret := $C3;
+  if VirtualProtect(@IsAltGRPressed, SizeOf(TPatch), PAGE_EXECUTE_READWRITE, OldProtect) then
+    try
+      CopyMemory(@IsAltGRPressed, @Patch, SizeOf(TPatch));
+    finally
+      VirtualProtect(@IsAltGRPressed, SizeOf(TPatch), OldProtect, OldProtect);
+    end;
 
   if TSettingsInstalled.Active(AppGlobals.AppName) and
      TSettingsPortable.Active(AppGlobals.AppName) then
