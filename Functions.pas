@@ -43,7 +43,7 @@ function StringToMask(s: string): string;
 function RPos(SubStr, S: string): Integer;
 function Like(AString, APattern: string): Boolean;
 function DownCase(ch: Char): Char;
-function MakeSize(Size: Integer): string;
+function MakeSize(Size: UInt64): string;
 function DiskSpaceOkay(Path: string; MinSpaceGB: Int64): Boolean;
 procedure FindFiles(PathPattern: string; Files: TStringList);
 function RunProcess(Filename: string; var Handle: Cardinal; Hide: Boolean = False): Boolean; overload;
@@ -364,7 +364,7 @@ begin
   end;
 end;
 
-function MakeSize(Size: Integer): string;
+function MakeSize(Size: UInt64): string;
 begin
   if Size < 1048576 then
     Result := Format('%f KB', [Size / (1024)])
