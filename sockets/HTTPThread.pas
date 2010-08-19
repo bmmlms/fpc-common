@@ -45,7 +45,7 @@ type
     FProxyEnabled: Boolean;
     FProxyHost: string;
     FProxyPort: Integer;
-    FUserAgent: string;
+    FUserAgent: AnsiString;
 
     procedure SetSendParams;
     procedure FSetPostData(Value: string);
@@ -74,7 +74,7 @@ type
     property ProxyEnabled: Boolean read FProxyEnabled write FSetProxyEnabled;
     property ProxyHost: string read FProxyHost write FSetProxyHost;
     property ProxyPort: Integer read FProxyPort write FSetProxyPort;
-    property UserAgent: string read FUserAgent write FUserAgent;
+    property UserAgent: AnsiString read FUserAgent write FUserAgent;
 
     property OnSpeedChanged: TNotifyEvent read FOnSpeedChanged write FOnSpeedChanged;
     property OnDownloadProgress: TNotifyEvent read FOnDownloadProgress write FOnDownloadProgress;

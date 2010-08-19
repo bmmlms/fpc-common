@@ -28,7 +28,7 @@ uses
 type
   TAppVersion = record
     Major, Minor, Revision, Build: Byte;
-    AsString: string;
+    AsString: AnsiString;
   end;
 
   TPortable = (poYes, poNo, poUndefined);
@@ -532,8 +532,8 @@ begin
             FAppVersion.Revision := dwFileVersionLS shr 16;
             FAppVersion.Build := dwFileVersionLS and $FFFF;
           end;
-          FAppVersion.AsString := Format('%d.%d.%d.%d', [FAppVersion.Major,
-            FAppVersion.Minor, FAppVersion.Revision, FAppVersion.Build]);
+          FAppVersion.AsString := AnsiString(Format('%d.%d.%d.%d', [FAppVersion.Major,
+            FAppVersion.Minor, FAppVersion.Revision, FAppVersion.Build]));
         end;
       end;
     finally

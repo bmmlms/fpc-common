@@ -158,9 +158,9 @@ begin
             FFoundVersion.Minor := Version[1];
             FFoundVersion.Revision := Version[2];
             FFoundVersion.Build := Version[3];
-            FFoundVersion.AsString := IntToStr(FFoundVersion.Major) + '.' +
+            FFoundVersion.AsString := AnsiString(IntToStr(FFoundVersion.Major) + '.' +
               IntToStr(FFoundVersion.Minor) + '.' + IntToStr(FFoundVersion.Revision) +
-              '.' + IntToStr(FFoundVersion.Build);
+              '.' + IntToStr(FFoundVersion.Build));
             FUpdateURL := string(GetValue(Data, 'updateurl'));
             CL := AnsiString(StringReplace(string(GetValue(Data, 'changelog')), '\r', #13#10, [rfReplaceAll]));
             FChangeLog := UTF8ToUnicodeString(CL);
@@ -272,8 +272,8 @@ begin
   FFoundVersion.Minor := Version[1];
   FFoundVersion.Revision := Version[2];
   FFoundVersion.Build := Version[3];
-  FFoundVersion.AsString := Format('%d.%d.%d.%d', [FFoundVersion.Major,
-    FFoundVersion.Minor, FFoundVersion.Revision, FFoundVersion.Build]);
+  FFoundVersion.AsString := AnsiString(Format('%d.%d.%d.%d', [FFoundVersion.Major,
+    FFoundVersion.Minor, FFoundVersion.Revision, FFoundVersion.Build]));
 end;
 
 procedure TUpdateClient.Start(Action: TUpdateAction);
