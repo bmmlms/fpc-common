@@ -431,7 +431,6 @@ begin
   try
     try
       Dir := IncludeTrailingBackslash(ExtractFilePath(AppPath));
-      Ret := ChangeFSRedirection(True, Old);
       {
       if not DirectoryExists(Dir) then
       begin
@@ -442,8 +441,6 @@ begin
       Filename := GetRandomFile(Dir);
       S.SaveToFile(Filename);
       DeleteFile(Filename);
-      if Ret then
-        ChangeFSRedirection(False, Old);
     except
       FPortableAllowed := False;
     end;

@@ -52,7 +52,7 @@ function GetCPUCount: DWord;
 function BeautifyFilePath(const s: string; MaxPathChars: Integer): string;
 function HashString(Value: string): Cardinal;
 function IsAnsi(const s: string): Boolean;
-function ChangeFSRedirection(Disable: Boolean; var OldVal: LongBool): Boolean;
+//function ChangeFSRedirection(Disable: Boolean; var OldVal: LongBool): Boolean;
 function OccurenceCount(C: Char; Str: string): Integer;
 function PatternReplace(S: string; ReplaceList: TPatternReplaceArray): string;
 function IsAdmin: LongBool;
@@ -502,6 +502,10 @@ begin
   end;
 end;
 
+{
+
+  BÖSE BÖSE BÖSE. Macht z.B. Drag&Drop Kaputt. Nicht benutzen!
+
 function ChangeFSRedirection(Disable: Boolean; var OldVal: LongBool): Boolean;
 type
   TWow64DisableWow64FsRedirection = function(var Wow64FsEnableRedirection: LongBool): LongBool; stdcall;
@@ -528,6 +532,7 @@ begin
     Result := false;
   end;
 end;
+}
 
 function OccurenceCount(C: Char; Str: string): Integer;
 var
