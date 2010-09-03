@@ -1095,7 +1095,7 @@ begin
         begin
           OldValue := ReadString(C, Prop);
           NewValue := TranslateString(C, Owner, string(Prop.Name), OldValue);
-          if NewValue <> '' then
+          if (NewValue <> '') then
           begin
             SetWideStrProp(C, @Prop, NewValue);
           end;
@@ -1216,7 +1216,8 @@ begin
                   // Spezialbehandlung für TStrings, siehe
                   // http://www.delphipraxis.net/152626-rtti-memo-lines-tstrings.html
                   NewValue := TranslateString(Cl, Owner, 'Text', TStrings(Cl).Text);
-                  if NewValue <> '' then
+                  // Ohne <> Vergleich werden sonst bei z.B. TComboBox Index auf -1 gesetzt
+                  if (NewValue <> '') and (TStrings(Cl).Text <> NewValue) then
                     TStrings(Cl).Text := NewValue;
                 end else if Cl.InheritsFrom(TCollection) then
                 begin
