@@ -49,11 +49,11 @@ type
   protected
     procedure Change; override;
 
-    procedure TabClosed(Tab: TMTabSheet); virtual; abstract;
+    procedure TabClosed(Tab: TMTabSheet); virtual;
 
     procedure WndProc(var Message: TMessage); override;
   public
-    procedure CloseTab;
+    procedure CloseTab(Idx: Integer);
     procedure CloseAll;
     procedure CloseAllButActive;
 
@@ -66,11 +66,13 @@ type
     FButtonWidth: Integer;
     FMaxWidth: Integer;
     Button: TMTabSheetCloseButton;
+    FShowCloseButton: Boolean;
 
     procedure SetCaptionInternal(Value: string);
     procedure FSetMaxWidth(Value: Integer);
     function FGetCaption: string;
     procedure FSetCaption(Value: string);
+    procedure FSetShowCloseButton(Value: Boolean);
 
     procedure AlignButton;
   public
@@ -78,6 +80,7 @@ type
   public
     property Caption: string read FGetCaption write FSetCaption;
     property MaxWidth: Integer read FMaxWidth write FSetMaxWidth;
+    property ShowCloseButton: Boolean read FShowCloseButton write FSetShowCloseButton;
   end;
 
   TMVirtualStringTree = class(TVirtualStringTree)
@@ -118,7 +121,7 @@ end;
 procedure TMTabSheetCloseButton.Click;
 begin
   inherited;
-  TMPageControl(Parent).CloseTab;
+  TMPageControl(Parent).CloseTab(TMTabSheet(Owner).PageIndex);
 end;
 
 procedure TMTabSheetCloseButton.Paint;
@@ -164,7 +167,7 @@ begin
   end;
 end;
 
-{ TMFilePageControl }
+{ TMPageControl }
 
 procedure TMPageControl.AlignButtons;
 var
@@ -181,12 +184,13 @@ end;
 procedure TMPageControl.Change;
 begin
   inherited;
-  TMTabSheet(ActivePage).AlignButton;
+  AlignButtons;
+  //TMTabSheet(ActivePage).AlignButton;
 end;
 
-procedure TMPageControl.CloseTab;
+procedure TMPageControl.CloseTab(Idx: Integer);
 begin
-  PostMessage(Handle, WM_USER + 124, 0, 0)
+  PostMessage(Handle, WM_USER + 124, 0, Idx)
 end;
 
 procedure TMPageControl.CloseAll;
@@ -215,6 +219,11 @@ begin
   Tab.Free;
 end;
 
+procedure TMPageControl.TabClosed(Tab: TMTabSheet);
+begin
+
+end;
+
 procedure TMPageControl.WndProc(var Message: TMessage);
 var
   i: Integer;
@@ -225,7 +234,7 @@ begin
   begin
     case Message.WParam of
       0: // Aktives schließen
-        RemoveTab(ActivePage);
+        RemoveTab(Pages[Message.LParam]);
       1: // Alle schließen
         for i := PageCount - 1 downto 0 do
           RemoveTab(Pages[i]);
@@ -245,6 +254,8 @@ procedure TMTabSheet.AlignButton;
 var
   PageControl: TPageControl;
 begin
+  if not FShowCloseButton then
+    Exit;
   PageControl := TPageControl(Owner);
   if PageControl.ActivePage = Self then
   begin
@@ -268,6 +279,7 @@ end;
 constructor TMTabSheet.Create(AOwner: TComponent);
 begin
   inherited;
+  FShowCloseButton := True;
   FButtonWidth := 12;
   FCaption := '';
   Button := TMTabSheetCloseButton.Create(Self);
@@ -301,22 +313,34 @@ begin
   SetCaptionInternal(FCaption);
 end;
 
+procedure TMTabSheet.FSetShowCloseButton(Value: Boolean);
+begin
+  FShowCloseButton := False;
+  AlignButton;
+end;
+
 procedure TMTabSheet.SetCaptionInternal(Value: string);
 var
-  s: string;
+  s, s2: string;
   minsw: Integer;
 begin
-  s := TruncateText(FCaption, FMaxWidth, PageControl.Canvas.Font);
+  if FMaxWidth > 0 then
+    s2 := TruncateText(Value, FMaxWidth, PageControl.Canvas.Font)
+  else
+    s2 := Value;
 
-  s := ' ';
-  minsw := PageControl.Canvas.TextWidth(s);
-  while minsw < FButtonWidth + 4 do
+  if FShowCloseButton then
   begin
-    s := s + ' ';
+    s := ' ';
     minsw := PageControl.Canvas.TextWidth(s);
+    while minsw < FButtonWidth + 4 do
+    begin
+      s := s + ' ';
+      minsw := PageControl.Canvas.TextWidth(s);
+    end;
   end;
 
-  inherited Caption := Trim(Value) + s;
+  inherited Caption := s2 + s;
 end;
 
 { TMStatusBar }

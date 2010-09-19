@@ -56,6 +56,7 @@ function IsAnsi(const s: string): Boolean;
 function OccurenceCount(C: Char; Str: string): Integer;
 function PatternReplace(S: string; ReplaceList: TPatternReplaceArray): string;
 function IsAdmin: LongBool;
+function HTML2Color(const HTML: string): Integer;
 
 function VerSetConditionMask(dwlConditionMask: LONGLONG; TypeBitMask: DWORD; ConditionMask: Byte): LONGLONG; stdcall;
   external 'kernel32.dll';
@@ -633,6 +634,19 @@ begin
   finally
     CloseHandle(TokenHandle);
   end;
+end;
+
+function HTML2Color(const HTML: string): Integer;
+var
+  Offset: Integer;
+begin
+  if Copy(HTML, 1, 1) = '#' then
+    Offset := 1
+  else
+    Offset := 0;
+  Result := Integer(StrToInt('$' + Copy(HTML, Offset + 1, 2))) +
+    Integer(StrToInt('$' + Copy(HTML, Offset + 3, 2))) shl 8 +
+    Integer(StrToInt('$' + Copy(HTML, Offset + 5, 2))) shl 16;
 end;
 
 end.

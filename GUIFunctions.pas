@@ -27,12 +27,32 @@ uses
 type
   TAccessCanvas = class(TCanvas);
 
+function GetTextSize(Text: string; Font: TFont): TSize;
 function TruncateText(Text: string; MaxWidth: Integer; Font: TFont): string;
 function BrowseDialog(Handle: HWnd; Title: string; Flag: Integer): string;
 procedure PropertiesDialog(Filename: string);
 function GetShellFolder(CSIDL: Integer): string;
 
 implementation
+
+function GetTextSize(Text: string; Font: TFont): TSize;
+var
+  Canvas: TAccessCanvas;
+  Size2: TSize;
+begin
+  Result.cx := 0;
+  Result.cy := 0;
+  Canvas := TAccessCanvas.Create;
+  try
+    Canvas.Handle := GetDC(GetDesktopWindow);
+    SelectObject(Canvas.Handle, Font.Handle);
+    GetTextExtentPoint32W(Canvas.Handle, Text, Length(Text), Size2);
+    Result := Size2;
+    ReleaseDC(GetDesktopWindow, Canvas.Handle);
+  finally
+    Canvas.Free;
+  end;
+end;
 
 function TruncateText(Text: string; MaxWidth: Integer; Font: TFont): string;
 var
