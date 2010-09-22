@@ -92,9 +92,16 @@ begin
                             'You should have received a copy of the GNU General Public License'#13#10 +
                             'along with this program.  If not, see <http://www.gnu.org/licenses/>.'), [AppGlobals.AppName]);;
 
+  lblHomepage.Caption := AppGlobals.ProjectHomepageLink;
   lblHelpLink.Caption := _('Help');
   lblProjectLink.Caption := _('Information, changelog and updates');
   lblForumLink.Caption := _('Report problems or request new features');
+
+  if AppGlobals.ProjectLink = '' then
+  begin
+    lblHelpLink.Top := lblProjectLink.Top;
+    lblProjectLink.Visible := False;
+  end;
 
   Icon := TIcon.Create;
   try
@@ -120,7 +127,7 @@ end;
 
 procedure TfrmAbout.lblHomepageClick(Sender: TObject);
 begin
-  ShellExecute(0, 'open', 'http://mistake.ws/', '', '', 1);
+  ShellExecute(0, 'open', PChar(AppGlobals.ProjectHomepageLink), '', '', 1);
 end;
 
 procedure TfrmAbout.lblGPLClick(Sender: TObject);
@@ -140,7 +147,7 @@ end;
 
 procedure TfrmAbout.lblForumLinkClick(Sender: TObject);
 begin
-  ShellExecute(0, 'open', 'http://mistake.ws/forum/', '', '', 1);
+  ShellExecute(0, 'open', PChar(AppGlobals.ProjectForumLink), '', '', 1);
 end;
 
 end.

@@ -65,8 +65,6 @@ type
     FAppName: string;
     FAppVersion: TAppVersion;
     FTempDir: string;
-    FProjectLink: string;
-    FProjectHelpLink: string;
     FPortableAllowed: Boolean;
     FPortable: TPortable;
     FRunningFromInstalledLocation: Boolean;
@@ -87,6 +85,12 @@ type
     function FGetInfoShown(Idx: Integer): Boolean;
   protected
     FStorage: TSettingsStorage;
+
+    FProjectHomepageLink: string;
+    FProjectLink: string;
+    FProjectHelpLink: string;
+    FProjectForumLink: string;
+
     procedure DoSave; virtual;
   public
     constructor Create(AppName: String; OnlyOne: Boolean; DefWidth, DefHeight: Integer); reintroduce;
@@ -110,8 +114,10 @@ type
     property AppName: string read FAppName;
     property AppVersion: TAppVersion read FAppVersion;
     property TempDir: string read FTempDir;
+    property ProjectHomepageLink: string read FProjectHomepageLink;
     property ProjectLink: string read FProjectLink;
     property ProjectHelpLink: string read FProjectHelpLink;
+    property PRojectForumLink: string read FProjectForumLink;
     property PortableAllowed: Boolean read FPortableAllowed;
     property Portable: TPortable read FPortable write FSetPortable;
     property RunningFromInstalledLocation: Boolean read FRunningFromInstalledLocation;
@@ -141,8 +147,10 @@ begin
   FOnlyOne := OnlyOne;
   FStorage := nil;
 
+  FProjectHomepageLink := 'http://mistake.ws/';
   FProjectLink := 'http://mistake.ws/projekte/' + LowerCase(FAppName) + '/';
   FProjectHelpLink := 'http://mistake.ws/projekte/' + LowerCase(FAppName) + '/help/';
+  FProjectForumLink := 'http://mistake.ws/forum/';
 
   InitOnlyOne;
 

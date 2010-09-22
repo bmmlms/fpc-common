@@ -187,10 +187,6 @@ object frmAbout: TfrmAbout
     object tabLicense: TTabSheet
       Caption = 'License'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 397
-      ExplicitHeight = 265
       DesignSize = (
         405
         185)
