@@ -57,6 +57,8 @@ function OccurenceCount(C: Char; Str: string): Integer;
 function PatternReplace(S: string; ReplaceList: TPatternReplaceArray): string;
 function IsAdmin: LongBool;
 function HTML2Color(const HTML: string): Integer;
+function GetFileSize(const AFilename: string): Int64;
+function CmpInt(const A, B: Int64): Integer;
 
 function VerSetConditionMask(dwlConditionMask: LONGLONG; TypeBitMask: DWORD; ConditionMask: Byte): LONGLONG; stdcall;
   external 'kernel32.dll';
@@ -647,6 +649,37 @@ begin
   Result := Integer(StrToInt('$' + Copy(HTML, Offset + 1, 2))) +
     Integer(StrToInt('$' + Copy(HTML, Offset + 3, 2))) shl 8 +
     Integer(StrToInt('$' + Copy(HTML, Offset + 5, 2))) shl 16;
+end;
+
+function GetFileSize(const AFileName: string): Int64;
+var
+  SearchRec: TSearchRec;
+  OldMode: Cardinal;
+  Size: TULargeInteger;
+begin
+  Result := -1;
+  OldMode := SetErrorMode(SEM_FAILCRITICALERRORS);
+  try
+    if FindFirst(AFileName, faAnyFile, SearchRec) = 0 then
+    begin
+      Size.LowPart := SearchRec.FindData.nFileSizeLow;
+      Size.HighPart := SearchRec.FindData.nFileSizeHigh;
+      Result := Size.QuadPart;
+      SysUtils.FindClose(SearchRec);
+    end;
+  finally
+    SetErrorMode(OldMode);
+  end;
+end;
+
+function CmpInt(const A, B: Int64): Integer;
+begin
+  if A > B then
+    Result := 1
+  else if A < B then
+    Result := -1
+  else
+    Result := 0;
 end;
 
 end.

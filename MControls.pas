@@ -43,6 +43,7 @@ type
   TMPageControl = class(TPageControl)
   private
     FMaxTabWidth: Integer;
+    FLastTab: TMTabSheet;
     procedure AlignButtons;
     procedure RemoveTab(Tab: TTabSheet);
     procedure FSetMaxTabWidth(Value: Integer);
@@ -183,9 +184,12 @@ end;
 
 procedure TMPageControl.Change;
 begin
+  FLastTab := TMTabSheet(Pages[ActivePageIndex]);
+
   inherited;
+
   AlignButtons;
-  //TMTabSheet(ActivePage).AlignButton;
+  // TODO: Tab schließen ist komisch. er springt hier und auch im MP3Freund *immer* auf das ganz links zurück. doof. fixen.
 end;
 
 procedure TMPageControl.CloseTab(Idx: Integer);
@@ -216,6 +220,8 @@ procedure TMPageControl.RemoveTab(Tab: TTabSheet);
 begin
   Tab.Parent := nil;
   TabClosed(TMTabSheet(Tab));
+  if Tab = FLastTab then
+    FLastTab := nil;
   Tab.Free;
 end;
 
@@ -234,7 +240,18 @@ begin
   begin
     case Message.WParam of
       0: // Aktives schließen
-        RemoveTab(Pages[Message.LParam]);
+        begin
+          RemoveTab(Pages[Message.LParam]);
+          if FLastTab <> nil then
+          begin
+            {
+            if FLastTab.PageIndex < Message.LParam then
+              ActivePageIndex := FLastTab.PageIndex
+            else
+              ActivePageIndex := FLastTab.PageIndex - 1;
+            }
+          end;
+        end;
       1: // Alle schließen
         for i := PageCount - 1 downto 0 do
           RemoveTab(Pages[i]);
