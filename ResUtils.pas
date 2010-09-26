@@ -271,8 +271,9 @@ var
   ResData: TResData;
 begin
   Stream := TMemoryStream.Create;
-  Stream.LoadFromFile(Filename);
   try
+    Stream.LoadFromFile(Filename);
+
     i := 0;
     while Stream.Position + 2 * SizeOf(DWORD) < Stream.Size do
     begin

@@ -285,17 +285,11 @@ begin
   FAction := Action;
   if Action = uaVersion then
   begin
-    {$IFDEF DEBUG}
     if FLanguage <> '' then
-      URL := 'http://mistake.gaia/' + Trim(FLanguage) + '/projekte/update/' + LowerCase(AppGlobals.AppName) + '/'
+      URL := AppGlobals.ProjectUpdateLink + Trim(FLanguage) + '/projekte/update/' + LowerCase(AppGlobals.AppName) + '/'
     else
-      URL := 'http://mistake.gaia/en/projekte/update/' + LowerCase(AppGlobals.AppName) + '/';
-    {$ELSE}
-    if FLanguage <> '' then
-      URL := 'http://mistake.ws/' + Trim(FLanguage) + '/projekte/update/' + LowerCase(AppGlobals.AppName) + '/'
-    else
-      URL := 'http://mistake.ws/en/projekte/update/' + LowerCase(AppGlobals.AppName) + '/';
-    {$ENDIF}
+      URL := AppGlobals.ProjectUpdateLink + 'en/projekte/update/' + LowerCase(AppGlobals.AppName) + '/';
+
     FThread := TUpdateThread.Create(Action, URL)
   end else
     FThread := TUpdateThread.Create(Action, FUpdateURL);

@@ -43,10 +43,14 @@ type
   TMPageControl = class(TPageControl)
   private
     FMaxTabWidth: Integer;
-    FLastTab: TMTabSheet;
+    FLastTab: TTabSheet;
+
     procedure AlignButtons;
     procedure RemoveTab(Tab: TTabSheet);
     procedure FSetMaxTabWidth(Value: Integer);
+
+    procedure FSetActivePage(Value: TTabSheet);
+    function FGetActivePage: TTabSheet;
   protected
     procedure Change; override;
 
@@ -59,6 +63,7 @@ type
     procedure CloseAllButActive;
 
     property MaxTabWidth: Integer read FMaxTabWidth write FSetMaxTabWidth;
+    property ActivePage: TTabSheet read FGetActivePage write FSetActivePage;
   end;
 
   TMTabSheet = class(TTabSheet)
@@ -189,7 +194,6 @@ begin
   inherited;
 
   AlignButtons;
-  // TODO: Tab schließen ist komisch. er springt hier und auch im MP3Freund *immer* auf das ganz links zurück. doof. fixen.
 end;
 
 procedure TMPageControl.CloseTab(Idx: Integer);
@@ -216,13 +220,71 @@ begin
     TMTabSheet(Pages[i]).MaxWidth := Value;
 end;
 
-procedure TMPageControl.RemoveTab(Tab: TTabSheet);
+function TMPageControl.FGetActivePage: TTabSheet;
 begin
+  Result := inherited ActivePage;
+end;
+
+procedure TMPageControl.FSetActivePage(Value: TTabSheet);
+begin
+  //if FLastTab <> inherited ActivePage then
+  //  FLastTab := inherited ActivePage;
+  inherited ActivePage := Value;
+end;
+
+procedure TMPageControl.RemoveTab(Tab: TTabSheet);
+var
+  t: TTabSheet;
+  i: integer;
+  sp: boolean;
+  sl: boolean;
+  new: ttabsheet;
+begin
+  sp := FLastTab = ActivePage;
+  sl := ActivePage.PageIndex = PageCount - 1;
+
+  {
+  new := nil;
+  if Tab = ActivePage then
+  begin
+    if (FLastTab <> nil) and (FLastTab.pageindex < pagecount - 1) then
+    begin
+      new := FLastTab;
+    end else
+      if pagecount > 1 then
+        new := Pages[PageCount - 2];
+  end else
+    new := ActivePage;
+  }
+
+  New := nil;
+  if Tab = ActivePage then
+  begin
+    if ActivePage.PageIndex > 0 then
+      New := Pages[ActivePage.PageIndex - 1];
+  end;
+
   Tab.Parent := nil;
   TabClosed(TMTabSheet(Tab));
   if Tab = FLastTab then
     FLastTab := nil;
   Tab.Free;
+
+  if new <> nil then
+    ActivePage := new
+  else
+    ActivePageIndex := 0;
+
+  {
+  if PageCount = 0 then
+  begin
+    FLastTab := nil;
+  end else
+    if new <> nil then
+      ActivePage := new
+    else
+      ActivePageIndex := 0;
+  }
 end;
 
 procedure TMPageControl.TabClosed(Tab: TMTabSheet);

@@ -86,6 +86,7 @@ type
   protected
     FStorage: TSettingsStorage;
 
+    FProjectUpdateLink: string;
     FProjectHomepageLink: string;
     FProjectLink: string;
     FProjectHelpLink: string;
@@ -114,6 +115,7 @@ type
     property AppName: string read FAppName;
     property AppVersion: TAppVersion read FAppVersion;
     property TempDir: string read FTempDir;
+    property ProjectUpdateLink: string read FProjectUpdateLink;
     property ProjectHomepageLink: string read FProjectHomepageLink;
     property ProjectLink: string read FProjectLink;
     property ProjectHelpLink: string read FProjectHelpLink;
@@ -147,6 +149,11 @@ begin
   FOnlyOne := OnlyOne;
   FStorage := nil;
 
+  {$IFDEF DEBUG}
+  FProjectUpdateLink := 'http://mistake.gaia/';
+  {$ELSE}
+  FProjectUpdateLink := 'http://mistake.ws/';
+  {$ENDIF}
   FProjectHomepageLink := 'http://mistake.ws/';
   FProjectLink := 'http://mistake.ws/projekte/' + LowerCase(FAppName) + '/';
   FProjectHelpLink := 'http://mistake.ws/projekte/' + LowerCase(FAppName) + '/help/';
@@ -422,8 +429,6 @@ procedure TAppDataBase.GetPortableAllowed;
 var
   Dir, Filename: string;
   S: TMemoryStream;
-  Old: LongBool;
-  Ret: Boolean;
   //RmDirectory: Boolean;
 begin
   //RmDirectory := False;

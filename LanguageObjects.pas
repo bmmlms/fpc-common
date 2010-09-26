@@ -30,6 +30,7 @@ uses
   Windows, SysUtils, Classes, StrUtils, TypInfo;
 
 type
+  TOccurence = class;
   TEntry = class;
   TProject = class;
 
@@ -53,6 +54,18 @@ type
     constructor Create(Language: TLanguage; Translation: string);
     property Language: TLanguage read FLanguage;
     property Translation: string read FTranslation write FTranslation;
+  end;
+
+  TOccurenceList = class(TList)
+  private
+    function Get2(Index: Integer): TOccurence;
+    procedure Put2(Index: Integer; Item: TOccurence);
+  public
+    function GetText: string;
+    procedure Clear; override;
+    function ContainsFile(Filename: string): Boolean;
+    function ContainsFileFrom(Files: TStringList): Boolean;
+    property Items[Index: Integer]: TOccurence read Get2 write Put2; default;
   end;
 
   TEntryList = class(TList)
@@ -104,6 +117,8 @@ type
     FFilename: string;
     FChanged: Boolean;
 
+    FIgnoreStrings: TStringList;
+    FIgnoreFiles: TStringList;
     FImportDir: string;
     FImportOpts: Integer;
 
@@ -125,16 +140,33 @@ type
     property Filename: string read FFilename write FFilename;
     property Changed: Boolean read FChanged write FSetChanged;
 
+    property IgnoreStrings: TStringList read FIgnoreStrings;
+    property IgnoreFiles: TStringList read FIgnoreFiles;
     property ImportDir: string read FImportDir write FImportDir;
     property ImportOpts: Integer read FImportOpts write FImportOpts;
 
     property OnChanged: TNotifyEvent read FOnChanged write FOnChanged;
   end;
 
+  TOccurence = class
+  private
+    FFilename: string;
+    FLine: Cardinal;
+    FComponent: string;
+  public
+    constructor Create(Filename: string; Line: Cardinal; Component: string); overload;
+    constructor Create(Line: string); overload;
+    property Filename: string read FFilename;
+    property Line: Cardinal read FLine;
+    property Component: string read FComponent;
+    function GetString: string;
+    function Clone: TOccurence;
+  end;
+
   TEntry = class
   private
     FProject: TProject;
-    FOccurences: TStringList;
+    FOccurences: TOccurenceList;
     FHash: Cardinal;
     FName: string;
     FTranslations: TTranslationList;
@@ -144,11 +176,11 @@ type
     constructor Create(Name: string; Project: TProject); overload;
     constructor Create(FromEntry: TEntry; Project: TProject); overload;
     constructor Create(FromEntry: TEntry; Languages: TLanguageList; Project: TProject); overload;
-    constructor Create(Name, Occurence: string; Project: TProject); overload;
+    constructor Create(Name, OccurenceLine: string; Project: TProject); overload;
     destructor Destroy; override;
     procedure UpdateFrom(Entry: TEntry);
     procedure SetOccurences(FromEntry: TEntry);
-    property Occurences: TStringList read FOccurences;
+    property Occurences: TOccurenceList read FOccurences;
     property Hash: Cardinal read FHash;
     property Name: string read FName write FName;
     property Translations: TTranslationList read FTranslations;
@@ -263,7 +295,7 @@ begin
   Create(FromEntry.Name, Project);
   if FromEntry.Occurences <> nil then
     for i := 0 to FromEntry.Occurences.Count - 1 do
-      FOccurences.Add(FromEntry.Occurences[i]);
+      FOccurences.Add(FromEntry.Occurences[i].Clone);
   for i := 0 to FromEntry.Translations.Count - 1 do
     FTranslations.Add(TTranslation.Create(FromEntry.FTranslations[i].Language, FromEntry.FTranslations[i].Translation));
 end;
@@ -275,15 +307,15 @@ begin
   Create(FromEntry.Name, Project);
   if FromEntry.Occurences <> nil then
     for i := 0 to FromEntry.Occurences.Count - 1 do
-      FOccurences.Add(FromEntry.Occurences[i]);
+      FOccurences.Add(FromEntry.Occurences[i].Clone);
   for i := 0 to Languages.Count - 1 do
     FTranslations.Add(TTranslation.Create(Languages[i], ''));
 end;
 
-constructor TEntry.Create(Name, Occurence: string; Project: TProject);
+constructor TEntry.Create(Name, OccurenceLine: string; Project: TProject);
 begin
   Create(Name, Project);
-  Occurences.Add(Occurence);
+  Occurences.Add(TOccurence.Create(OccurenceLine));
 end;
 
 constructor TEntry.Create(Name: string; Project: TProject);
@@ -291,7 +323,7 @@ begin
   FProject := Project;
   FName := Name;
   FHash := HashString(Name);
-  FOccurences := TStringList.Create;
+  FOccurences := TOccurenceList.Create;
   FTranslations := TTranslationList.Create;
 end;
 
@@ -332,7 +364,7 @@ var
 begin
   FOccurences.Clear;
   for i := 0 to FromEntry.Occurences.Count - 1 do
-    FOccurences.Add(FromEntry.Occurences[i]);
+    FOccurences.Add(FromEntry.Occurences[i].Clone);
 end;
 
 procedure TEntry.UpdateFrom(Entry: TEntry);
@@ -350,6 +382,9 @@ begin
   FName := Name;
   FFileType := ftUnknown;
   FChanged := False;
+  FIgnoreStrings := TStringList.Create;
+  FIgnoreStrings.CaseSensitive := True;
+  FIgnoreFiles := TStringList.Create;
   FImportDir := '';
   FImportOpts := 0;
   FLanguages := TLanguageList.Create;
@@ -380,15 +415,17 @@ constructor TProject.Create(Stream: TCustomMemoryStream);
     Result := StringReplace(Result, '\n', #10, [rfReplaceAll]);
   end;
 type
-  TFileSections = (fsNone, fsSettings, fsOptions, fsLanguages, fsEntries);
+  TFileSections = (fsNone, fsSettings, fsOptions, fsIgnoreStrings,
+    fsIgnoreFiles, fsLanguages, fsEntries);
 var
   Section: TFileSections;
   i, LastNL, NL: Integer;
   PriLang, LangID, Line: string;
-  Entry: TEntry;
   n: Integer;
   j: Integer;
   LangFound: Boolean;
+  Entry: TEntry;
+  Occurence: TOccurence;
 begin
   FChanged := False;
   FImportDir := '';
@@ -399,6 +436,9 @@ begin
   PriLang := '';
   FPrimaryLanguage := nil;
   Section := fsNone;
+  FIgnoreStrings := TStringList.Create;
+  FIgnoreStrings.CaseSensitive := True;
+  FIgnoreFiles := TStringList.Create;
   FEntries := TEntryList.Create;
   FLanguages := TLanguageList.Create;
   Entry := nil;
@@ -429,6 +469,16 @@ begin
         Section := fsOptions;
         Continue;
       end;
+      if LowerCase(Line) = '[ignorestrings]' then
+      begin
+        Section := fsIgnoreStrings;
+        Continue;
+      end;
+      if LowerCase(Line) = '[ignorefiles]' then
+      begin
+        Section := fsIgnoreFiles;
+        Continue;
+      end;
       if LowerCase(Line) = '[languages]' then
       begin
         Section := fsLanguages;
@@ -455,6 +505,18 @@ begin
               FImportDir := Copy(Line, 11, Length(Line) - 9);
             if LowerCase(Copy(Line, 1, 11)) = 'importopts=' then
               FImportOpts := StrToIntDef(Copy(Line, 12, 1), 0);
+          end;
+        fsIgnoreStrings:
+          begin
+            if LowerCase(Copy(Line, 1, 5)) = 'name=' then
+              if Trim(Copy(Line, 6, Length(Line) - 5)) <> '' then
+                FIgnoreStrings.Add(GetSafe(Copy(Line, 6, Length(Line) - 5)));
+          end;
+        fsIgnoreFiles:
+          begin
+            if LowerCase(Copy(Line, 1, 5)) = 'name=' then
+              if Trim(Copy(Line, 6, Length(Line) - 5)) <> '' then
+                FIgnoreFiles.Add(LowerCase(Copy(Line, 6, Length(Line) - 5)));
           end;
         fsLanguages:
           begin
@@ -491,7 +553,11 @@ begin
             begin
               if Entry <> nil then
               begin
-                Entry.Occurences.Add(Copy(Line, 11, Length(Line) - 10));
+                try
+                  Occurence := TOccurence.Create(Copy(Line, 11, Length(Line) - 10));
+                  Entry.Occurences.Add(Occurence);
+                except
+                end;
               end;
             end else if LowerCase(Copy(Line, 1, 5)) = 'text_' then
             begin
@@ -565,6 +631,8 @@ begin
       TEntry(FEntries[i]).Free;
     FEntries.Free;
   end;
+  FIgnoreStrings.Free;
+  FIgnoreFiles.Free;
   inherited;
 end;
 
@@ -646,6 +714,22 @@ begin
       WriteToStream('importdir=' + FImportDir, Stream);
     WriteToStream('importopts=' + IntToStr(FImportOpts), Stream);
     WriteToStream('', Stream);
+
+    if FIgnoreStrings.Count > 0 then
+    begin
+      WriteToStream('[ignorestrings]', Stream);
+      for i := 0 to FIgnoreStrings.Count - 1 do
+        WriteToStream('name=' + MakeSafe(FIgnoreStrings[i]), Stream);
+      WriteToStream('', Stream);
+    end;
+
+    if FIgnoreFiles.Count > 0 then
+    begin
+      WriteToStream('[ignorefiles]', Stream);
+      for i := 0 to FIgnoreFiles.Count - 1 do
+        WriteToStream('name=' + FIgnoreFiles[i], Stream);
+      WriteToStream('', Stream);
+    end;
   end;
 
   WriteToStream('[languages]', Stream);
@@ -664,7 +748,7 @@ begin
     WriteToStream('text_id=' + MakeSafe(FEntries[i].Name), Stream);
     if SaveMeta then
       for n := 0 to FEntries[i].Occurences.Count - 1 do
-        WriteToStream('occurence=' + FEntries[i].Occurences[n], Stream);
+        WriteToStream('occurence=' + FEntries[i].Occurences[n].GetString, Stream);
     for n := 0 to FEntries[i].Translations.Count - 1 do
     begin
       WriteToStream('text_' + FEntries[i].Translations[n].FLanguage.ID + '=' + MakeSafe(FEntries[i].Translations[n].FTranslation), Stream);
@@ -673,6 +757,69 @@ begin
   end;
 
   FChanged := False;
+end;
+
+{ TOccurenceList }
+
+procedure TOccurenceList.Clear;
+var
+  i: Integer;
+begin
+  for i := 0 to Count - 1 do
+    Items[i].Free;
+  inherited;
+end;
+
+function TOccurenceList.ContainsFile(Filename: string): Boolean;
+var
+  n: Integer;
+begin
+  Result := False;
+  for n := 0 to Count - 1 do
+    if LowerCase(Items[n].FFilename) = LowerCase(Filename) then
+    begin
+      Result := True;
+      Exit;
+    end;
+end;
+
+function TOccurenceList.ContainsFileFrom(Files: TStringList): Boolean;
+var
+  i, n: Integer;
+begin
+  Result := False;
+  for i := 0 to Files.Count - 1 do
+    for n := 0 to Count - 1 do
+      if LowerCase(Items[n].FFilename) = LowerCase(Files[i]) then
+      begin
+        Result := True;
+        Exit;
+      end;
+end;
+
+function TOccurenceList.Get2(Index: Integer): TOccurence;
+begin
+  Result := TOccurence(inherited Get(Index));
+end;
+
+function TOccurenceList.GetText: string;
+var
+  i: Integer;
+begin
+  Result := '';
+  for i := 0 to Count - 1 do
+  begin
+    Result := Result + Items[i].Filename + ':' + IntToStr(Items[i].Line);
+    if Items[i].Component <> '' then
+      Result := Result + ':' + Items[i].Component;
+    Result := Result + #13#10;
+  end;
+  Result := Trim(Result);
+end;
+
+procedure TOccurenceList.Put2(Index: Integer; Item: TOccurence);
+begin
+  inherited Put(Index, Item);
 end;
 
 { TEntryList }
@@ -1319,6 +1466,48 @@ begin
   FProp := Prop;
   FOriginalText := OriginalText;
   FTranslatedText := TranslatedText;
+end;
+
+{ TOccurence }
+
+constructor TOccurence.Create(Filename: string; Line: Cardinal;
+  Component: string);
+begin
+  inherited Create;
+
+  FFilename := Filename;
+  FLine := Line;
+  FComponent := Component;
+end;
+
+function TOccurence.Clone: TOccurence;
+begin
+  Result := TOccurence.Create(FFilename, FLine, FComponent);
+end;
+
+constructor TOccurence.Create(Line: string);
+var
+  S: TStringList;
+begin
+  S := TStringList.Create;
+  try
+    S.Delimiter := ':';
+    S.DelimitedText := Line;
+
+    if S.Count = 2 then
+      Create(S[0], StrToInt(S[1]), '')
+    else if S.Count = 3 then
+      Create(S[0], StrToInt(S[1]), S[2]);
+  finally
+    S.Free;
+  end;
+end;
+
+function TOccurence.GetString: string;
+begin
+  Result := FFilename + ':' + IntToStr(FLine);
+  if FComponent <> '' then
+    Result := Result + ':' + FComponent;
 end;
 
 initialization
