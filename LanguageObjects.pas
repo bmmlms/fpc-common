@@ -516,7 +516,7 @@ begin
           begin
             if LowerCase(Copy(Line, 1, 5)) = 'name=' then
               if Trim(Copy(Line, 6, Length(Line) - 5)) <> '' then
-                FIgnoreFiles.Add(LowerCase(Copy(Line, 6, Length(Line) - 5)));
+                FIgnoreFiles.Add(Copy(Line, 6, Length(Line) - 5));
           end;
         fsLanguages:
           begin
