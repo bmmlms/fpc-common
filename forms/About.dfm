@@ -215,7 +215,6 @@ object frmAbout: TfrmAbout
         ReadOnly = True
         ScrollBars = ssVertical
         TabOrder = 0
-        ExplicitHeight = 207
       end
     end
   end

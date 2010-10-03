@@ -65,6 +65,7 @@ type
     FOnDownloadProgress: TNotifyEvent;
     FOnUpdateDownloaded: TNotifyEvent;
     FOnError: TNotifyEvent;
+    function FGetActive: Boolean;
 
     procedure ThreadVersionFound(Sender: TObject);
     procedure ThreadDownloadPercentProgress(Sender: TObject);
@@ -78,6 +79,7 @@ type
     procedure Start(Action: TUpdateAction);
     procedure RunUpdate(Handle: Cardinal = 0);
     procedure SetVersion(Data: string);
+    procedure Kill;
 
     property Action: TUpdateAction read FAction;
     property UpdateLength: Integer read FUpdateLength;
@@ -88,6 +90,7 @@ type
     property Language: string read FLanguage write FLanguage;
     property ChangeLog: string read FChangeLog;
 
+    property Active: Boolean read FGetActive;
     property OnUpdateFound: TNotifyEvent read FOnUpdateFound write FOnUpdateFound;
     property OnNoUpdateFound: TNotifyEvent read FOnNoUpdateFound write FOnNoUpdateFound;
     property OnDownloadProgress: TNotifyEvent read FOnDownloadProgress write FOnDownloadProgress;
@@ -210,6 +213,24 @@ begin
   inherited;
 end;
 
+function TUpdateClient.FGetActive: Boolean;
+begin
+  Result := FThread <> nil;
+end;
+
+procedure TUpdateClient.Kill;
+begin
+  if FThread <> nil then
+  begin
+    try
+      TerminateThread(FThread.Handle, 1);
+      FThread.Free;
+    except
+    end;
+    FThread := nil;
+  end;
+end;
+
 procedure TUpdateClient.RunUpdate(Handle: Cardinal);
 var
   osvi: _OSVERSIONINFOW;
@@ -231,7 +252,6 @@ begin
   ConditionMask := VerSetConditionMask(ConditionMask, VER_MINORVERSION, op);
 
   // Bei >= Vista gehts über das Manifest, ansonsten 'runas'...
-
   if IsAdmin then
     RunProcess('"' + FUpdateFile + '" /NOICONS /SP /SILENT /UPDATE /RUN /PATH="' + AppGlobals.AppPath + '"')
   else

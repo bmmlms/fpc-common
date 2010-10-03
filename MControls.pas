@@ -198,17 +198,17 @@ end;
 
 procedure TMPageControl.CloseTab(Idx: Integer);
 begin
-  PostMessage(Handle, WM_USER + 124, 0, Idx)
+  PostMessage(Handle, WM_USER + 1245, 0, Idx)
 end;
 
 procedure TMPageControl.CloseAll;
 begin
-  PostMessage(Handle, WM_USER + 124, 1, 0)
+  PostMessage(Handle, WM_USER + 1245, 1, 0)
 end;
 
 procedure TMPageControl.CloseAllButActive;
 begin
-  PostMessage(Handle, WM_USER + 124, 2, 0);
+  PostMessage(Handle, WM_USER + 1245, 2, 0);
 end;
 
 procedure TMPageControl.FSetMaxTabWidth(Value: Integer);
@@ -234,14 +234,14 @@ end;
 
 procedure TMPageControl.RemoveTab(Tab: TTabSheet);
 var
-  t: TTabSheet;
-  i: integer;
-  sp: boolean;
-  sl: boolean;
+  //t: TTabSheet;
+  //i: integer;
+  //sp: boolean;
+  //sl: boolean;
   new: ttabsheet;
 begin
-  sp := FLastTab = ActivePage;
-  sl := ActivePage.PageIndex = PageCount - 1;
+  //sp := FLastTab = ActivePage;
+  //sl := ActivePage.PageIndex = PageCount - 1;
 
   {
   new := nil;
@@ -298,7 +298,7 @@ var
 begin
   if Message.Msg = WM_PAINT then
     AlignButtons;
-  if Message.Msg = WM_USER + 124 then
+  if Message.Msg = WM_USER + 1245 then
   begin
     case Message.WParam of
       0: // Aktives schlieﬂen

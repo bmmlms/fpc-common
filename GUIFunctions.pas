@@ -32,7 +32,7 @@ function TruncateText(Text: string; MaxWidth: Integer; Font: TFont): string;
 function BrowseDialog(Handle: HWnd; Title: string; Flag: Integer): string;
 procedure PropertiesDialog(Filename: string);
 function GetShellFolder(CSIDL: Integer): string;
-function Recycle(Filename: string): Boolean; overload;
+function Recycle(Handle: Cardinal; Filename: string): Boolean; overload;
 
 implementation
 
@@ -164,16 +164,13 @@ begin
   end;
 end;
 
-function Recycle(Filename: string): Boolean;
+function Recycle(Handle: Cardinal; Filename: string): Boolean;
 var
   Operation: TSHFileOpStruct;
-  Res, i: integer;
-  s: string;
 begin
-  Result := False;
   with Operation do
   begin
-    Wnd := 0;
+    Wnd := Handle;
     wFunc := FO_DELETE;
     pFrom := PChar(Filename + #0#0#0#0);
     pTo := nil;

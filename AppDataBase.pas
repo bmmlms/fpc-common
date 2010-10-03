@@ -324,7 +324,7 @@ begin
     if GetLastError = ERROR_ALREADY_EXISTS then
     begin
       Handle := ReadHandle;
-      PostMessage(Handle, WM_USER + 123, 0, 0);
+      PostMessage(Handle, WM_USER + 1234, 0, 0);
       Halt;
     end else
     begin
