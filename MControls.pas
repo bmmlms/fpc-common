@@ -43,7 +43,6 @@ type
   TMPageControl = class(TPageControl)
   private
     FMaxTabWidth: Integer;
-    FLastTab: TTabSheet;
 
     procedure AlignButtons;
     procedure RemoveTab(Tab: TTabSheet);
@@ -189,7 +188,7 @@ end;
 
 procedure TMPageControl.Change;
 begin
-  FLastTab := TMTabSheet(Pages[ActivePageIndex]);
+  // FLastTab := TMTabSheet(Pages[ActivePageIndex]);
 
   inherited;
 
@@ -227,64 +226,39 @@ end;
 
 procedure TMPageControl.FSetActivePage(Value: TTabSheet);
 begin
-  //if FLastTab <> inherited ActivePage then
-  //  FLastTab := inherited ActivePage;
   inherited ActivePage := Value;
 end;
 
 procedure TMPageControl.RemoveTab(Tab: TTabSheet);
 var
-  //t: TTabSheet;
-  //i: integer;
-  //sp: boolean;
-  //sl: boolean;
-  new: ttabsheet;
+  Idx: Integer;
 begin
-  //sp := FLastTab = ActivePage;
-  //sl := ActivePage.PageIndex = PageCount - 1;
+  Idx := -1;
 
-  {
-  new := nil;
   if Tab = ActivePage then
   begin
-    if (FLastTab <> nil) and (FLastTab.pageindex < pagecount - 1) then
-    begin
-      new := FLastTab;
-    end else
-      if pagecount > 1 then
-        new := Pages[PageCount - 2];
+    if PageCount - 1 > ActivePageIndex then
+      Idx := ActivePageIndex
+    else
+      Idx := ActivePageIndex - 1;
   end else
-    new := ActivePage;
-  }
-
-  New := nil;
-  if Tab = ActivePage then
   begin
-    if ActivePage.PageIndex > 0 then
-      New := Pages[ActivePage.PageIndex - 1];
+    if Tab.PageIndex <= ActivePageIndex then
+      Idx := ActivePageIndex - 1
+    else
+      Idx := ActivePageIndex;
   end;
+
+  if Idx < 0 then
+    Idx := 0;
+  if PageCount = 0 then
+    Idx := -1;
 
   Tab.Parent := nil;
   TabClosed(TMTabSheet(Tab));
-  if Tab = FLastTab then
-    FLastTab := nil;
   Tab.Free;
 
-  if new <> nil then
-    ActivePage := new
-  else
-    ActivePageIndex := 0;
-
-  {
-  if PageCount = 0 then
-  begin
-    FLastTab := nil;
-  end else
-    if new <> nil then
-      ActivePage := new
-    else
-      ActivePageIndex := 0;
-  }
+  ActivePageIndex := Idx;
 end;
 
 procedure TMPageControl.TabClosed(Tab: TMTabSheet);
@@ -304,15 +278,6 @@ begin
       0: // Aktives schlieﬂen
         begin
           RemoveTab(Pages[Message.LParam]);
-          if FLastTab <> nil then
-          begin
-            {
-            if FLastTab.PageIndex < Message.LParam then
-              ActivePageIndex := FLastTab.PageIndex
-            else
-              ActivePageIndex := FLastTab.PageIndex - 1;
-            }
-          end;
         end;
       1: // Alle schlieﬂen
         for i := PageCount - 1 downto 0 do
