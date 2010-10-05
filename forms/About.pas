@@ -24,7 +24,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, LanguageObjects, StdCtrls, AppData, ExtCtrls, ShellAPI, ComCtrls,
-  Buttons;
+  Buttons, GIFImg, pngimage;
 
 type
   TfrmAbout = class(TForm)
@@ -44,6 +44,8 @@ type
     lblVersion: TLabel;
     lblCopyright: TLabel;
     lblHomepage: TLabel;
+    btnDonateDe: TImage;
+    btnDonateEn: TImage;
     procedure lblProjectLinkClick(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
@@ -52,6 +54,7 @@ type
     procedure lblForumLinkClick(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);
     procedure lblHomepageClick(Sender: TObject);
+    procedure btnDonateClick(Sender: TObject);
   private
   public
     constructor Create(AOwner: TComponent; Caption: string); reintroduce;
@@ -64,6 +67,11 @@ implementation
 procedure TfrmAbout.btnCloseClick(Sender: TObject);
 begin
   Close;
+end;
+
+procedure TfrmAbout.btnDonateClick(Sender: TObject);
+begin
+  ShellExecute(0, 'open', PChar(AppGlobals.ProjectDonateLink), '', '', 1);
 end;
 
 constructor TfrmAbout.Create(AOwner: TComponent; Caption: string);
@@ -110,6 +118,14 @@ begin
     imgLogo.Left := tabAbout.ClientWidth - imgLogo.Width - lblVersion.Left;
   finally
     Icon.Free;
+  end;
+
+  if AppGlobals.ProjectDonateLink <> '' then
+  begin
+    if Language.CurrentLanguage.ID = 'de' then
+      btnDonateDe.Visible := True
+    else
+      btnDonateEn.Visible := True;
   end;
 
   pagAbout.ActivePageIndex := 0;

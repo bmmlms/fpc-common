@@ -91,6 +91,7 @@ type
     FProjectLink: string;
     FProjectHelpLink: string;
     FProjectForumLink: string;
+    FProjectDonateLink: string;
 
     procedure DoSave; virtual;
   public
@@ -119,7 +120,8 @@ type
     property ProjectHomepageLink: string read FProjectHomepageLink;
     property ProjectLink: string read FProjectLink;
     property ProjectHelpLink: string read FProjectHelpLink;
-    property PRojectForumLink: string read FProjectForumLink;
+    property ProjectForumLink: string read FProjectForumLink;
+    property ProjectDonateLink: string read FProjectDonateLink;
     property PortableAllowed: Boolean read FPortableAllowed;
     property Portable: TPortable read FPortable write FSetPortable;
     property RunningFromInstalledLocation: Boolean read FRunningFromInstalledLocation;
@@ -158,6 +160,7 @@ begin
   FProjectLink := 'http://mistake.ws/projekte/' + LowerCase(FAppName) + '/';
   FProjectHelpLink := 'http://mistake.ws/projekte/' + LowerCase(FAppName) + '/help/';
   FProjectForumLink := 'http://mistake.ws/forum/';
+  FProjectDonateLink := '';
 
   InitOnlyOne;
 

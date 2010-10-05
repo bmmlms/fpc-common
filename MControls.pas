@@ -233,8 +233,6 @@ procedure TMPageControl.RemoveTab(Tab: TTabSheet);
 var
   Idx: Integer;
 begin
-  Idx := -1;
-
   if Tab = ActivePage then
   begin
     if PageCount - 1 > ActivePageIndex then
