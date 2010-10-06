@@ -24,9 +24,26 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, LanguageObjects, StdCtrls, AppData, ExtCtrls, ShellAPI, ComCtrls,
-  Buttons, GIFImg, pngimage;
+  Buttons, pngimage, AppDataBase;
 
 type
+  TScrollText = class(TGraphicControl)
+  private
+    FOffset, FTextHeight: Integer;
+    FText: TStringList;
+    FTimer: TTimer;
+    FBMP: TBitmap;
+
+    procedure TimerOnTimer(Sender: TObject);
+  protected
+    procedure Paint; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
+    procedure Start;
+  end;
+
   TfrmAbout = class(TForm)
     pagAbout: TPageControl;
     tabAbout: TTabSheet;
@@ -46,6 +63,7 @@ type
     lblHomepage: TLabel;
     btnDonateDe: TImage;
     btnDonateEn: TImage;
+    tabThanks: TTabSheet;
     procedure lblProjectLinkClick(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
@@ -55,7 +73,9 @@ type
     procedure btnCloseClick(Sender: TObject);
     procedure lblHomepageClick(Sender: TObject);
     procedure btnDonateClick(Sender: TObject);
+    procedure pagAboutChange(Sender: TObject);
   private
+    FScrollText: TScrollText;
   public
     constructor Create(AOwner: TComponent; Caption: string); reintroduce;
   end;
@@ -128,6 +148,18 @@ begin
       btnDonateEn.Visible := True;
   end;
 
+  if AppGlobals.ProjectThanksText <> '' then
+  begin
+    FScrollText := TScrollText.Create(Self);
+    FScrollText.Parent := tabThanks;
+    FScrollText.Align := alClient;
+    FScrollText.Text := AppGlobals.ProjectThanksText;
+  end else
+    tabThanks.PageControl := nil;
+
+  // TODO: Das muss hier weg.
+  tabThanks.PageControl := nil;
+
   pagAbout.ActivePageIndex := 0;
 end;
 
@@ -156,6 +188,14 @@ begin
   ShellExecute(0, 'open', PChar(AppGlobals.ProjectLink), '', '', 1);
 end;
 
+procedure TfrmAbout.pagAboutChange(Sender: TObject);
+begin
+  if pagAbout.ActivePage = tabThanks then
+  begin
+    FScrollText.Start;
+  end;
+end;
+
 procedure TfrmAbout.lblHelpLinkClick(Sender: TObject);
 begin
   ShellExecute(0, 'open', PChar(AppGlobals.ProjectHelpLink), '', '', 1);
@@ -164,6 +204,99 @@ end;
 procedure TfrmAbout.lblForumLinkClick(Sender: TObject);
 begin
   ShellExecute(0, 'open', PChar(AppGlobals.ProjectForumLink), '', '', 1);
+end;
+
+{ TScrollText }
+
+constructor TScrollText.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  FOffset := MaxInt;
+  FTextHeight := 0;
+
+  FText := TStringList.Create;
+  FBMP := TBitmap.Create;
+
+  FTimer := TTimer.Create(Self);
+  FTimer.Enabled := False;
+  FTimer.OnTimer := TimerOnTimer;
+end;
+
+destructor TScrollText.Destroy;
+begin
+  FText.Free;
+  FBMP.Free;
+  inherited;
+end;
+
+procedure TScrollText.Paint;
+begin
+  inherited;
+
+  if not FTimer.Enabled then
+  begin
+    AppGlobals.BuildThanksText;
+    FText.Text := AppGlobals.ProjectThanksText;
+
+    TimerOnTimer(FTimer);
+    FTimer.Interval := 45;
+    FTimer.Enabled := True;
+  end;
+end;
+
+procedure TScrollText.Start;
+begin
+
+end;
+
+procedure TScrollText.TimerOnTimer(Sender: TObject);
+var
+  R: TRect;
+  L, H: Integer;
+  i: Integer;
+  Line: string;
+begin
+  if (FOffset = MaxInt) or (FOffset <= 0 - FTextHeight - 50) then
+    FOffset := ClientHeight;
+
+  FBMP.Height := ClientHeight;
+  FBMP.Width := ClientWidth;
+  SetBkMode(FBMP.Canvas.Handle, TRANSPARENT);
+
+  FBMP.Canvas.Brush.Color := clBlack;
+  R.Left := 0;
+  R.Top := 0;
+  R.Bottom := FBMP.Height;
+  R.Right := FBMP.Width;
+  FBMP.Canvas.FillRect(R);
+
+  FBMP.Canvas.Font.Color := clWhite;
+  H := FBMP.Canvas.TextHeight('A');
+  FTextHeight := 0;
+  for i := 0 to FText.Count - 1 do
+  begin
+    Line := FText[i];
+    FBMP.Canvas.Font.Style := [];
+    FBMP.Canvas.Font.Size := 8;
+    if Copy(Line, 1, 2) = '&U' then
+    begin
+      FBMP.Canvas.Font.Style := FBMP.Canvas.Font.Style + [fsBold];
+      Line := Copy(Line, 3, Length(Line));
+    end;
+    if (Copy(Line, 1, 1) = '&') and (StrToIntDef(Copy(Line, 2, 2), -1) <> -1) then
+    begin
+      FBMP.Canvas.Font.Size := StrToInt(Copy(Line, 2, 2));
+      Line := Copy(Line, 4, Length(Line));
+    end;
+
+    L := FBMP.Width div 2 - FBMP.Canvas.TextWidth(Line) div 2;
+    FBMP.Canvas.TextOut(L, FOffset + i * H + (i * 3), Line);
+    FTextHeight := FTextHeight + H + 3;
+  end;
+  FOffset := FOffset - 1;
+
+  Canvas.Draw(0, 0, FBMP);
 end;
 
 end.

@@ -293,7 +293,7 @@ begin
     except
       on E: Exception do
       begin
-        WriteDebug('Exception: ' + E.Message + E.StackTrace);
+        WriteDebug('Exception', E.Message + E.StackTrace);
         DoException(E);
       end;
     end;
@@ -305,7 +305,7 @@ begin
     except
       on E: Exception do
       begin
-        WriteDebug('Exception: ' + E.Message + E.StackTrace);
+        WriteDebug('Exception', E.Message + E.StackTrace);
         DoException(E);
       end;
     end;

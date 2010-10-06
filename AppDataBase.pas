@@ -26,6 +26,9 @@ uses
   LanguageObjects, SettingsStorage, Functions, GUIFunctions;
 
 type
+  TArrayElement = string;
+  TArray = array of TArrayElement;
+
   TAppVersion = record
     Major, Minor, Revision, Build: Byte;
     AsString: AnsiString;
@@ -92,6 +95,7 @@ type
     FProjectHelpLink: string;
     FProjectForumLink: string;
     FProjectDonateLink: string;
+    FProjectThanksText: string;
 
     procedure DoSave; virtual;
   public
@@ -99,6 +103,7 @@ type
     destructor Destroy; override;
     procedure Load; virtual;
     procedure Save(Handle: Cardinal = 0);
+    procedure BuildThanksText; virtual;
     procedure Lock;
     procedure Unlock;
 
@@ -122,6 +127,7 @@ type
     property ProjectHelpLink: string read FProjectHelpLink;
     property ProjectForumLink: string read FProjectForumLink;
     property ProjectDonateLink: string read FProjectDonateLink;
+    property ProjectThanksText: string read FProjectThanksText;
     property PortableAllowed: Boolean read FPortableAllowed;
     property Portable: TPortable read FPortable write FSetPortable;
     property RunningFromInstalledLocation: Boolean read FRunningFromInstalledLocation;
@@ -139,6 +145,8 @@ type
   end;
 
 implementation
+
+{ TAppDataBase }
 
 constructor TAppDataBase.Create(AppName: string; OnlyOne: Boolean; DefWidth, DefHeight: Integer);
 begin
@@ -161,6 +169,7 @@ begin
   FProjectHelpLink := 'http://mistake.ws/projekte/' + LowerCase(FAppName) + '/help/';
   FProjectForumLink := 'http://mistake.ws/forum/';
   FProjectDonateLink := '';
+  FProjectThanksText := '';
 
   InitOnlyOne;
 
@@ -387,6 +396,11 @@ begin
           Res := True
       end;
     end;
+end;
+
+procedure TAppDataBase.BuildThanksText;
+begin
+  FProjectThanksText := '';
 end;
 
 procedure TAppDataBase.WriteHandle(Handle: Cardinal);

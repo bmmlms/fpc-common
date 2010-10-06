@@ -66,6 +66,7 @@ object frmAbout: TfrmAbout
     ActivePage = tabAbout
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 0
+    OnChange = pagAboutChange
     object tabAbout: TTabSheet
       Caption = 'About'
       DesignSize = (
@@ -317,6 +318,10 @@ object frmAbout: TfrmAbout
         ScrollBars = ssVertical
         TabOrder = 0
       end
+    end
+    object tabThanks: TTabSheet
+      Caption = 'Thanks'
+      ImageIndex = 2
     end
   end
   object pnlNav: TPanel
