@@ -157,9 +157,6 @@ begin
   end else
     tabThanks.PageControl := nil;
 
-  // TODO: Das muss hier weg.
-  tabThanks.PageControl := nil;
-
   pagAbout.ActivePageIndex := 0;
 end;
 
