@@ -69,6 +69,10 @@ object frmAbout: TfrmAbout
     OnChange = pagAboutChange
     object tabAbout: TTabSheet
       Caption = 'About'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         405
         185)
@@ -289,6 +293,10 @@ object frmAbout: TfrmAbout
     object tabLicense: TTabSheet
       Caption = 'License'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         405
         185)
@@ -322,6 +330,10 @@ object frmAbout: TfrmAbout
     object tabThanks: TTabSheet
       Caption = 'Thanks'
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
     end
   end
   object pnlNav: TPanel
