@@ -86,7 +86,7 @@ begin
         Updater.Start(uaUpdate);
       end else
       begin
-        ShellExecute(Handle, 'open', PChar(AppGlobals.ProjectLink), nil, nil, 1);
+        ShellExecute(Handle, 'open', PChar(AppGlobals.ProjectLink), '', '', 1);
         Close;
       end;
     end;
