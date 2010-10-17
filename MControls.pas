@@ -233,30 +233,35 @@ procedure TMPageControl.RemoveTab(Tab: TTabSheet);
 var
   Idx: Integer;
 begin
-  if Tab = ActivePage then
-  begin
-    if PageCount - 1 > ActivePageIndex then
-      Idx := ActivePageIndex
-    else
-      Idx := ActivePageIndex - 1;
-  end else
-  begin
-    if Tab.PageIndex <= ActivePageIndex then
-      Idx := ActivePageIndex - 1
-    else
-      Idx := ActivePageIndex;
+  SendMessage(Handle, WM_SETREDRAW, 0, 0);
+  try
+    if Tab = ActivePage then
+    begin
+      if PageCount - 1 > ActivePageIndex then
+        Idx := ActivePageIndex
+      else
+        Idx := ActivePageIndex - 1;
+    end else
+    begin
+      if Tab.PageIndex <= ActivePageIndex then
+        Idx := ActivePageIndex - 1
+      else
+        Idx := ActivePageIndex;
+    end;
+
+    if Idx < 0 then
+      Idx := 0;
+    if PageCount = 0 then
+      Idx := -1;
+
+    Tab.Parent := nil;
+    TabClosed(TMTabSheet(Tab));
+    Tab.Free;
+
+    ActivePageIndex := Idx;
+  finally
+    SendMessage(Handle, WM_SETREDRAW, 1, 0);
   end;
-
-  if Idx < 0 then
-    Idx := 0;
-  if PageCount = 0 then
-    Idx := -1;
-
-  Tab.Parent := nil;
-  TabClosed(TMTabSheet(Tab));
-  Tab.Free;
-
-  ActivePageIndex := Idx;
 end;
 
 procedure TMPageControl.TabClosed(Tab: TMTabSheet);
