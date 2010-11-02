@@ -31,10 +31,16 @@ type
   end;
   TPatternReplaceArray = array of TPatternReplace;
 
+  TAppVersion = record
+    Major, Minor, Revision, Build: Byte;
+    AsString: AnsiString;
+  end;
+
 function MsgBox(Handle: HWND; Text, Title: string; uType: Cardinal): Integer;
 function ValidURL(URL: string): Boolean;
 function StripURL(URL: string): string;
-function ParseURL(var URL: string; var Host: string; var Port: Integer; var Data: string): Boolean;
+function ParseURL(var URL: string; var Host: string; var Port: Integer; var Data: string): Boolean; overload;
+function ParseURL(var URL: string; var Host: string; var Port: Integer; var Data: string; var PortDetected: Boolean): Boolean; overload;
 function GetSystemDir: string;
 function GetTempDir: string;
 function ExtractLastDirName(s: string): string;
@@ -59,6 +65,8 @@ function IsAdmin: LongBool;
 function HTML2Color(const HTML: string): Integer;
 function GetFileSize(const AFilename: string): Int64;
 function CmpInt(const A, B: Int64): Integer;
+function ParseVersion(const Version: string): TAppVersion;
+function IsVersionNewer(const Current, Found: TAppVersion): Boolean;
 
 function VerSetConditionMask(dwlConditionMask: LONGLONG; TypeBitMask: DWORD; ConditionMask: Byte): LONGLONG; stdcall;
   external 'kernel32.dll';
@@ -96,6 +104,13 @@ end;
 
 function ParseURL(var URL: string; var Host: string; var Port: Integer; var Data: string): Boolean;
 var
+  PD: Boolean;
+begin
+  Result := ParseURL(URL, Host, Port, Data, PD);
+end;
+
+function ParseURL(var URL: string; var Host: string; var Port: Integer; var Data: string; var PortDetected: Boolean): Boolean;
+var
   i, n: Integer;
   Host2, Port2, Data2: string;
   URL2: string;
@@ -110,7 +125,7 @@ begin
     URL := 'http://' + URL;
   end;
 
-  Host2 := ''; Port2 := ''; Data2 := ''; Host := ''; Port := -1; Data := '';
+  Host2 := ''; Port2 := ''; Data2 := ''; Host := ''; Port := -1; Data := ''; PortDetected := False;
   i := PosEx('/', URL2, 8);
   if i = 0 then
   begin
@@ -125,6 +140,7 @@ begin
     begin
       Port2 := Copy(Host2, n + 1, 10);
       Host2 := Copy(Host2, 1, n - 1);
+      PortDetected := True;
       {
       if n > 1 then
       begin
@@ -149,11 +165,13 @@ begin
       begin
         // Set the port
         Port2 := Copy(URL2, n + 1, 100);
+        PortDetected := True;
         // Remove last slash and stupid stuff
         n := PosEx('/', Port2, 1);
         if n > 0 then
         begin
           Port2 := Copy(Port2, 0, Length(Port2) - n);
+          PortDetected := True;
         end;
       end else
       begin
@@ -168,6 +186,7 @@ begin
         i := PosEx('/', Host2, 1);
         Data2 := Copy(Host2, i, 1000);
         Port2 := Copy(Host2, n + 1, i - n - 1);
+        PortDetected := True;
         Host2 := Copy(Host2, 1, n - 1);
       end else
       begin
@@ -680,6 +699,39 @@ begin
     Result := -1
   else
     Result := 0;
+end;
+
+function ParseVersion(const Version: string): TAppVersion;
+var
+  Dots: array[0..2] of Integer;
+  i: Integer;
+begin
+  Dots[0] := Pos('.', string(Version));
+  Dots[1] := PosEx('.', string(Version), Dots[0] + 1);
+  Dots[2] := PosEx('.', string(Version), Dots[1] + 1);
+  for i := 0 to Length(Dots) - 1 do
+    if Dots[i] < i then
+      raise Exception.Create('Error parsing version.');
+  Result.Major :=  StrToInt(Copy(string(Version), 0, Dots[0] - 1));
+  Result.Minor :=  StrToInt(Copy(string(Version), Dots[0] + 1, Dots[1] - 1 - Dots[0]));
+  Result.Revision :=  StrToInt(Copy(string(Version), Dots[1] + 1, Dots[2] - 1 - Dots[1]));
+  Result.Build :=  StrToInt(Copy(string(Version), Dots[2] + 1, Length(Version) - Dots[2]));
+  Result.AsString := Format('%d.%d.%d.%d', [Result.Major, Result.Minor,
+    Result.Revision, Result.Build]);
+end;
+
+function IsVersionNewer(const Current, Found: TAppVersion): Boolean;
+var
+  MajorEq, MinorEq, RevisionEq: Boolean;
+begin
+  MajorEq := Found.Major = Current.Major;
+  MinorEq := Found.Minor = Current.Minor;
+  RevisionEq := Found.Revision = Current.Revision;
+
+  Result := (Found.Major > Current.Major) or
+            (MajorEq and (Found.Minor > Current.Minor)) or
+            (MajorEq and MinorEq and (Found.Revision > Current.Revision)) or
+            (MajorEq and MinorEq and RevisionEq and (Found.Build > Current.Build));
 end;
 
 end.

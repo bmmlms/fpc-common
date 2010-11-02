@@ -24,7 +24,7 @@ interface
 uses
   Windows, WinSock, Forms, AppData, UpdateClient, Update, Wizard,
   ProfileSettings, Functions, SettingsStorage, LanguageObjects,
-  AppDataBase, About, Menus;
+  AppDataBase, About, Menus, UpdatedInfo;
 
 type
   TPatch = packed record
@@ -50,6 +50,7 @@ var
   Updater: TUpdateClient;
   About: TfrmAbout;
   Wizard: TfrmWizard;
+  UpdatedInfo: TfrmUpdatedInfo;
   ProfileSettings: TfrmProfileSettings;
 begin
   Result := True;
@@ -105,6 +106,17 @@ begin
       try
         AppGlobals.Save;
       except end;
+    end;
+  end;
+
+  if IsVersionNewer(AppGlobals.LastUsedVersion, AppGlobals.AppVersion) and (not AppGlobals.SuppressUpdatedInfo) and
+    (AppGlobals.ProjectDonateLink <> '') then
+  begin
+    UpdatedInfo := TfrmUpdatedInfo.Create(nil);
+    try
+      UpdatedInfo.ShowModal;
+    finally
+      UpdatedInfo.Free;
     end;
   end;
 

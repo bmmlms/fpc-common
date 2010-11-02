@@ -77,7 +77,7 @@ begin
     end;
     1:
     begin
-      if AppGlobals.RunningFromInstalledLocation then
+      if true then
       begin
         lblState.Caption := _('Downloading update...');
         ProgressBar1.Tag := -1;
@@ -113,7 +113,7 @@ begin
   Updater.OnError := UpdaterError;
   if Version <> '' then
   begin
-    Updater.SetVersion(Version);
+    Updater.FoundVersion := ParseVersion(Version);
     UpdaterUpdateFound(nil);
     cmdOK.Click;
   end else

@@ -29,11 +29,6 @@ type
   TArrayElement = string;
   TArray = array of TArrayElement;
 
-  TAppVersion = record
-    Major, Minor, Revision, Build: Byte;
-    AsString: AnsiString;
-  end;
-
   TPortable = (poYes, poNo, poUndefined);
 
   TAppDataBase = class(TObject)
@@ -46,6 +41,8 @@ type
     FInstallUpdateOnStart: Boolean;
     FLanguage: string;
     FFirstStartShown: Boolean;
+    FLastUsedVersion: TAppVersion;
+    FSuppressUpdatedInfo: Boolean;
 
     FMainWidthDefault: Integer;
     FMainHeightDefault: Integer;
@@ -138,6 +135,8 @@ type
     property InstallUpdateOnStart: Boolean read FInstallUpdateOnStart write FInstallUpdateOnStart;
     property Language: string read FLanguage write FLanguage;
     property FirstStartShown: Boolean read FFirstStartShown write FFirstStartShown;
+    property LastUsedVersion: TAppVersion read FLastUsedVersion;
+    property SuppressUpdatedInfo: Boolean read FSuppressUpdatedInfo write FSuppressUpdatedInfo;
     property WindowHandle: Cardinal read FWindowHandle write FSetWindowHandle;
     property InfoShown[Idx: Integer]: Boolean read FGetInfoShown write FSetInfoShown;
 
@@ -273,6 +272,8 @@ begin
 end;
 
 procedure TAppDataBase.Load;
+var
+  LastUsedVersion: string;
 begin
   FStorage.Read('MainMaximized', FMainMaximized, False);
   FStorage.Read('MainWidth', FMainWidth, FMainWidthDefault);
@@ -291,6 +292,13 @@ begin
   FStorage.Read('InstallUpdateOnStart', FInstallUpdateOnStart, False);
   FStorage.Read('Language', FLanguage, '');
   FStorage.Read('FirstStartShown', FFirstStartShown, False);
+  FStorage.Read('LastUsedVersion', LastUsedVersion, AppVersion.AsString);
+  FStorage.Read('SuppressUpdatedInfo', FSuppressUpdatedInfo, False);
+  try
+    FLastUsedVersion := ParseVersion(LastUsedVersion);
+  except
+    FLastUsedVersion := AppVersion;
+  end;
 end;
 
 procedure TAppDataBase.DoSave;
@@ -313,6 +321,8 @@ begin
   FStorage.Write('InstallUpdateOnStart', FInstallUpdateOnStart);
   FStorage.Write('Language', FLanguage);
   FStorage.Write('FirstStartShown', FFirstStartShown);
+  FStorage.Write('LastUsedVersion', AppVersion.AsString);
+  FStorage.Write('SuppressUpdatedInfo', FSuppressUpdatedInfo);
 end;
 
 procedure TAppDataBase.Lock;

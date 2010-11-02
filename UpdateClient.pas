@@ -78,13 +78,12 @@ type
 
     procedure Start(Action: TUpdateAction);
     procedure RunUpdate(Handle: Cardinal = 0);
-    procedure SetVersion(Data: string);
     procedure Kill;
 
     property Action: TUpdateAction read FAction;
     property UpdateLength: Integer read FUpdateLength;
     property Percent: Integer read FPercent;
-    property FoundVersion: TAppVersion read FFoundVersion;
+    property FoundVersion: TAppVersion read FFoundVersion write FFoundVersion;
     property UpdateFile: string read FUpdateFile;
     property UpdateURL: string read FUpdateURL write FUpdateURL;
     property Language: string read FLanguage write FLanguage;
@@ -134,9 +133,7 @@ end;
 
 procedure TUpdateThread.DoEnded;
 var
-  Dots: array[0..3] of Integer;
-  Version: array[0..3] of Word;
-  Data, sVersion: AnsiString;
+  Data, Version: AnsiString;
   CL: AnsiString;
 begin
   inherited;
@@ -148,22 +145,8 @@ begin
         begin
           try
             Data := RecvDataStream.ToString(0, RecvDataStream.Size);
-            sVersion := GetValue(Data, 'version');
-            Dots[0] := Pos('.', string(sVersion));
-            Dots[1] := PosEx('.', string(sVersion), Dots[0] + 1);
-            Dots[2] := PosEx('.', string(sVersion), Dots[1] + 1);
-            Dots[3] := PosEx('.', string(sVersion), Dots[2] + 1);
-            Version[0] :=  StrToInt(Copy(string(sVersion), 0, Dots[0] - 1));
-            Version[1] :=  StrToInt(Copy(string(sVersion), Dots[0] + 1, Dots[1] - 1 - Dots[0]));
-            Version[2] :=  StrToInt(Copy(string(sVersion), Dots[1] + 1, Dots[2] - 1 - Dots[1]));
-            Version[3] :=  StrToInt(Copy(string(sVersion), Dots[2] + 1, Length(sVersion) - Dots[3] - 1));
-            FFoundVersion.Major := Version[0];
-            FFoundVersion.Minor := Version[1];
-            FFoundVersion.Revision := Version[2];
-            FFoundVersion.Build := Version[3];
-            FFoundVersion.AsString := AnsiString(IntToStr(FFoundVersion.Major) + '.' +
-              IntToStr(FFoundVersion.Minor) + '.' + IntToStr(FFoundVersion.Revision) +
-              '.' + IntToStr(FFoundVersion.Build));
+            Version := GetValue(Data, 'version');
+            FFoundVersion := ParseVersion(Version);
             FUpdateURL := string(GetValue(Data, 'updateurl'));
             CL := AnsiString(StringReplace(string(GetValue(Data, 'changelog')), '\r', #13#10, [rfReplaceAll]));
             FChangeLog := UTF8ToUnicodeString(CL);
@@ -275,27 +258,6 @@ begin
   end;
 end;
 
-procedure TUpdateClient.SetVersion(Data: string);
-var
-  Dots: array[0..3] of Integer;
-  Version: array[0..3] of Word;
-begin
-  Dots[0] := Pos('.', Data);
-  Dots[1] := PosEx('.', Data, Dots[0] + 1);
-  Dots[2] := PosEx('.', Data, Dots[1] + 1);
-  Dots[3] := PosEx('.', Data, Dots[2] + 1);
-  Version[0] :=  StrToInt(Copy(Data, 0, Dots[0] - 1));
-  Version[1] :=  StrToInt(Copy(Data, Dots[0] + 1, Dots[1] - 1 - Dots[0]));
-  Version[2] :=  StrToInt(Copy(Data, Dots[1] + 1, Dots[2] - 1 - Dots[1]));
-  Version[3] :=  StrToInt(Copy(Data, Dots[2] + 1, Length(Data) - Dots[3] - 1));
-  FFoundVersion.Major := Version[0];
-  FFoundVersion.Minor := Version[1];
-  FFoundVersion.Revision := Version[2];
-  FFoundVersion.Build := Version[3];
-  FFoundVersion.AsString := AnsiString(Format('%d.%d.%d.%d', [FFoundVersion.Major,
-    FFoundVersion.Minor, FFoundVersion.Revision, FFoundVersion.Build]));
-end;
-
 procedure TUpdateClient.Start(Action: TUpdateAction);
 var
   URL: string;
@@ -329,24 +291,12 @@ begin
 end;
 
 procedure TUpdateClient.ThreadVersionFound(Sender: TObject);
-var
-  Newer: Boolean;
-  MajorEq, MinorEq, RevisionEq: Boolean;
 begin
   FFoundVersion := FThread.FFoundVersion;
   FUpdateURL := FThread.FUpdateURL;
   FChangeLog := FThread.FChangeLog;
 
-  MajorEq := FFoundVersion.Major = AppGlobals.AppVersion.Major;
-  MinorEq := FFoundVersion.Minor = AppGlobals.AppVersion.Minor;
-  RevisionEq := FFoundVersion.Revision = AppGlobals.AppVersion.Revision;
-
-  Newer := (FFoundVersion.Major > AppGlobals.AppVersion.Major) or
-           (MajorEq and (FFoundVersion.Minor > AppGlobals.AppVersion.Minor)) or
-           (MajorEq and MinorEq and (FFoundVersion.Revision > AppGlobals.AppVersion.Revision)) or
-           (MajorEq and MinorEq and RevisionEq and (FFoundVersion.Build > AppGlobals.AppVersion.Build));
-
-  if Newer then
+  if IsVersionNewer(AppGlobals.AppVersion, FFoundVersion) then
   begin
     if Assigned(FOnUpdateFound) then
       FOnUpdateFound(Self);
