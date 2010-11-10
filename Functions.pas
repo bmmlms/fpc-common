@@ -716,8 +716,8 @@ begin
   Result.Minor :=  StrToInt(Copy(string(Version), Dots[0] + 1, Dots[1] - 1 - Dots[0]));
   Result.Revision :=  StrToInt(Copy(string(Version), Dots[1] + 1, Dots[2] - 1 - Dots[1]));
   Result.Build :=  StrToInt(Copy(string(Version), Dots[2] + 1, Length(Version) - Dots[2]));
-  Result.AsString := Format('%d.%d.%d.%d', [Result.Major, Result.Minor,
-    Result.Revision, Result.Build]);
+  Result.AsString := AnsiString(Format('%d.%d.%d.%d', [Result.Major, Result.Minor,
+    Result.Revision, Result.Build]));
 end;
 
 function IsVersionNewer(const Current, Found: TAppVersion): Boolean;

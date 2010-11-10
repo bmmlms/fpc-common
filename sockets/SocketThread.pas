@@ -59,6 +59,7 @@ type
 
     procedure Sync(Proc: TNotifyEvent);
 
+    procedure DoStuff; virtual;
     procedure DoDebug(Text, Data: string);
     procedure DoConnected; virtual;
     procedure DoDisconnected; virtual;
@@ -208,8 +209,10 @@ begin
 
       while True do
       begin
-        timeout.tv_sec := 1;
-        timeout.tv_usec := 1;
+        DoStuff;
+
+        timeout.tv_sec := 0;
+        timeout.tv_usec := 200000; // 200ms
 
         FD_ZERO(readfds);
         FD_ZERO(writefds);
@@ -328,6 +331,11 @@ procedure TSocketThread.DoConnected;
 begin
   if Assigned(FOnConnected) then
     Sync(FOnConnected);
+end;
+
+procedure TSocketThread.DoStuff;
+begin
+
 end;
 
 procedure TSocketThread.DoDebug(Text, Data: string);
