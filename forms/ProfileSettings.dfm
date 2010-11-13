@@ -6,7 +6,7 @@ object frmProfileSettings: TfrmProfileSettings
   BorderStyle = bsSingle
   Caption = 'Manage profiles'
   ClientHeight = 311
-  ClientWidth = 309
+  ClientWidth = 329
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -54,26 +54,26 @@ object frmProfileSettings: TfrmProfileSettings
   Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
-  ExplicitWidth = 320
   DesignSize = (
-    309
+    329
     311)
   PixelsPerInch = 96
   TextHeight = 13
   object lblProfiles: TLabel
     Left = 4
     Top = 48
-    Width = 301
+    Width = 321
     Height = 85
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
     Caption = '-'
     WordWrap = True
+    ExplicitWidth = 301
   end
   object pnlNav: TPanel
     Left = 0
     Top = 262
-    Width = 309
+    Width = 329
     Height = 49
     Align = alBottom
     BevelOuter = bvNone
@@ -82,10 +82,11 @@ object frmProfileSettings: TfrmProfileSettings
     Padding.Right = 4
     Padding.Bottom = 4
     TabOrder = 0
+    ExplicitWidth = 309
     object Bevel2: TBevel
       Left = 4
       Top = 4
-      Width = 301
+      Width = 321
       Height = 5
       Align = alTop
       Shape = bsTopLine
@@ -93,7 +94,7 @@ object frmProfileSettings: TfrmProfileSettings
       ExplicitWidth = 396
     end
     object btnOk: TBitBtn
-      Left = 208
+      Left = 228
       Top = 9
       Width = 97
       Height = 36
@@ -140,12 +141,13 @@ object frmProfileSettings: TfrmProfileSettings
       ParentDoubleBuffered = False
       TabOrder = 0
       OnClick = btnOkClick
+      ExplicitLeft = 208
     end
   end
   object pnlHeader: TPanel
     Left = 0
     Top = 0
-    Width = 309
+    Width = 329
     Height = 41
     Align = alTop
     BevelOuter = bvNone
@@ -154,10 +156,11 @@ object frmProfileSettings: TfrmProfileSettings
     Padding.Right = 4
     Padding.Bottom = 4
     TabOrder = 1
+    ExplicitWidth = 309
     object Shape1: TShape
       Left = 4
       Top = 4
-      Width = 301
+      Width = 321
       Height = 33
       Align = alClient
       Brush.Color = clActiveCaption
@@ -170,7 +173,7 @@ object frmProfileSettings: TfrmProfileSettings
       AlignWithMargins = True
       Left = 10
       Top = 9
-      Width = 292
+      Width = 312
       Height = 25
       Margins.Left = 6
       Margins.Top = 5
@@ -196,22 +199,24 @@ object frmProfileSettings: TfrmProfileSettings
   object rbInstalled: TRadioButton
     Left = 4
     Top = 140
-    Width = 301
+    Width = 321
     Height = 21
     Anchors = [akLeft, akTop, akRight]
     Caption = 'Use settings from registry/application data folder'
     Checked = True
     TabOrder = 2
     TabStop = True
+    ExplicitWidth = 301
   end
   object rbPortable: TRadioButton
     Left = 4
     Top = 204
-    Width = 301
+    Width = 321
     Height = 21
     Anchors = [akLeft, akTop, akRight]
     Caption = 'Use settings from application path (portable)'
     TabOrder = 3
+    ExplicitWidth = 301
   end
   object btnDelete: TButton
     Left = 20

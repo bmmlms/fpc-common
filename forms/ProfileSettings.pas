@@ -129,6 +129,8 @@ end;
 
 procedure TfrmProfileSettings.FormCreate(Sender: TObject);
 begin
+  Language.Translate(Self);
+
   AppGlobals.Portable := poUndefined;
   lblProfiles.Caption := _('It seems there are settings saved for this application in the registry/application ' +
                            'data folder and in the application''s folder.'#13#10 +

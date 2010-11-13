@@ -140,8 +140,6 @@ object frmUpdatedInfo: TfrmUpdatedInfo
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 0
-    ExplicitWidth = 325
-    ExplicitHeight = 109
   end
   object pnlNav: TPanel
     Left = 0
@@ -155,8 +153,6 @@ object frmUpdatedInfo: TfrmUpdatedInfo
     Padding.Right = 4
     Padding.Bottom = 4
     TabOrder = 1
-    ExplicitTop = 143
-    ExplicitWidth = 333
     object Bevel2: TBevel
       Left = 4
       Top = 4
@@ -180,7 +176,6 @@ object frmUpdatedInfo: TfrmUpdatedInfo
       ParentDoubleBuffered = False
       TabOrder = 0
       OnClick = btnCloseClick
-      ExplicitLeft = 232
     end
   end
   object chkNotShowAgain: TCheckBox
@@ -191,6 +186,5 @@ object frmUpdatedInfo: TfrmUpdatedInfo
     Anchors = [akLeft, akBottom]
     Caption = '&Never show this message again'
     TabOrder = 2
-    ExplicitTop = 120
   end
 end
