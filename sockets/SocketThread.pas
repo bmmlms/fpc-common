@@ -324,7 +324,9 @@ end;
 
 procedure TSocketThread.WriteDebug(Text, Data: string);
 begin
+  {$IFDEF DEBUG}
   DoDebug(Text, Data);
+  {$ENDIF}
 end;
 
 procedure TSocketThread.DoConnected;
