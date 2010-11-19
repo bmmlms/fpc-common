@@ -51,7 +51,7 @@ begin
 
   txtInfo.Text := _('You just upgraded to %s version %s!'#13#10#13#10 +
                     'I hope you enjoy using %s. If you like this software, please consider ' +
-                    'donating to support further development and paying the server''s bills.');
+                    'donating to support further development.');
   txtInfo.Text := Format(txtInfo.Text, [AppGlobals.AppName, AppGlobals.AppVersion.AsString, AppGlobals.AppName]);
 
   if AppGlobals.ProjectDonateLink <> '' then
