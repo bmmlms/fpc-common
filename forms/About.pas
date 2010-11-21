@@ -254,7 +254,7 @@ var
   i: Integer;
   Line: string;
 begin
-  if (FOffset = MaxInt) or (FOffset <= 0 - FTextHeight - 50) then
+  if (FOffset = MaxInt) or (FOffset <= 0 - FTextHeight - 60) then
     FOffset := ClientHeight;
 
   FBMP.Height := ClientHeight;

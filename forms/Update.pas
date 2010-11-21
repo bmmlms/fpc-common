@@ -77,7 +77,7 @@ begin
     end;
     1:
     begin
-      if true then
+      if AppGlobals.RunningFromInstalledLocation then
       begin
         lblState.Caption := _('Downloading update...');
         ProgressBar1.Tag := -1;
