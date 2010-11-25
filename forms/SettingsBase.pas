@@ -31,6 +31,7 @@ type
   private
     FCaption: string;
     FPanel: TPanel;
+    FNode: TTreeNode;
     FButton: TSpeedButton;
     FResName: string;
   protected
@@ -38,6 +39,7 @@ type
     constructor Create(Caption: string; Panel: TPanel; ResName: string);
     property Caption: string read FCaption;
     property Panel: TPanel read FPanel;
+    property Node: TTreeNode read FNode write FNode;
     property Button: TSpeedButton read FButton write FButton;
     property ResName: string read FResName;
   end;
@@ -78,10 +80,14 @@ type
       Shift: TShiftState);
     procedure chkProxyClick(Sender: TObject);
   private
+    FTreeView: TTreeView;
+    procedure TreeViewChange(Sender: TObject; Node: TTreeNode);
     procedure NavButtonClick(Sender: TObject);
   protected
     FPageList: TPageList;
     FActivePage: TPage;
+    FUseTree: Boolean;
+    FTreeImages: TImageList;
     procedure SetPage(Page: TPage); overload;
     procedure SetPage(Panel: TPanel); overload;
     procedure RegisterPages; virtual;
@@ -221,50 +227,93 @@ end;
 
 constructor TfrmSettingsBase.Create(AOwner: TComponent);
 var
-  i: Integer;
+  i, n: Integer;
   Btn: TSpeedButton;
   HIco: THandle;
   Ico: TIcon;
+  Item: TTreeNode;
 begin
   inherited;
 
   FActivePage := nil;
 
+  FTreeImages := TImageList.Create(Self);
+
   FPageList := TPageList.Create;
 
   RegisterPages;
 
+  if FUseTree then
+  begin
+    pnlLeft.Width := 160;
+
+    FTreeView := TTreeView.Create(pnlLeft);
+    FTreeView.Parent := pnlLeft;
+    FTreeView.OnChange := TreeViewChange;
+    FTreeView.ShowButtons := False;
+    FTreeView.ShowLines := False;
+    FTreeView.HideSelection := False;
+    FTreeView.RowSelect := True;
+    FTreeView.Images := FTreeImages;
+    FTreeView.Align := alClient;
+    FTreeView.Show;
+  end;
+
   for i := 0 to FPageList.Count - 1 do
   begin
-    Btn := TSpeedButton.Create(pnlLeft);
-    Btn.Parent := pnlLeft;
-    Btn.OnClick := NavButtonClick;
-    Btn.Caption := FPageList[i].Caption;
-    Btn.Flat := True;
-    Btn.GroupIndex := 1;
-    Btn.Height := 50;
-    Btn.Align := alTop;
-
-    HIco := LoadImage(HInstance, PChar(FPageList[i].ResName), IMAGE_ICON,
-      16, 16, LR_DEFAULTCOLOR);
-    if HIco > 0 then
+    if FUseTree then
     begin
-      Ico := TIcon.Create;
-      try
-        Ico.Handle := HIco;
-        Btn.Glyph.Assign(Ico);
-        Btn.Glyph.TransparentMode := tmAuto;
-        Btn.Glyph.Transparent := True;
-        Btn.Glyph.TransparentColor := Btn.Glyph.Canvas.Pixels[0, 0];
-        Btn.Layout := blGlyphTop;
-        DestroyIcon(HIco);
-      finally
-        Ico.Free;
+      HIco := LoadImage(HInstance, PChar(FPageList[i].ResName), IMAGE_ICON,
+        16, 16, LR_DEFAULTCOLOR);
+      if HIco > 0 then
+      begin
+        Ico := TIcon.Create;
+        try
+          Ico.Handle := HIco;
+          FTreeImages.AddIcon(Ico);
+        finally
+          Ico.Free;
+        end;
       end;
-    end;
 
-    Btn.Show;
-    FPageList[i].Button := Btn;
+      Item := FTreeView.Items.Add(nil, FPageList[i].Caption);
+      Item.Text := StringReplace(Item.Text, '&', '', [rfReplaceAll]);
+      Item.ImageIndex := FTreeImages.Count - 1;
+      Item.SelectedIndex := FTreeImages.Count - 1;
+
+      FPageList[i].FNode := Item;
+    end else
+    begin
+      Btn := TSpeedButton.Create(pnlLeft);
+      Btn.Parent := pnlLeft;
+      Btn.OnClick := NavButtonClick;
+      Btn.Caption := FPageList[i].Caption;
+      Btn.Flat := True;
+      Btn.GroupIndex := 1;
+      Btn.Height := 50;
+      Btn.Align := alTop;
+
+      HIco := LoadImage(HInstance, PChar(FPageList[i].ResName), IMAGE_ICON,
+        16, 16, LR_DEFAULTCOLOR);
+      if HIco > 0 then
+      begin
+        Ico := TIcon.Create;
+        try
+          Ico.Handle := HIco;
+          Btn.Glyph.Assign(Ico);
+          Btn.Glyph.TransparentMode := tmAuto;
+          Btn.Glyph.Transparent := True;
+          Btn.Glyph.TransparentColor := Btn.Glyph.Canvas.Pixels[0, 0];
+          Btn.Layout := blGlyphTop;
+          DestroyIcon(HIco);
+        finally
+          Ico.Free;
+        end;
+      end;
+
+      Btn.Show;
+      FPageList[i].Button := Btn;
+    end;
   end;
 
   Language.Translate(Self, PreTranslate, PostTranslate);
@@ -360,6 +409,19 @@ begin
   end;
 end;
 
+procedure TfrmSettingsBase.TreeViewChange(Sender: TObject;
+  Node: TTreeNode);
+var
+  i: Integer;
+begin
+  for i := 0 to FPageList.Count - 1 do
+    if FPageList[i].Node = Node then
+    begin
+      SetPage(FPageList[i]);
+      Break;
+    end;
+end;
+
 procedure TfrmSettingsBase.NavButtonClick(Sender: TObject);
 var
   i: Integer;
@@ -383,9 +445,16 @@ begin
     FActivePage.Panel.Enabled := False;
 
   FActivePage := Page;
-  FActivePage.Button.Down := True;
   FActivePage.Panel.Enabled := True;
   FActivePage.Panel.BringToFront;
+
+  if FUseTree then
+  begin
+    FActivePage.Node.Selected := True;
+  end else
+  begin
+    FActivePage.Button.Down := True;
+  end;
 end;
 
 procedure TfrmSettingsBase.SetPage(Panel: TPanel);

@@ -166,6 +166,7 @@ end;
 
 function Recycle(Handle: Cardinal; Filename: string): Boolean;
 var
+  Ret: Integer;
   Operation: TSHFileOpStruct;
 begin
   with Operation do
@@ -178,7 +179,9 @@ begin
     hNameMappings := nil;
     lpszProgressTitle := nil;
   end;
-  Result := SHFileOperation(Operation) = 0;
+  Ret := SHFileOperation(Operation);
+  // True wenn Erfolg oder Datei nicht gefunden
+  Result := (Ret = 0) or (Ret = 2);
 end;
 
 end.
