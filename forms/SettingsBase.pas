@@ -450,7 +450,10 @@ end;
 
 procedure TfrmSettingsBase.RegisterPages;
 begin
-  FPageList.Add(TPage.Create('&General', pnlGeneral, 'SETTINGS'));
+  if FUseTree then
+    FPageList.Add(TPage.Create(_('General'), pnlGeneral, 'SETTINGS'))
+  else
+    FPageList.Add(TPage.Create(_('&General'), pnlGeneral, 'SETTINGS'));
 end;
 
 procedure TfrmSettingsBase.SetPage(Page: TPage);
