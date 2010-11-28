@@ -69,6 +69,8 @@ type
     FPortable: TPortable;
     FRunningFromInstalledLocation: Boolean;
 
+    FSkipSave: Boolean;
+
     procedure GetVersionInfo;
     procedure GetTempDir;
     procedure GetPortableAllowed;
@@ -141,6 +143,8 @@ type
     property InfoShown[Idx: Integer]: Boolean read FGetInfoShown write FSetInfoShown;
 
     property Storage: TSettingsStorage read FStorage;
+
+    property SkipSave: Boolean read FSkipSave write FSkipSave;
   end;
 
 implementation
@@ -151,6 +155,7 @@ constructor TAppDataBase.Create(AppName: string; OnlyOne: Boolean; DefWidth, Def
 begin
   FMainWidthDefault := DefWidth;
   FMainHeightDefault := DefHeight;
+  FSkipSave := False;
 
   FCS := TCriticalSection.Create;
   FAppPath := IncludeTrailingBackslash(ExtractFilePath(ParamStr(0)));
@@ -389,6 +394,8 @@ var
   Res2: Integer;
 begin
   Res := False;
+  if FSkipSave then
+    Exit;
   while not Res do
     try
       DoSave;

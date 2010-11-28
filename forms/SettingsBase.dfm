@@ -158,11 +158,11 @@ object frmSettingsBase: TfrmSettingsBase
     Left = 100
     Top = 52
     Width = 337
-    Height = 301
+    Height = 317
     TabOrder = 3
     DesignSize = (
       337
-      301)
+      317)
     object lblLanguage: TLabel
       Left = 4
       Top = 24
@@ -203,7 +203,7 @@ object frmSettingsBase: TfrmSettingsBase
       Top = 248
       Width = 105
       Height = 29
-      Caption = 'Copy profile'
+      Caption = '&Copy profile'
       TabOrder = 2
       OnClick = btnCopyProfileClick
     end
@@ -237,6 +237,15 @@ object frmSettingsBase: TfrmSettingsBase
       Caption = 'Use HTTP proxy'
       TabOrder = 5
       OnClick = chkProxyClick
+    end
+    object Button1: TButton
+      Left = 4
+      Top = 280
+      Width = 105
+      Height = 29
+      Caption = '&Delete profile'
+      TabOrder = 6
+      OnClick = Button1Click
     end
   end
   object Panel1: TPanel

@@ -225,7 +225,7 @@ begin
   Result := False;
   Reg := TRegistry.Create;
   try
-    if Reg.OpenKey(FRegPath + Section, False) then
+    if Reg.OpenKey(FRegPath, False) then
       Result := Reg.DeleteKey(Section);
     Reg.CloseKey;
   finally

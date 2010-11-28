@@ -71,6 +71,7 @@ type
     txtPort: TLabeledEdit;
     txtHost: TLabeledEdit;
     chkProxy: TCheckBox;
+    Button1: TButton;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
@@ -79,6 +80,7 @@ type
     procedure FormKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure chkProxyClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
   private
     FTreeView: TTreeView;
     procedure TreeViewChange(Sender: TObject; Node: TTreeNode);
@@ -198,6 +200,18 @@ procedure TfrmSettingsBase.btnOKClick(Sender: TObject);
 begin
   if CanFinish then
     Finish;
+end;
+
+procedure TfrmSettingsBase.Button1Click(Sender: TObject);
+begin
+  if MsgBox(Handle, _('All data saved in the currently used profile will be deleted.'#13#10 +
+                      'Are you sure you want to delete this profile?'), _('Question'), MB_ICONQUESTION or MB_YESNO or MB_DEFBUTTON2) = IDYES then
+  begin
+    AppGlobals.Storage.DeleteProfile;
+    AppGlobals.SkipSave := True;
+    MsgBox(Handle, _('The profile was deleted.'#13#10 +
+                     'When you exit the application, no data will be saved so that the profil will not be recreated.'), _('Info'), MB_ICONINFORMATION);
+  end;
 end;
 
 function TfrmSettingsBase.CanFinish: Boolean;
