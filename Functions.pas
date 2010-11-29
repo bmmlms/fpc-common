@@ -406,7 +406,7 @@ begin
     Path := Copy(Path, 1, Pos('\', Path));
   if GetDiskFreeSpaceEx(PChar(Path), S1, S2, @S3) then
   begin
-    SetMin := MinSpaceGB * 1024 * 1024 * 1024;
+    SetMin := MinSpaceGB * 1073741824;
     if S1 > SetMin then
       Result := True;
   end;
