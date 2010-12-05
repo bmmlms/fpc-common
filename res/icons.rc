@@ -1,2 +1,4 @@
 settings ICON ".\ico\preferences-system.ico"
 properties ICON ".\ico\document-properties.ico"
+question ICON ".\ico\dialog-question.ico"
+browse ICON ".\ico\browse.ico"

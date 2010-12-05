@@ -22,7 +22,7 @@ unit Functions;
 interface
 
 uses
-  Windows, SysUtils, Classes, StrUtils;
+  Windows, SysUtils, Classes, StrUtils, Graphics;
 
 type
   TPatternReplace = record
@@ -67,6 +67,7 @@ function GetFileSize(const AFilename: string): Int64;
 function CmpInt(const A, B: Int64): Integer;
 function ParseVersion(const Version: string): TAppVersion;
 function IsVersionNewer(const Current, Found: TAppVersion): Boolean;
+procedure GetBitmap(const Resname: string; const NumGlyphs: Integer; var Bmp: TBitmap);
 
 function VerSetConditionMask(dwlConditionMask: LONGLONG; TypeBitMask: DWORD; ConditionMask: Byte): LONGLONG; stdcall;
   external 'kernel32.dll';
@@ -732,6 +733,55 @@ begin
             (MajorEq and (Found.Minor > Current.Minor)) or
             (MajorEq and MinorEq and (Found.Revision > Current.Revision)) or
             (MajorEq and MinorEq and RevisionEq and (Found.Build > Current.Build));
+end;
+
+procedure GetBitmap(const Resname: string; const NumGlyphs: Integer; var Bmp: TBitmap);
+var
+  i, j, k: Integer;
+  Grayshade, Red, Green, Blue: Byte;
+  PixelColor: Longint;
+  Icon: TIcon;
+  B: TBitmap;
+begin
+  Icon := TIcon.Create;
+  try
+    Icon.LoadFromResourceName(HInstance, Resname);
+
+    Bmp.Width := 16 * NumGlyphs;
+    Bmp.Height := 16;
+
+    for i := 0 to NumGlyphs - 1 do
+    begin
+      B := TBitmap.Create;
+      B.Width := 32;
+      B.Height := 32;
+
+      B.Canvas.Draw(0, 0, Icon);
+      B.Canvas.StretchDraw(Rect(0, 0, 16, 16), B);
+      B.Width := 16;
+      B.Height := 16;
+
+      if i = 1 then
+        for j := 0 to B.Width - 1 do
+          for k := 0 to B.Height - 1 do
+          begin
+            PixelColor := ColorToRGB(B.Canvas.Pixels[j, k]);
+            Red := PixelColor;
+            Green := PixelColor shr 8;
+            Blue := PixelColor shr 16;
+            Grayshade := Round(0.3 * Red + 0.6 * Green + 0.1 * Blue);
+            B.Canvas.Pixels[j, k] := RGB(Grayshade, Grayshade, Grayshade);
+          end;
+
+      Bmp.Canvas.Draw(i * 16, 0, B);
+
+      FreeAndNil(B);
+    end;
+
+    Bmp.PixelFormat := pf24bit;
+  finally
+    Icon.Free;
+  end;
 end;
 
 end.

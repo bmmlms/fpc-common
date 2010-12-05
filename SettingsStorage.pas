@@ -75,6 +75,7 @@ type
     procedure Read(Name: string; var Value: Boolean; Default: Boolean; Section: string = SETTINGS); overload; virtual; abstract;
     function Delete(Name: string; Section: string = SETTINGS): Boolean; virtual; abstract;
     function DeleteKey(Section: string): Boolean; virtual; abstract;
+    procedure GetValues(Section: string; var List: TStringList); virtual; abstract;
 
     function CreatePath: Boolean;
     function GetFilePath(Filename: string): string; virtual;
@@ -104,6 +105,7 @@ type
     procedure Read(Name: string; var Value: Boolean; Default: Boolean; Section: string = SETTINGS); overload; override;
     function Delete(Name: string; Section: string = SETTINGS): Boolean; override;
     function DeleteKey(Section: string): Boolean; override;
+    procedure GetValues(Section: string; var List: TStringList); override;
 
     function PrepareSave: Boolean; override;
   end;
@@ -129,6 +131,7 @@ type
     procedure Read(Name: string; var Value: Boolean; Default: Boolean; Section: string = SETTINGS); overload; override;
     function Delete(Name: string; Section: string = SETTINGS): Boolean; override;
     function DeleteKey(Section: string): Boolean; override;
+    procedure GetValues(Section: string; var List: TStringList); override;
 
     function PrepareSave: Boolean; override;
   end;
@@ -146,6 +149,7 @@ type
     procedure Read(Name: string; var Value: Boolean; Default: Boolean; Section: string = SETTINGS); overload; override;
     function Delete(Name: string; Section: string = SETTINGS): Boolean; override;
     function DeleteKey(Section: string): Boolean; override;
+    procedure GetValues(Section: string; var List: TStringList); override;
 
     function GetFilePath(Filename: string): string; override;
     function PrepareSave: Boolean; override;
@@ -357,6 +361,27 @@ end;
 class function TSettingsInstalled.GetRegPath(AppName: string): string;
 begin
   Result := '\Software\mistake.ws\' + AppName + '\';
+end;
+
+procedure TSettingsInstalled.GetValues(Section: string;
+  var List: TStringList);
+var
+  Reg: TRegistry;
+begin
+  List.Clear;
+  Reg := TRegistry.Create;
+  try
+    Reg.RootKey := HKEY_CURRENT_USER;
+    if Reg.OpenKey(FRegPath + Section, False) then
+    begin
+      try
+        Reg.GetValueNames(List);
+      except end;
+      Reg.CloseKey;
+    end;
+  finally
+    Reg.Free;
+  end;
 end;
 
 function TSettingsInstalled.PrepareSave: Boolean;
@@ -646,6 +671,26 @@ begin
   Result := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)));
 end;
 
+procedure TSettingsPortable.GetValues(Section: string;
+  var List: TStringList);
+var
+  Ini: TIniFile;
+begin
+  List.Clear;
+  try
+    Ini := TIniFile.Create(FIniFile);
+  except
+    Exit;
+  end;
+  try
+    try
+      Ini.ReadSection(Section, List);
+    except end;
+  finally
+    Ini.Free;
+  end;
+end;
+
 function TSettingsPortable.PrepareSave: Boolean;
 begin
   Result := CreatePath;
@@ -868,6 +913,11 @@ end;
 function TSettingsDummy.GetFilePath(Filename: string): string;
 begin
   Result := '';
+end;
+
+procedure TSettingsDummy.GetValues(Section: string; var List: TStringList);
+begin
+
 end;
 
 function TSettingsDummy.PrepareSave: Boolean;
