@@ -52,6 +52,7 @@ function DownCase(ch: Char): Char;
 function MakeSize(Size: UInt64): string;
 function DiskSpaceOkay(Path: string; MinSpaceGB: Int64): Boolean;
 procedure FindFiles(PathPattern: string; Files: TStringList);
+function RunProcess(Filename: string; Timeout: Integer; var Output: AnsiString): Integer; overload;
 function RunProcess(Filename: string; var Handle: Cardinal; Hide: Boolean = False): Boolean; overload;
 function RunProcess(Filename: string; Hide: Boolean = False): Boolean; overload;
 function GetCPUCount: DWord;
@@ -429,13 +430,100 @@ begin
   end;
 end;
 
-function RunProcess(Filename: string; var Handle: Cardinal; Hide: Boolean): Boolean;
+function RunProcess(Filename: string; Timeout: Integer; var Output: AnsiString): Integer; overload;
 var
+  OK: Boolean;
+  Handle: Cardinal;
   SI: TStartupInfo;
   PI: TProcessInformation;
+  SA: TSecurityAttributes;
+  SD: TSecurityDescriptor;
+
+  ReadPipeOut, WritePipeOut: THandle;
+  //ReadPipeErr, WritePipeErr: THandle;
+  ReadPipeIn, WritePipeIn: THandle;
+  BufferSize: Cardinal;
+  Last: WideString;
+  Str: WideString;
+  ExitCode: DWORD;
+  ReadCount: DWORD;
+  Avail: DWORD;
+  P: PChar;
+  Tmp: AnsiString;
+begin
+  Result := 1;
+  Output := '';
+  if Filename = '' then
+    Exit;
+
+  if not InitializeSecurityDescriptor(@SD, SECURITY_DESCRIPTOR_REVISION) then
+    Exit;
+  if not SetSecurityDescriptorDacl(@SD, True, nil, False) then
+    Exit;
+  SA.lpSecurityDescriptor := @SD;
+
+  SA.nLength := SizeOf(TSecurityAttributes);
+  SA.bInheritHandle := True;
+
+  if not CreatePipe(ReadPipeOut, WritePipeOut, @SA, 0) then
+    Exit;
+
+  if not CreatePipe(ReadPipeIn, WritePipeIn, @SA, 0) then
+  begin
+    CloseHandle(ReadPipeOut);
+    CloseHandle(WritePipeOut);
+    Exit;
+  end;
+
+  FillChar(SI, SizeOf(TStartupInfo), #0);
+  FillChar(PI, SizeOf(TProcessInformation), #0);
+  SI.cb := SizeOf(TStartupInfo);
+  SI.dwFlags := STARTF_USESTDHANDLES or STARTF_USESHOWWINDOW;
+  SI.wShowWindow := SW_HIDE;
+  SI.hStdOutput := WritePipeOut;
+  SI.hStdError := WritePipeOut;
+  SI.hStdInput := ReadPipeIn;
+  OK := CreateProcess(nil, @Filename[1], nil, nil, True,
+    CREATE_NEW_PROCESS_GROUP or NORMAL_PRIORITY_CLASS,
+    nil, nil, SI, PI);
+  try
+    if OK then
+    begin
+      Handle := PI.hProcess;
+
+      if WaitForSingleObject(Handle, Timeout) = WAIT_OBJECT_0 then
+        Result := 0
+      else
+        Result := 2;
+
+      PeekNamedPipe(ReadPipeOut, nil, 0, nil, @Avail, nil);
+      if Avail > 0 then
+      begin
+        SetLength(Tmp, Avail);
+        ReadFile(ReadPipeOut, Tmp[1], Avail, ReadCount, nil);
+        Output := Output + Tmp;
+      end;
+      Result := 0;
+    end;
+  finally
+    CloseHandle(PI.hThread);
+    CloseHandle(PI.hProcess);
+    CloseHandle(ReadPipeOut);
+    CloseHandle(WritePipeOut);
+    CloseHandle(ReadPipeIn);
+    CloseHandle(WritePipeIn);
+  end;
+end;
+
+function RunProcess(Filename: string; var Handle: Cardinal; Hide: Boolean): Boolean;
+var
   OK: Boolean;
+  SI: TStartupInfo;
+  PI: TProcessInformation;
 begin
   Handle := High(Cardinal);
+  if Filename = '' then
+    Exit;
   FillChar(SI, SizeOf(TStartupInfo), #0);
   FillChar(PI, SizeOf(TProcessInformation), #0);
   SI.cb := SizeOf(TStartupInfo);
@@ -444,7 +532,7 @@ begin
     SI.dwFlags := STARTF_USESHOWWINDOW;
     SI.wShowWindow := SW_HIDE;
   end;
-  OK := CreateProcess(nil, PChar(Filename), nil, nil, False,
+  OK := CreateProcess(nil, @Filename[1], nil, nil, False,
     CREATE_NEW_PROCESS_GROUP or NORMAL_PRIORITY_CLASS,
     nil, nil, SI, PI);
   Result := OK;

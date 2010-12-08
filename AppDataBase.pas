@@ -369,7 +369,7 @@ var
 begin
   if not InitializeSecurityDescriptor(@pSD, SECURITY_DESCRIPTOR_REVISION) then
     Exit;
-  if not SetSecurityDescriptorDacl(@pSD, true, nil, false) then
+  if not SetSecurityDescriptorDacl(@pSD, True, nil, False) then
     Exit;
   SA.nLength := SizeOf(SA);
   SA.lpSecurityDescriptor := @pSD;
