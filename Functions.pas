@@ -68,7 +68,8 @@ function GetFileSize(const AFilename: string): Int64;
 function CmpInt(const A, B: Int64): Integer;
 function ParseVersion(const Version: string): TAppVersion;
 function IsVersionNewer(const Current, Found: TAppVersion): Boolean;
-procedure GetBitmap(const Resname: string; const NumGlyphs: Integer; var Bmp: TBitmap);
+procedure GetBitmap(const Resname: string; const NumGlyphs: Integer; Bmp: TBitmap);
+function BuildPattern(const s: string; var Hash: Cardinal; var NumChars: Integer): string;
 
 function VerSetConditionMask(dwlConditionMask: LONGLONG; TypeBitMask: DWORD; ConditionMask: Byte): LONGLONG; stdcall;
   external 'kernel32.dll';
@@ -440,15 +441,9 @@ var
   SD: TSecurityDescriptor;
 
   ReadPipeOut, WritePipeOut: THandle;
-  //ReadPipeErr, WritePipeErr: THandle;
   ReadPipeIn, WritePipeIn: THandle;
-  BufferSize: Cardinal;
-  Last: WideString;
-  Str: WideString;
-  ExitCode: DWORD;
   ReadCount: DWORD;
   Avail: DWORD;
-  P: PChar;
   Tmp: AnsiString;
 begin
   Result := 1;
@@ -521,6 +516,7 @@ var
   SI: TStartupInfo;
   PI: TProcessInformation;
 begin
+  Result := False;
   Handle := High(Cardinal);
   if Filename = '' then
     Exit;
@@ -650,7 +646,7 @@ var
   i: Integer;
 begin
   Result := 0;
-  for i := 1 to Length(Str) - 1 do
+  for i := 1 to Length(Str) do
     if Str[i] = C then
       Inc(Result);
 end;
@@ -823,7 +819,7 @@ begin
             (MajorEq and MinorEq and RevisionEq and (Found.Build > Current.Build));
 end;
 
-procedure GetBitmap(const Resname: string; const NumGlyphs: Integer; var Bmp: TBitmap);
+procedure GetBitmap(const Resname: string; const NumGlyphs: Integer; Bmp: TBitmap);
 var
   i, j, k: Integer;
   Grayshade, Red, Green, Blue: Byte;
@@ -870,6 +866,49 @@ begin
   finally
     Icon.Free;
   end;
+end;
+
+function TrimChars(const s: string; const c: Char): string;
+var
+  n, Counter: Integer;
+  F: Boolean;
+begin
+  F := False;
+  Counter := 1;
+  SetLength(Result, Length(s));
+  for n := 1 to Length(s) do
+    if s[n] = c then
+    begin
+      if F then
+      begin
+
+      end else
+      begin
+        Result[Counter] := c;
+        Inc(Counter);
+      end;
+      F := True;
+    end else
+    begin
+      F := False;
+      Result[Counter] := s[n];
+      Inc(Counter);
+    end;
+  if Counter = 0 then
+    Exit;
+  SetLength(Result, Counter - 1);
+end;
+
+function BuildPattern(const s: string; var Hash: Cardinal; var NumChars: Integer): string;
+begin
+  Result := LowerCase(s);
+  Result := AnsiLowerCase(Result);
+  Result := '*' + Result + '*';
+  Result := StringReplace(Result, ' ', '*', [rfReplaceAll]);
+  Result := TrimChars(Result, '*');
+
+  NumChars := Length(Result) - OccurenceCount('*', Result) - OccurenceCount('?', Result);
+  Hash := HashString(Result);
 end;
 
 end.

@@ -241,7 +241,7 @@ end;
 
 constructor TfrmSettingsBase.Create(AOwner: TComponent);
 var
-  i, n: Integer;
+  i: Integer;
   Btn: TSpeedButton;
   HIco: THandle;
   Ico: TIcon;

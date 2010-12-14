@@ -22,7 +22,8 @@ unit SocketThread;
 interface
 
 uses
-  SysUtils, Windows, WinSock, Classes, SyncObjs, SocketStream, ExtendedStream;
+  SysUtils, Windows, WinSock, Classes, SyncObjs, SocketStream, ExtendedStream,
+  LanguageObjects;
 
 type
   TSocketThread = class(TThread)
@@ -34,6 +35,8 @@ type
 
     FDebugMsg: string;
     FDebugData: string;
+    FDebugType: Integer;
+    FDebugLevel: Integer;
 
     FOnDebug: TNotifyEvent;
     FOnConnected: TNotifyEvent;
@@ -50,17 +53,20 @@ type
     FSendStream: TExtendedStream;
 
     FReceived: UInt64;
+    FError: Boolean;
+    FClosed: Boolean;
 
     procedure Execute; override;
 
-    procedure WriteDebug(Text, Data: string); overload;
-    procedure WriteDebug(Text: string); overload;
+    procedure WriteDebug(Text, Data: string; T, Level: Integer); overload;
+    procedure WriteDebug(Text: string; T, Level: Integer); overload;
     procedure StreamDebug(Sender: TObject);
 
     procedure Sync(Proc: TNotifyEvent);
 
     procedure DoStuff; virtual;
-    procedure DoDebug(Text, Data: string);
+    procedure DoDebug(Text, Data: string; T, Level: Integer);
+    procedure DoConnecting; virtual;
     procedure DoConnected; virtual;
     procedure DoDisconnected; virtual;
     procedure DoDisconnectedEvent;
@@ -78,7 +84,10 @@ type
 
     property DebugMsg: string read FDebugMsg;
     property DebugData: string read FDebugData;
+    property DebugType: Integer read FDebugType;
+    property DebugLevel: Integer read FDebugLevel;
     property Received: UInt64 read FReceived;
+    property Error: Boolean read FError;
 
     property SendLock: TCriticalSection read FSendLock;
     property SendStream: TExtendedStream read FSendStream;
@@ -112,12 +121,12 @@ begin
       Result := T^^.S_addr;
   end;
   if Result = 0 then
-    raise Exception.Create('HostToAddress(): Host "' + Host + '" could not be resolved');
+    raise Exception.Create(Format(_('Host "%s" could not be resolved'), [Host]));
 end;
 
 procedure TSocketThread.StreamDebug(Sender: TObject);
 begin
-  WriteDebug(FRecvStream.DebugMsg, FRecvStream.DebugData);
+  WriteDebug(FRecvStream.DebugMsg, FRecvStream.DebugData, FRecvStream.DebugType, FRecvStream.DebugLevel);
 end;
 
 procedure TSocketThread.Sync(Proc: TNotifyEvent);
@@ -155,6 +164,7 @@ const
 begin
   inherited;
 
+  FClosed := False;
   try
     try
       if FSocketHandle = 0 then
@@ -163,17 +173,17 @@ begin
 
         FSocketHandle := socket(AF_INET, SOCK_STREAM, 0);
         if FSocketHandle = SOCKET_ERROR then
-          raise Exception.Create('socket(): Error');
+          raise Exception.Create(_('socket() failed'));
 
         NonBlock := 1;
         if ioctlsocket(FSocketHandle, FIONBIO, NonBlock) = SOCKET_ERROR then
-          raise Exception.Create('ioctlsocket(): Error');
+          raise Exception.Create(_('ioctlsocket() failed'));
 
         Addr.sin_family := AF_INET;
         Addr.sin_port := htons(FPort);
         Addr.sin_addr.S_addr := Host;
 
-        WriteDebug(Format('Connecting to %s:%d', [FHost, FPort]));
+        DoConnecting;
 
         connect(FSocketHandle, Addr, SizeOf(Addr));
 
@@ -191,17 +201,16 @@ begin
           FD_SET(FSocketHandle, exceptfds);
           Res := select(0, nil, @writefds, @exceptfds, @timeout);
           if (Res = SOCKET_ERROR) then
-            raise Exception.Create('select(): Error: ' + IntToStr(Res));;
+            raise Exception.Create(Format(_('select() failed: %d'), [Res]));
           if (Res > 0) and (FD_ISSET(FSocketHandle, exceptfds)) then
-            raise Exception.Create('select(): Socket error');
+            raise Exception.Create(_('select() socket error'));
           if (Res > 0) and (FD_ISSET(FSocketHandle, writefds)) then
             Break;
           if StartTime < Ticks - 5000 then
-            raise Exception.Create('Timeout while connecting');
+            raise Exception.Create(_('Timeout while connecting'));
         end;
       end;
 
-      WriteDebug('Connected');
       DoConnected;
 
       LastTimeReceived := GetTickCount;
@@ -230,15 +239,15 @@ begin
         Res := select(0, @readfds, @writefds, @exceptfds, @timeout);
 
         if Res = SOCKET_ERROR then
-          raise Exception.Create('select(): Error: ' + IntToStr(Res));
+          raise Exception.Create(Format(_('select() error: %d'), [Res]));
 
         if (Res > 0) and (FD_ISSET(FSocketHandle, exceptfds)) then
-          raise Exception.Create('select(): Socket error');
+          raise Exception.Create(_('select() socket error'));
 
         if (LastTimeReceived < GetTickCount - DataTimeout) and
            (LastTimeSent < GetTickCount - DataTimeout) then
         begin
-          raise Exception.Create(Format('No data received/sent for more than %d seconds', [DataTimeout div 1000]));
+          raise Exception.Create(Format(_('No data received/sent for more than %d seconds'), [DataTimeout div 1000]));
         end;
 
         if FD_ISSET(FSocketHandle, readfds) then
@@ -259,10 +268,10 @@ begin
             if Err <> WSAEWOULDBLOCK then
               if Err = 0 then
               begin
-                WriteDebug('Connection closed by server');
+                FClosed := True;
                 Break;
               end else
-                raise Exception.Create('recv(): Socket error: ' + IntToStr(Err));
+                raise Exception.Create(Format(_('recv() error: %d'), [Err]));
           end;
         end;
 
@@ -272,16 +281,16 @@ begin
           try
             SendRes := send(FSocketHandle, FSendStream.Memory^, FSendStream.Size, 0);
             if SendRes = SOCKET_ERROR then
-              raise Exception.Create('send(): Socket error: ' + IntToStr(WSAGetLastError));
+              raise Exception.Create(Format(_('send() socket error: %d'), [WSAGetLastError]));
             if SendRes > 0 then
             begin
               LastTimeSent := GetTickCount;
-              WriteDebug(IntToStr(SendRes) + ' bytes sent', string(FSendStream.ToString(0, SendRes)));
+              WriteDebug(Format(_('%d bytes sent'), [SendRes]), string(FSendStream.ToString(0, SendRes)), 0, 1);
               FSendStream.RemoveRange(0, SendRes);
             end;
             if WSAGetLastError <> 0 then
             begin
-              raise Exception.Create('send(): Error: ' + IntToStr(WSAGetLastError));
+              raise Exception.Create(Format(_('send() error: %d'), [WSAGetLastError]));
             end;
           finally
             FSendLock.Leave;
@@ -296,19 +305,18 @@ begin
     except
       on E: Exception do
       begin
-        WriteDebug('Exception', E.Message + E.StackTrace);
+        WriteDebug(E.Message + E.StackTrace, 0, 1);
         DoException(E);
       end;
     end;
   finally
-    WriteDebug('Thread ' + IntToStr(Integer(Pointer(Self))) + ' ended');
     try
       DoEnded;
       DoEndedEvent;
     except
       on E: Exception do
       begin
-        WriteDebug('Exception', E.Message + E.StackTrace);
+        WriteDebug(E.Message + E.StackTrace, '', 0, 1);
         DoException(E);
       end;
     end;
@@ -317,16 +325,14 @@ begin
   end;
 end;
 
-procedure TSocketThread.WriteDebug(Text: string);
+procedure TSocketThread.WriteDebug(Text: string; T, Level: Integer);
 begin
-  WriteDebug(Text, '');
+  WriteDebug(Text, '', T, Level);
 end;
 
-procedure TSocketThread.WriteDebug(Text, Data: string);
+procedure TSocketThread.WriteDebug(Text, Data: string; T, Level: Integer);
 begin
-  {$IFDEF DEBUG}
-  DoDebug(Text, Data);
-  {$ENDIF}
+  DoDebug(Text, Data, T, Level);
 end;
 
 procedure TSocketThread.DoConnected;
@@ -335,15 +341,22 @@ begin
     Sync(FOnConnected);
 end;
 
+procedure TSocketThread.DoConnecting;
+begin
+
+end;
+
 procedure TSocketThread.DoStuff;
 begin
 
 end;
 
-procedure TSocketThread.DoDebug(Text, Data: string);
+procedure TSocketThread.DoDebug(Text, Data: string; T, Level: Integer);
 begin
   FDebugMsg := Text;
   FDebugData := Data;
+  FDebugType := T;
+  FDebugLevel := Level;
   if Assigned(FOnDebug) then
     Sync(FOnDebug);
 end;
@@ -372,6 +385,7 @@ end;
 
 procedure TSocketThread.DoException(E: Exception);
 begin
+  FError := True;
   if Assigned(FOnException) then
     Sync(FOnException);
 end;

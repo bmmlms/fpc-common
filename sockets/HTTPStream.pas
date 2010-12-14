@@ -204,7 +204,7 @@ begin
   if i > -1 then
   begin
     FHeader := string(ToString(0, i));
-    WriteDebug('Header received', FHeader);
+    WriteDebug('Header received', FHeader, 0, 1);
     GetResponseCode;
     GetHeaderType;
     FContentType := LowerCase(GetHeaderData('content-type'));

@@ -28,11 +28,13 @@ type
   TSocketStream = class(TExtendedStream)
   private
     FDebugMsg, FDebugData: string;
+    FDebugType: Integer;
+    FDebugLevel: Integer;
     FOnDebug: TNotifyEvent;
   protected
     function FGetRecvDataStream: TExtendedStream; virtual;
-    procedure WriteDebug(Text, Data: string); overload;
-    procedure WriteDebug(Text: string); overload;
+    procedure WriteDebug(Text, Data: string; T, Level: Integer); overload;
+    procedure WriteDebug(Text: string; T, Level: Integer); overload;
   public
     procedure Process; virtual; abstract;
 
@@ -40,6 +42,8 @@ type
 
     property DebugMsg: string read FDebugMsg;
     property DebugData: string read FDebugData;
+    property DebugType: Integer read FDebugType;
+    property DebugLevel: Integer read FDebugLevel;
     property OnDebug: TNotifyEvent read FOnDebug write FOnDebug;
   end;
 
@@ -47,19 +51,21 @@ implementation
 
 { TSocketStream }
 
-procedure TSocketStream.WriteDebug(Text, Data: string);
+procedure TSocketStream.WriteDebug(Text, Data: string; T, Level: Integer);
 begin
   if Assigned(FOnDebug) then
   begin
     FDebugMsg := Text;
     FDebugData := Data;
+    FDebugType := T;
+    FDebugLevel := Level;
     FOnDebug(Self);
   end;
 end;
 
-procedure TSocketStream.WriteDebug(Text: string);
+procedure TSocketStream.WriteDebug(Text: string; T, Level: Integer);
 begin
-  WriteDebug(Text, '');
+  WriteDebug(Text, '', T, Level);
 end;
 
 function TSocketStream.FGetRecvDataStream: TExtendedStream;
