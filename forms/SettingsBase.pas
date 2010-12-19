@@ -264,6 +264,7 @@ begin
     FTreeView := TTreeView.Create(pnlLeft);
     FTreeView.Parent := pnlLeft;
     FTreeView.OnChange := TreeViewChange;
+    FTreeView.ReadOnly := True;
     FTreeView.ShowButtons := False;
     FTreeView.ShowLines := False;
     FTreeView.HideSelection := False;

@@ -473,13 +473,13 @@ begin
   FillChar(SI, SizeOf(TStartupInfo), #0);
   FillChar(PI, SizeOf(TProcessInformation), #0);
   SI.cb := SizeOf(TStartupInfo);
-  SI.dwFlags := STARTF_USESTDHANDLES or STARTF_USESHOWWINDOW;
+  SI.dwFlags := STARTF_FORCEOFFFEEDBACK or STARTF_USESTDHANDLES or STARTF_USESHOWWINDOW;
   SI.wShowWindow := SW_HIDE;
   SI.hStdOutput := WritePipeOut;
   SI.hStdError := WritePipeOut;
   SI.hStdInput := ReadPipeIn;
   OK := CreateProcess(nil, @Filename[1], nil, nil, True,
-    CREATE_NEW_PROCESS_GROUP or NORMAL_PRIORITY_CLASS,
+    CREATE_NEW_PROCESS_GROUP or NORMAL_PRIORITY_CLASS or CREATE_NO_WINDOW,
     nil, nil, SI, PI);
   try
     if OK then
