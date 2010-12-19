@@ -201,9 +201,17 @@ begin
           FD_SET(FSocketHandle, exceptfds);
           Res := select(0, nil, @writefds, @exceptfds, @timeout);
           if (Res = SOCKET_ERROR) then
-            raise Exception.Create(Format(_('select() failed: %d'), [Res]));
+            {$IFDEF DEBUG}
+            raise Exception.Create('select() failed while connecting');
+            {$ELSE}
+            raise Exception.Create(_('Error while connecting'));
+            {$ENDIF}
           if (Res > 0) and (FD_ISSET(FSocketHandle, exceptfds)) then
-            raise Exception.Create(_('select() socket error'));
+            {$IFDEF DEBUG}
+            raise Exception.Create('select() socket error while connecting');
+            {$ELSE}
+            raise Exception.Create(_('Error while connecting'));
+            {$ENDIF}
           if (Res > 0) and (FD_ISSET(FSocketHandle, writefds)) then
             Break;
           if StartTime < Ticks - 5000 then
@@ -254,8 +262,18 @@ begin
         begin
           RecvRes := recv(FSocketHandle, Buf, 8192, 0);
 
-          if RecvRes > 0 then
+          if RecvRes = 0 then
           begin
+            // Verbindung wurde geschlossen
+            FClosed := True;
+            Break;
+          end else if RecvRes = SOCKET_ERROR then
+          begin
+            // Fehler
+            raise Exception.Create(Format(_('recv() error: %d'), [WSAGetLastError]));
+          end else if RecvRes > 0 then
+          begin
+            // Alles cremig
             FReceived := FReceived + RecvRes;
             LastTimeReceived := GetTickCount;
             FRecvStream.Seek(0, soFromEnd);
@@ -264,14 +282,7 @@ begin
             DoReceivedData(@Buf[1], RecvRes);
           end else
           begin
-            Err := WSAGetLastError;
-            if Err <> WSAEWOULDBLOCK then
-              if Err = 0 then
-              begin
-                FClosed := True;
-                Break;
-              end else
-                raise Exception.Create(Format(_('recv() error: %d'), [Err]));
+
           end;
         end;
 
