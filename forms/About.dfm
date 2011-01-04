@@ -63,14 +63,16 @@ object frmAbout: TfrmAbout
     Top = 4
     Width = 461
     Height = 213
-    ActivePage = tabLicense
+    ActivePage = tabAbout
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 0
     OnChange = pagAboutChange
-    ExplicitWidth = 413
     object tabAbout: TTabSheet
       Caption = 'About'
-      ExplicitWidth = 405
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         453
         185)
@@ -168,9 +170,9 @@ object frmAbout: TfrmAbout
       object lblCopyright: TLabel
         Left = 4
         Top = 56
-        Width = 200
+        Width = 228
         Height = 13
-        Caption = 'Copyright (c) 2010 Alexander Nottelmann'
+        Caption = 'Copyright (c) 2010-2011 Alexander Nottelmann'
       end
       object lblHomepage: TLabel
         Left = 4
@@ -296,7 +298,10 @@ object frmAbout: TfrmAbout
     object tabLicense: TTabSheet
       Caption = 'License'
       ImageIndex = 1
-      ExplicitWidth = 405
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         453
         185)
@@ -348,7 +353,6 @@ object frmAbout: TfrmAbout
     Padding.Right = 4
     Padding.Bottom = 4
     TabOrder = 1
-    ExplicitWidth = 421
     object Bevel2: TBevel
       Left = 4
       Top = 4
@@ -372,7 +376,6 @@ object frmAbout: TfrmAbout
       ParentDoubleBuffered = False
       TabOrder = 0
       OnClick = btnCloseClick
-      ExplicitLeft = 320
     end
   end
 end

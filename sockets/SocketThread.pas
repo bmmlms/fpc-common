@@ -151,7 +151,6 @@ var
   timeout: TimeVal;
   Buf: array[0..8191] of Byte;
   Host: Integer;
-  Err: Cardinal;
   NonBlock: Integer;
   Ticks, StartTime: Cardinal;
   LastTimeReceived, LastTimeSent: Cardinal;

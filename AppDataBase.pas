@@ -96,6 +96,8 @@ type
     FProjectDonateLink: string;
     FProjectThanksText: string;
 
+    FBuildNumber: Integer;
+
     procedure DoSave; virtual;
   public
     constructor Create(AppName: String; OnlyOne: Boolean; DefWidth, DefHeight: Integer); reintroduce;
@@ -119,6 +121,7 @@ type
     property AppPath: string read FAppPath;
     property AppName: string read FAppName;
     property AppVersion: TAppVersion read FAppVersion;
+    property BuildNumber: Integer read FBuildNumber;
     property TempDir: string read FTempDir;
     property ProjectUpdateLink: string read FProjectUpdateLink;
     property ProjectHomepageLink: string read FProjectHomepageLink;
@@ -156,6 +159,8 @@ begin
   FMainWidthDefault := DefWidth;
   FMainHeightDefault := DefHeight;
   FSkipSave := False;
+
+  FBuildNumber := 0;
 
   FCS := TCriticalSection.Create;
   FAppPath := IncludeTrailingBackslash(ExtractFilePath(ParamStr(0)));

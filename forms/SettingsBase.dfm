@@ -160,6 +160,7 @@ object frmSettingsBase: TfrmSettingsBase
     Width = 337
     Height = 317
     TabOrder = 3
+    Visible = False
     DesignSize = (
       337
       317)

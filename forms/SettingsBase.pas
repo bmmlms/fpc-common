@@ -82,6 +82,8 @@ type
     procedure chkProxyClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
   private
+    FSaveSettings: Boolean;
+    FShowGeneral: Boolean;
     FTreeView: TTreeView;
     procedure TreeViewChange(Sender: TObject; Node: TTreeNode);
     procedure NavButtonClick(Sender: TObject);
@@ -92,13 +94,16 @@ type
     FTreeImages: TImageList;
     procedure SetPage(Page: TPage); overload;
     procedure SetPage(Panel: TPanel); overload;
+    procedure EnablePanel(Panel: TPanel; Enable: Boolean);
     procedure RegisterPages; virtual;
     procedure Finish; virtual;
     function CanFinish: Boolean; virtual;
     procedure PreTranslate; virtual;
     procedure PostTranslate; virtual;
   public
-    constructor Create(AOwner: TComponent); override;
+    constructor Create(AOwner: TComponent; ShowGeneral: Boolean); reintroduce;
+
+    property SaveSettings: Boolean read FSaveSettings;
   end;
 
 implementation
@@ -216,18 +221,21 @@ end;
 
 function TfrmSettingsBase.CanFinish: Boolean;
 begin
-  Result := False;
-  if chkProxy.Checked then
+  if FShowGeneral then
   begin
-    if (Trim(txtHost.Text) = '') or (Trim(txtPort.Text) = '') or (StrToIntDef(txtPort.Text, 0) <= 0) then
+    Result := False;
+    if chkProxy.Checked then
     begin
-      MsgBox(Handle, _('You need to supply a host and a port (must be a positive number) to connect to if the use of a HTTP proxy is enabled.'), _('Info'), MB_ICONINFORMATION);
-      SetPage(FPageList.Find(TPanel(txtHost.Parent)));
-      if Trim(txtHost.Text) = '' then
-        txtHost.SetFocus
-      else
-        txtPort.SetFocus;
-      Exit;
+      if (Trim(txtHost.Text) = '') or (Trim(txtPort.Text) = '') or (StrToIntDef(txtPort.Text, 0) <= 0) then
+      begin
+        MsgBox(Handle, _('You need to supply a host and a port (must be a positive number) to connect to if the use of a HTTP proxy is enabled.'), _('Info'), MB_ICONINFORMATION);
+        SetPage(FPageList.Find(TPanel(txtHost.Parent)));
+        if Trim(txtHost.Text) = '' then
+          txtHost.SetFocus
+        else
+          txtPort.SetFocus;
+        Exit;
+      end;
     end;
   end;
   Result := True;
@@ -239,7 +247,7 @@ begin
   txtPort.Enabled := chkProxy.Checked;
 end;
 
-constructor TfrmSettingsBase.Create(AOwner: TComponent);
+constructor TfrmSettingsBase.Create(AOwner: TComponent; ShowGeneral: Boolean);
 var
   i: Integer;
   Btn: TSpeedButton;
@@ -247,8 +255,9 @@ var
   Ico: TIcon;
   Item: TTreeNode;
 begin
-  inherited;
+  inherited Create(AOwner);
 
+  FShowGeneral := ShowGeneral;
   FActivePage := nil;
 
   FTreeImages := TImageList.Create(Self);
@@ -334,18 +343,35 @@ begin
   Language.Translate(Self, PreTranslate, PostTranslate);
 end;
 
+procedure TfrmSettingsBase.EnablePanel(Panel: TPanel; Enable: Boolean);
+var
+  i: Integer;
+begin
+  for i := 0 to FPageList.Count - 1 do
+    if FPageList[i].FPanel = Panel then
+    begin
+      FPageList[i].FNode.Enabled := Enable;
+      Break;
+    end;
+end;
+
 procedure TfrmSettingsBase.Finish;
 begin
-  AppGlobals.AutoUpdate := chkAutoUpdateCheck.Checked;
-
-  AppGlobals.ProxyEnabled := chkProxy.Checked;
-  AppGlobals.ProxyHost := txtHost.Text;
-  AppGlobals.ProxyPort := StrToIntDef(txtPort.Text, 8080);
-
-  if lstLanguages.ItemIndex > -1 then
+  if FShowGeneral then
   begin
-    AppGlobals.Language := Language.CurrentLanguage.ID;
+    AppGlobals.AutoUpdate := chkAutoUpdateCheck.Checked;
+
+    AppGlobals.ProxyEnabled := chkProxy.Checked;
+    AppGlobals.ProxyHost := txtHost.Text;
+    AppGlobals.ProxyPort := StrToIntDef(txtPort.Text, 8080);
+
+    if lstLanguages.ItemIndex > -1 then
+    begin
+      AppGlobals.Language := Language.CurrentLanguage.ID;
+    end;
   end;
+
+  FSaveSettings := True;
 
   Close;
 end;
@@ -408,7 +434,9 @@ end;
 procedure TfrmSettingsBase.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
- if Key = 27 then
+  inherited;
+
+  if Key = 27 then
   begin
     Key := 0;
     Close;
@@ -432,7 +460,8 @@ begin
   for i := 0 to FPageList.Count - 1 do
     if FPageList[i].Node = Node then
     begin
-      SetPage(FPageList[i]);
+      if FPageList[i].Node.Enabled then
+        SetPage(FPageList[i]);
       Break;
     end;
 end;
@@ -451,10 +480,11 @@ end;
 
 procedure TfrmSettingsBase.RegisterPages;
 begin
-  if FUseTree then
-    FPageList.Add(TPage.Create(_('General'), pnlGeneral, 'SETTINGS'))
-  else
-    FPageList.Add(TPage.Create(_('&General'), pnlGeneral, 'SETTINGS'));
+  if FShowGeneral then
+    if FUseTree then
+      FPageList.Add(TPage.Create(_('General'), pnlGeneral, 'SETTINGS'))
+    else
+      FPageList.Add(TPage.Create(_('&General'), pnlGeneral, 'SETTINGS'));
 end;
 
 procedure TfrmSettingsBase.SetPage(Page: TPage);
@@ -464,6 +494,7 @@ begin
 
   FActivePage := Page;
   FActivePage.Panel.Enabled := True;
+  FActivePage.Panel.Visible := True;
   FActivePage.Panel.BringToFront;
 
   if FUseTree then

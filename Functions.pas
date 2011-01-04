@@ -420,12 +420,11 @@ var
   SR: TSearchRec;
 begin
   Files.Clear;
-  if FindFirst(PathPattern, faAnyFile, SR) = 0 then
+  if FindFirst(PathPattern, faAnyFile and not faDirectory, SR) = 0 then
   begin
     repeat
-      if SR.Attr or faDirectory <> faDirectory then
-        if (SR.Name <> '.') and (SR.Name <> '..') then
-          Files.Add(SR.Name);
+      if (SR.Name <> '.') and (SR.Name <> '..') then
+        Files.Add(SR.Name);
     until FindNext(SR) <> 0;
     FindClose(SR);
   end;
@@ -533,7 +532,11 @@ begin
     nil, nil, SI, PI);
   Result := OK;
   if OK then
+  begin
+    CloseHandle(PI.hThread);
+    CloseHandle(PI.hProcess);
     Handle := PI.hProcess;
+  end;
 end;
 
 function RunProcess(Filename: string; Hide: Boolean): Boolean;

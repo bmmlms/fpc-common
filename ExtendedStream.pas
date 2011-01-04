@@ -96,10 +96,13 @@ begin
   {$IF CompilerVersion >= 18.5}
   WriteBuffer(Value[1], Len);
   {$ELSE}
-  P := GetMemory(Len);
-  StringToWideChar(s, P, Len);
-  Stream.WriteBuffer(P^, Len);
-  FreeMemory(P);
+  if Len > 0 then
+  begin
+    P := GetMemory(Len);
+    StringToWideChar(s, P, Len);
+    Stream.WriteBuffer(P^, Len);
+    FreeMemory(P);
+  end;
   {$IFEND}
 end;
 
@@ -153,12 +156,16 @@ var
   Len: Integer;
   P: PWideChar;
 begin
+  Value := '';
   Read(Len);
-  P := GetMemory(Len + 2);
-  ZeroMemory(P, Len + 2);
-  ReadBuffer(P^, Len);
-  Value := WideCharToString(P);
-  FreeMemory(P);
+  if Len > 0 then
+  begin
+    P := GetMemory(Len + 2);
+    ZeroMemory(P, Len + 2);
+    ReadBuffer(P^, Len);
+    Value := WideCharToString(P);
+    FreeMemory(P);
+  end;
 end;
 
 procedure TExtendedStream.Read(var Value: Cardinal);

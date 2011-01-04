@@ -179,15 +179,13 @@ begin
 end;
 
 constructor TSettingsInstalled.Create(AppName, AppPath: string);
-var
-  i: Integer;
-  Lst: TStringList;
 begin
   inherited;
 
   FRegPath := GetRegPath(AppName);
   FDataDir := GetDataDir(AppName);
 
+  {
   Lst := TStringList.Create;
   try
     // ISSUE: Irgendwann entfernen. Wenn Files von alter Version sind, wird diesen
@@ -204,6 +202,7 @@ begin
   finally
     Lst.Free;
   end;
+  }
 end;
 
 function TSettingsInstalled.Delete(Name, Section: string): Boolean;
