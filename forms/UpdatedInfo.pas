@@ -49,9 +49,9 @@ procedure TfrmUpdatedInfo.FormCreate(Sender: TObject);
 begin
   Language.Translate(Self);
 
-  txtInfo.Text := _('You just upgraded to %s version %s!'#13#10#13#10 +
+  txtInfo.Text := _('You just upgraded %s to version %s!'#13#10#13#10 +
                     'I hope you enjoy using %s. If you like this software, please consider ' +
-                    'donating to support further development.');
+                    'a donation to help paying the website''s server and support further development.');
   txtInfo.Text := Format(txtInfo.Text, [AppGlobals.AppName, AppGlobals.AppVersion.AsString, AppGlobals.AppName]);
 
   if AppGlobals.ProjectDonateLink <> '' then
