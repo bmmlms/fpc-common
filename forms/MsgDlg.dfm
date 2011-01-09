@@ -6,7 +6,7 @@ object frmMsgDlg: TfrmMsgDlg
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Info'
-  ClientHeight = 161
+  ClientHeight = 165
   ClientWidth = 381
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -59,12 +59,12 @@ object frmMsgDlg: TfrmMsgDlg
   OnKeyUp = FormKeyUp
   DesignSize = (
     381
-    161)
+    165)
   PixelsPerInch = 96
   TextHeight = 13
   object Bevel1: TBevel
     Left = -16
-    Top = 124
+    Top = 128
     Width = 409
     Height = 9
     Anchors = [akLeft, akRight, akBottom]
@@ -75,16 +75,15 @@ object frmMsgDlg: TfrmMsgDlg
   object chkNotShowAgain: TCheckBox
     Left = 4
     Top = 104
-    Width = 193
-    Height = 17
+    Width = 277
+    Height = 21
     Anchors = [akLeft, akBottom]
-    Caption = '&Never show this message again'
+    Caption = '&Don'#39't show this message again'
     TabOrder = 2
-    ExplicitTop = 88
   end
   object cmdOK: TButton
     Left = 4
-    Top = 132
+    Top = 136
     Width = 85
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -93,11 +92,11 @@ object frmMsgDlg: TfrmMsgDlg
     ModalResult = 1
     TabOrder = 0
     OnClick = cmdOKClick
-    ExplicitTop = 116
+    ExplicitTop = 132
   end
   object cmdCancel: TButton
     Left = 292
-    Top = 132
+    Top = 136
     Width = 85
     Height = 25
     Anchors = [akRight, akBottom]
@@ -105,21 +104,18 @@ object frmMsgDlg: TfrmMsgDlg
     ModalResult = 2
     TabOrder = 1
     OnClick = cmdCancelClick
-    ExplicitLeft = 280
-    ExplicitTop = 116
+    ExplicitTop = 132
   end
   object txtText: TMemo
     Left = 4
     Top = 4
     Width = 373
-    Height = 97
+    Height = 93
     Anchors = [akLeft, akTop, akRight, akBottom]
     BorderStyle = bsNone
     Color = clBtnFace
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 3
-    ExplicitWidth = 361
-    ExplicitHeight = 81
   end
 end

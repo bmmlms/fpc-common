@@ -5,7 +5,7 @@ object frmUpdatedInfo: TfrmUpdatedInfo
   BorderStyle = bsSingle
   Caption = 'Update installed'
   ClientHeight = 202
-  ClientWidth = 343
+  ClientWidth = 345
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -19,12 +19,12 @@ object frmUpdatedInfo: TfrmUpdatedInfo
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   DesignSize = (
-    343
+    345
     202)
   PixelsPerInch = 96
   TextHeight = 13
   object btnDonateEn: TImage
-    Left = 265
+    Left = 267
     Top = 130
     Width = 74
     Height = 21
@@ -77,7 +77,7 @@ object frmUpdatedInfo: TfrmUpdatedInfo
     ExplicitTop = 120
   end
   object btnDonateDe: TImage
-    Left = 253
+    Left = 255
     Top = 130
     Width = 86
     Height = 21
@@ -133,18 +133,19 @@ object frmUpdatedInfo: TfrmUpdatedInfo
   object txtInfo: TMemo
     Left = 4
     Top = 4
-    Width = 335
+    Width = 337
     Height = 119
     Anchors = [akLeft, akTop, akRight, akBottom]
     Color = clBtnFace
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 0
+    ExplicitWidth = 335
   end
   object pnlNav: TPanel
     Left = 0
     Top = 153
-    Width = 343
+    Width = 345
     Height = 49
     Align = alBottom
     BevelOuter = bvNone
@@ -153,10 +154,11 @@ object frmUpdatedInfo: TfrmUpdatedInfo
     Padding.Right = 4
     Padding.Bottom = 4
     TabOrder = 1
+    ExplicitWidth = 343
     object Bevel2: TBevel
       Left = 4
       Top = 4
-      Width = 335
+      Width = 337
       Height = 5
       Align = alTop
       Shape = bsTopLine
@@ -164,7 +166,7 @@ object frmUpdatedInfo: TfrmUpdatedInfo
       ExplicitWidth = 396
     end
     object btnClose: TBitBtn
-      Left = 242
+      Left = 244
       Top = 9
       Width = 97
       Height = 36
@@ -176,15 +178,17 @@ object frmUpdatedInfo: TfrmUpdatedInfo
       ParentDoubleBuffered = False
       TabOrder = 0
       OnClick = btnCloseClick
+      ExplicitLeft = 242
     end
   end
   object chkNotShowAgain: TCheckBox
     Left = 4
     Top = 130
-    Width = 193
-    Height = 17
-    Anchors = [akLeft, akBottom]
-    Caption = '&Never show this message again'
+    Width = 235
+    Height = 19
+    Anchors = [akLeft, akRight, akBottom]
+    Caption = '&Don'#39't show this message again'
     TabOrder = 2
+    ExplicitWidth = 233
   end
 end
