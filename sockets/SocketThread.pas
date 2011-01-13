@@ -321,8 +321,9 @@ begin
     end;
   finally
     try
-      DoEnded;
+      // TODO: das Event war vorher unter DoEnded. Ist das okay so?
       DoEndedEvent;
+      DoEnded;
     except
       on E: Exception do
       begin
