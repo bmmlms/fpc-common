@@ -168,6 +168,10 @@ begin
     try
       if FSocketHandle = 0 then
       begin
+        // Das ist vor dem echten Verbinden, damit Fehler bei HostToAddress() auf
+        // mit ins Log reinkommen.
+        DoConnecting;
+
         Host := HostToAddress(FHost);
 
         FSocketHandle := socket(AF_INET, SOCK_STREAM, 0);
@@ -181,8 +185,6 @@ begin
         Addr.sin_family := AF_INET;
         Addr.sin_port := htons(FPort);
         Addr.sin_addr.S_addr := Host;
-
-        DoConnecting;
 
         connect(FSocketHandle, Addr, SizeOf(Addr));
 
