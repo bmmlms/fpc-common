@@ -41,6 +41,7 @@ type
     FOnDebug: TNotifyEvent;
     FOnConnected: TNotifyEvent;
     FOnDisconnected: TNotifyEvent;
+    FOnBeforeEnded: TNotifyEvent;
     FOnEnded: TNotifyEvent;
     FOnException: TNotifyEvent;
 
@@ -71,6 +72,7 @@ type
     procedure DoDisconnected; virtual;
     procedure DoDisconnectedEvent;
     procedure DoEnded; virtual;
+    procedure DoBeforeEndedEvent;
     procedure DoEndedEvent;
     procedure DoReceivedData(Buf: Pointer; Len: Integer); virtual;
     procedure DoException(E: Exception); virtual;
@@ -95,6 +97,7 @@ type
     property OnDebug: TNotifyEvent read FOnDebug write FOnDebug;
     property OnConnected: TNotifyEvent read FOnConnected write FOnConnected;
     property OnDisconnected: TNotifyEvent read FOnDisconnected write FOnDisconnected;
+    property OnBeforeEnded: TNotifyEvent read FOnBeforeEnded write FOnBeforeEnded;
     property OnEnded: TNotifyEvent read FOnEnded write FOnEnded;
   end;
 
@@ -324,8 +327,9 @@ begin
   finally
     try
       // TODO: das Event war vorher unter DoEnded. Ist das okay so?
-      DoEndedEvent;
+      DoBeforeEndedEvent;
       DoEnded;
+      DoEndedEvent;
     except
       on E: Exception do
       begin
@@ -346,6 +350,12 @@ end;
 procedure TSocketThread.WriteDebug(Text, Data: string; T, Level: Integer);
 begin
   DoDebug(Text, Data, T, Level);
+end;
+
+procedure TSocketThread.DoBeforeEndedEvent;
+begin
+  if Assigned(FOnBeforeEnded) then
+    Sync(FOnBeforeEnded);
 end;
 
 procedure TSocketThread.DoConnected;
