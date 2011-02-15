@@ -94,7 +94,7 @@ type
     FTreeImages: TImageList;
     procedure SetPage(Page: TPage); overload;
     procedure SetPage(Panel: TPanel); overload;
-    procedure EnablePanel(Panel: TPanel; Enable: Boolean);
+    //procedure EnablePanel(Panel: TPanel; Enable: Boolean);
     procedure RegisterPages; virtual;
     procedure Finish; virtual;
     function CanFinish: Boolean; virtual;
@@ -343,6 +343,7 @@ begin
   Language.Translate(Self, PreTranslate, PostTranslate);
 end;
 
+{
 procedure TfrmSettingsBase.EnablePanel(Panel: TPanel; Enable: Boolean);
 var
   i: Integer;
@@ -354,6 +355,7 @@ begin
       Break;
     end;
 end;
+}
 
 procedure TfrmSettingsBase.Finish;
 begin
@@ -458,7 +460,7 @@ var
   i: Integer;
 begin
   for i := 0 to FPageList.Count - 1 do
-    if FPageList[i].Node = Node then
+    if (FPageList[i].Node = Node) then
     begin
       if FPageList[i].Node.Enabled then
         SetPage(FPageList[i]);

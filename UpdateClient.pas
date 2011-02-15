@@ -109,6 +109,7 @@ begin
     inherited Create(URL);
   FUpdateAction := Action;
   FChangeLog := '';
+  FUserAgent := AnsiString(AppGlobals.AppName) + ' v' + AppGlobals.AppVersion.AsString;
 end;
 
 function TUpdateThread.GetValue(Data, Name: AnsiString): AnsiString;
