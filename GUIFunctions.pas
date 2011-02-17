@@ -33,6 +33,7 @@ function BrowseDialog(Handle: HWnd; Title: string; Flag: Integer): string;
 procedure PropertiesDialog(Filename: string);
 function GetShellFolder(CSIDL: Integer): string;
 function Recycle(Handle: Cardinal; Filename: string): Boolean; overload;
+function GetUserDir: string;
 
 implementation
 
@@ -182,6 +183,15 @@ begin
   Ret := SHFileOperation(Operation);
   // True wenn Erfolg oder Datei nicht gefunden
   Result := (Ret = 0) or (Ret = 2);
+end;
+
+function GetUserDir: string;
+begin
+  Result := GetShellFolder(CSIDL_APPDATA);
+  if (Trim(Result) <> '') then
+  begin
+    Result := IncludeTrailingPathDelimiter(Result);
+  end;
 end;
 
 end.
