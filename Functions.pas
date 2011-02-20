@@ -70,6 +70,7 @@ function ParseVersion(const Version: string): TAppVersion;
 function IsVersionNewer(const Current, Found: TAppVersion): Boolean;
 procedure GetBitmap(const Resname: string; const NumGlyphs: Integer; Bmp: TBitmap);
 function BuildPattern(const s: string; var Hash: Cardinal; var NumChars: Integer): string;
+function CryptStr(const s: string): string;
 
 function VerSetConditionMask(dwlConditionMask: LONGLONG; TypeBitMask: DWORD; ConditionMask: Byte): LONGLONG; stdcall;
   external 'kernel32.dll';
@@ -912,6 +913,17 @@ begin
 
   NumChars := Length(Result) - OccurenceCount('*', Result) - OccurenceCount('?', Result);
   Hash := HashString(Result);
+end;
+
+function CryptStr(const s: string): string;
+var
+  i: Integer;
+begin
+  SetLength(Result, Length(s));
+  if Length(s) = 0 then
+    Exit;
+  for i := 1 to Length(s) do
+    Result[i] := Chr(Ord(s[i]) xor $45);
 end;
 
 end.
