@@ -23,7 +23,7 @@ interface
 
 uses
   Windows, SysUtils, StrUtils, Classes, AppData, AppDataBase,
-  HTTPThread, Functions, ShellApi, LanguageObjects;
+  HTTPThread, Functions, ShellApi, LanguageObjects, Sockets;
 
 type
   TUpdateAction = (uaVersion, uaUpdate);
@@ -35,9 +35,9 @@ type
     FUpdateURL: string;
     FChangeLog: string;
 
-    FOnVersionFound: TNotifyEvent;
-    FOnUpdateDownloaded: TNotifyEvent;
-    FOnError: TNotifyEvent;
+    FOnVersionFound: TSocketEvent;
+    FOnUpdateDownloaded: TSocketEvent;
+    FOnError: TSocketEvent;
 
     function GetValue(Data, Name: AnsiString): AnsiString;
   protected
@@ -67,11 +67,11 @@ type
     FOnError: TNotifyEvent;
     function FGetActive: Boolean;
 
-    procedure ThreadVersionFound(Sender: TObject);
-    procedure ThreadDownloadPercentProgress(Sender: TObject);
-    procedure ThreadUpdateDownloaded(Sender: TObject);
-    procedure ThreadError(Sender: TObject);
-    procedure ThreadEnded(Sender: TObject);
+    procedure ThreadVersionFound(Sender: TSocketThread);
+    procedure ThreadDownloadPercentProgress(Sender: TSocketThread);
+    procedure ThreadUpdateDownloaded(Sender: TSocketThread);
+    procedure ThreadError(Sender: TSocketThread);
+    procedure ThreadEnded(Sender: TSocketThread);
   public
     constructor Create;
     destructor Destroy; override;
@@ -291,7 +291,7 @@ begin
   FThread.Start;
 end;
 
-procedure TUpdateClient.ThreadVersionFound(Sender: TObject);
+procedure TUpdateClient.ThreadVersionFound(Sender: TSocketThread);
 begin
   FFoundVersion := FThread.FFoundVersion;
   FUpdateURL := FThread.FUpdateURL;
@@ -308,12 +308,12 @@ begin
   end;
 end;
 
-procedure TUpdateClient.ThreadEnded(Sender: TObject);
+procedure TUpdateClient.ThreadEnded(Sender: TSocketThread);
 begin
   FThread := nil;
 end;
 
-procedure TUpdateClient.ThreadDownloadPercentProgress(Sender: TObject);
+procedure TUpdateClient.ThreadDownloadPercentProgress(Sender: TSocketThread);
 begin
   if FThread.Received = 0 then
     Exit;
@@ -325,7 +325,7 @@ begin
     FOnDownloadProgress(Self);
 end;
 
-procedure TUpdateClient.ThreadUpdateDownloaded(Sender: TObject);
+procedure TUpdateClient.ThreadUpdateDownloaded(Sender: TSocketThread);
 begin
   try
     FThread.RecvDataStream.SaveToFile(FUpdateFile);
@@ -337,7 +337,7 @@ begin
   end;
 end;
 
-procedure TUpdateClient.ThreadError(Sender: TObject);
+procedure TUpdateClient.ThreadError(Sender: TSocketThread);
 begin
   if Assigned(FOnError) then
     FOnError(Self);

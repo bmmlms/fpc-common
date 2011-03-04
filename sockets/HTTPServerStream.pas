@@ -22,7 +22,7 @@ unit HTTPServerStream;
 interface
 
 uses
-  SysUtils, Windows, StrUtils, SocketStream, Functions;
+  SysUtils, Windows, StrUtils, Sockets, Functions;
 
 type
   THTTPServerStream = class(TSocketStream)

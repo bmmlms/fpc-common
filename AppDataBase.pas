@@ -201,6 +201,7 @@ begin
     CloseHandle(FMutexHandle);
   if FStorage <> nil then
     FStorage.Free;
+  RemoveDir(FTempDir);
   inherited Destroy;
 end;
 
@@ -541,14 +542,15 @@ end;
 
 procedure TAppDataBase.GetTempDir;
 begin
-  FTempDir := Functions.GetTempDir;
+  FTempDir := Functions.GetTempDir + FAppName + '\';
   if FTempDir <> '' then
   begin
-    if ForceDirectories(FTempDir + FAppName) then
-      FTempDir := FTempDir + FAppName + '\';
+    if ForceDirectories(FTempDir) then
+      if DirectoryExists(FTempDir) then
+        FTempDir := FTempDir;
   end else
     raise Exception.Create(_('The folder for temporary files could not be determined.'#13#10 +
-                             'Please ask for support at http://mistake.ws/forum/.'#13#10 +
+                             'Please ask for support at ' + FProjectForumLink + '.'#13#10 +
                              'The application will be terminated.'));
 end;
 
@@ -593,7 +595,7 @@ begin
      (FAppVersion.Revision = 0) and (FAppVersion.Build = 0) then
   begin
     raise Exception.Create(_('The version of the application could not be determined.'#13#10 +
-                             'Please ask for support at http://mistake.ws/forum/.'#13#10 +
+                             'Please ask for support at ' + FProjectForumLink + '.'#13#10 +
                              'The application will be terminated.'));
   end;
 end;

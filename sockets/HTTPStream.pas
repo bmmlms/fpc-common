@@ -22,7 +22,7 @@ unit HTTPStream;
 interface
 
 uses
-  SysUtils, Windows, Classes, StrUtils, ExtendedStream, SocketStream;
+  SysUtils, Windows, Classes, StrUtils, ExtendedStream, Sockets;
 
 type
   TTransferEncoding = (teNone, teChunked);

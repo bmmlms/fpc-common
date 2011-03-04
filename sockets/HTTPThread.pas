@@ -22,8 +22,8 @@ unit HTTPThread;
 interface
 
 uses
-  SysUtils, Windows, WinSock, Classes, SocketThread, SocketStream,
-  ExtendedStream, HTTPStream, Functions;
+  SysUtils, Windows, WinSock, Classes, Sockets, ExtendedStream, HTTPStream,
+  Functions;
 
 type
   THTTPThread = class(TSocketThread)
@@ -36,9 +36,9 @@ type
     FTypedStream: THTTPStream;
     FDownloadPercent: Integer;
 
-    FOnSpeedChanged: TNotifyEvent;
-    FOnDownloadProgress: TNotifyEvent;
-    FOnDownloadPercentProgress: TNotifyEvent;
+    FOnSpeedChanged: TSocketEvent;
+    FOnDownloadProgress: TSocketEvent;
+    FOnDownloadPercentProgress: TSocketEvent;
     FURL: string;
     FURLHost: string;
     FPostData: string;
@@ -76,9 +76,9 @@ type
     property ProxyPort: Integer read FProxyPort write FSetProxyPort;
     property UserAgent: AnsiString read FUserAgent write FUserAgent;
 
-    property OnSpeedChanged: TNotifyEvent read FOnSpeedChanged write FOnSpeedChanged;
-    property OnDownloadProgress: TNotifyEvent read FOnDownloadProgress write FOnDownloadProgress;
-    property OnDownloadPercentProgress: TNotifyEvent read FOnDownloadPercentProgress write FOnDownloadPercentProgress;
+    property OnSpeedChanged: TSocketEvent read FOnSpeedChanged write FOnSpeedChanged;
+    property OnDownloadProgress: TSocketEvent read FOnDownloadProgress write FOnDownloadProgress;
+    property OnDownloadPercentProgress: TSocketEvent read FOnDownloadPercentProgress write FOnDownloadPercentProgress;
   end;
 
 implementation
@@ -156,6 +156,12 @@ begin
   FProxyHost := '';
   FProxyPort := 0;
   FUserAgent := '';
+
+  {$IFDEF DEBUG}
+  FDataTimeout := 100000;
+  {$ELSE}
+  FDataTimeout := 10000;
+  {$ENDIF}
 
   SetSendParams;
 end;
