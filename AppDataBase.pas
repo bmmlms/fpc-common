@@ -168,17 +168,24 @@ begin
   FOnlyOne := OnlyOne;
   FStorage := nil;
 
-  {$IFDEF DEBUG}
-  FProjectUpdateLink := 'http://mistake.gaia/';
-  {$ELSE}
-  FProjectUpdateLink := 'http://mistake.ws/';
-  {$ENDIF}
-  FProjectHomepageLink := 'http://mistake.ws/';
-  FProjectLink := 'http://mistake.ws/projekte/' + LowerCase(FAppName) + '/';
-  FProjectHelpLink := 'http://mistake.ws/projekte/' + LowerCase(FAppName) + '/help/';
-  FProjectForumLink := 'http://mistake.ws/forum/';
-  FProjectDonateLink := '';
-  FProjectThanksText := '';
+  if FProjectUpdateLink = '' then
+    {$IFDEF DEBUG}
+    FProjectUpdateLink := 'http://mistake.gaia/';
+    {$ELSE}
+    FProjectUpdateLink := 'http://mistake.ws/';
+    {$ENDIF}
+  if FProjectHomepageLink = '' then
+    FProjectHomepageLink := 'http://mistake.ws/';
+  if FProjectLink = '' then
+    FProjectLink := 'http://mistake.ws/projekte/' + LowerCase(FAppName) + '/';
+  if FProjectHelpLink = '' then
+    FProjectHelpLink := 'http://mistake.ws/projekte/' + LowerCase(FAppName) + '/help/';
+  if FProjectForumLink = '' then
+    FProjectForumLink := 'http://mistake.ws/forum/';
+  if FProjectDonateLink = '' then
+    FProjectDonateLink := '';
+  if FProjectThanksText = '' then
+    FProjectThanksText := '';
 
   InitOnlyOne;
 
@@ -549,9 +556,9 @@ begin
       if DirectoryExists(FTempDir) then
         FTempDir := FTempDir;
   end else
-    raise Exception.Create(_('The folder for temporary files could not be determined.'#13#10 +
-                             'Please ask for support at ' + FProjectForumLink + '.'#13#10 +
-                             'The application will be terminated.'));
+    raise Exception.Create(Format(_('The folder for temporary files could not be determined.'#13#10 +
+                                    'Please ask for support at %s.'#13#10 +
+                                    'The application will be terminated.'), [FProjectForumLink]));
 end;
 
 procedure TAppDataBase.GetVersionInfo;
@@ -594,9 +601,9 @@ begin
   if (FAppVersion.Major = 0) and (FAppVersion.Minor = 0) and
      (FAppVersion.Revision = 0) and (FAppVersion.Build = 0) then
   begin
-    raise Exception.Create(_('The version of the application could not be determined.'#13#10 +
-                             'Please ask for support at ' + FProjectForumLink + '.'#13#10 +
-                             'The application will be terminated.'));
+    raise Exception.Create(Format(_('The version of the application could not be determined.'#13#10 +
+                                    'Please ask for support at %s.'#13#10 +
+                                    'The application will be terminated.'), [FProjectForumLink]));
   end;
 end;
 
