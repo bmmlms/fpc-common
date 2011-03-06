@@ -73,6 +73,9 @@ begin
     CopyMemory(@CLen, FRecvStream.Memory, 4);
     CLen := ntohl(CLen);
 
+    if CLen > 262144 then
+      raise Exception.Create('');
+
     if (CLen > 0) and (FRecvStream.Size >= CLen - 4) then
     begin
       FRecvStream.Seek(4, soFromBeginning);
