@@ -1,4 +1,4 @@
-settings ICON ".\ico\preferences-system.ico"
-properties ICON ".\ico\document-properties.ico"
-question ICON ".\ico\dialog-question.ico"
+settings RCDATA ".\png\preferences-system.png"
+properties RCDATA ".\png\document-properties.png"
+question RCDATA ".\png\dialog-question.png"
 browse ICON ".\ico\browse.ico"

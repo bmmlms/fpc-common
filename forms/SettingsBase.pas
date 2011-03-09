@@ -24,7 +24,8 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Buttons, ComCtrls, LanguageObjects,
-  AppData, AppDataBase, SettingsStorage, Functions, ListActns;
+  AppData, AppDataBase, SettingsStorage, Functions, ListActns, pngimage,
+  PngImageList, ImgList;
 
 type
   TPage = class
@@ -91,7 +92,7 @@ type
     FPageList: TPageList;
     FActivePage: TPage;
     FUseTree: Boolean;
-    FTreeImages: TImageList;
+    FTreeImages: TPngImageList;
     procedure SetPage(Page: TPage); overload;
     procedure SetPage(Panel: TPanel); overload;
     //procedure EnablePanel(Panel: TPanel; Enable: Boolean);
@@ -254,13 +255,15 @@ var
   HIco: THandle;
   Ico: TIcon;
   Item: TTreeNode;
+  Res: TResourceStream;
+  Png: TPngImage;
 begin
   inherited Create(AOwner);
 
   FShowGeneral := ShowGeneral;
   FActivePage := nil;
 
-  FTreeImages := TImageList.Create(Self);
+  FTreeImages := TPngImageList.Create(Self);
 
   FPageList := TPageList.Create;
 
@@ -287,6 +290,16 @@ begin
   begin
     if FUseTree then
     begin
+      Res := TResourceStream.Create(HInstance, FPageList[i].ResName, MakeIntResource(RT_RCDATA));
+      Png := TPngImage.Create;
+      try
+        Png.LoadFromStream(Res);
+        FTreeImages.AddPng(Png);
+      finally
+        Png.Free;
+        Res.Free;
+      end;
+      {
       HIco := LoadImage(HInstance, PChar(FPageList[i].ResName), IMAGE_ICON,
         16, 16, LR_DEFAULTCOLOR);
       if HIco > 0 then
@@ -299,7 +312,7 @@ begin
           Ico.Free;
         end;
       end;
-
+      }
       Item := FTreeView.Items.Add(nil, FPageList[i].Caption);
       Item.Text := StringReplace(Item.Text, '&', '', [rfReplaceAll]);
       Item.ImageIndex := FTreeImages.Count - 1;
