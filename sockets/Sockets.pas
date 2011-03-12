@@ -259,7 +259,7 @@ end;
 
 procedure TSocketThread.DoEndedEvent;
 begin
-  if Assigned(FOnEnded) then // TODO: Der Event war vorher im DoEnded(). vllt in der assi-socket-lib gut so, hier aber nicht. funzt jetzt ALLES MIT SOCKETS?
+  if Assigned(FOnEnded) then
     Sync(FOnEnded);
 end;
 

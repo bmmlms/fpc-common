@@ -5,7 +5,7 @@ object frmAbout: TfrmAbout
   BorderStyle = bsSingle
   Caption = 'About'
   ClientHeight = 269
-  ClientWidth = 469
+  ClientWidth = 421
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -54,27 +54,25 @@ object frmAbout: TfrmAbout
   Position = poOwnerFormCenter
   OnKeyDown = FormKeyDown
   DesignSize = (
-    469
+    421
     269)
   PixelsPerInch = 96
   TextHeight = 13
   object pagAbout: TPageControl
     Left = 4
     Top = 4
-    Width = 461
+    Width = 413
     Height = 213
     ActivePage = tabAbout
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 0
     OnChange = pagAboutChange
+    ExplicitWidth = 461
     object tabAbout: TTabSheet
       Caption = 'About'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
+      ExplicitWidth = 453
       DesignSize = (
-        453
+        405
         185)
       object lblAbout: TLabel
         Left = 4
@@ -90,13 +88,12 @@ object frmAbout: TfrmAbout
         ParentFont = False
       end
       object imgLogo: TImage
-        Left = 413
+        Left = 365
         Top = 2
         Width = 32
         Height = 32
         Anchors = [akTop, akRight]
         AutoSize = True
-        ExplicitLeft = 365
       end
       object lblForumLink: TLabel
         Left = 4
@@ -190,7 +187,7 @@ object frmAbout: TfrmAbout
         OnClick = lblHomepageClick
       end
       object btnDonateDe: TImage
-        Left = 360
+        Left = 312
         Top = 52
         Width = 86
         Height = 21
@@ -240,10 +237,9 @@ object frmAbout: TfrmAbout
           82}
         Visible = False
         OnClick = btnDonateClick
-        ExplicitLeft = 312
       end
       object btnDonateEn: TImage
-        Left = 372
+        Left = 324
         Top = 52
         Width = 74
         Height = 21
@@ -292,18 +288,14 @@ object frmAbout: TfrmAbout
           2A4519A852B603001DD0D26863F81EFD0000000049454E44AE426082}
         Visible = False
         OnClick = btnDonateClick
-        ExplicitLeft = 324
       end
     end
     object tabLicense: TTabSheet
       Caption = 'License'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
+      ExplicitWidth = 421
       DesignSize = (
-        453
+        405
         185)
       object lblGPL: TLabel
         Left = 4
@@ -323,13 +315,14 @@ object frmAbout: TfrmAbout
       object txtAbout: TMemo
         Left = 4
         Top = 24
-        Width = 445
+        Width = 397
         Height = 157
         Anchors = [akLeft, akTop, akRight, akBottom]
         Color = clBtnFace
         ReadOnly = True
         ScrollBars = ssVertical
         TabOrder = 0
+        ExplicitWidth = 445
       end
     end
     object tabThanks: TTabSheet
@@ -344,7 +337,7 @@ object frmAbout: TfrmAbout
   object pnlNav: TPanel
     Left = 0
     Top = 220
-    Width = 469
+    Width = 421
     Height = 49
     Align = alBottom
     BevelOuter = bvNone
@@ -353,10 +346,11 @@ object frmAbout: TfrmAbout
     Padding.Right = 4
     Padding.Bottom = 4
     TabOrder = 1
+    ExplicitWidth = 469
     object Bevel2: TBevel
       Left = 4
       Top = 4
-      Width = 461
+      Width = 413
       Height = 5
       Align = alTop
       Shape = bsTopLine
@@ -364,7 +358,7 @@ object frmAbout: TfrmAbout
       ExplicitWidth = 396
     end
     object btnClose: TBitBtn
-      Left = 368
+      Left = 320
       Top = 9
       Width = 97
       Height = 36
@@ -376,6 +370,7 @@ object frmAbout: TfrmAbout
       ParentDoubleBuffered = False
       TabOrder = 0
       OnClick = btnCloseClick
+      ExplicitLeft = 368
     end
   end
 end

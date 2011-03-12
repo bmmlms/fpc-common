@@ -25,14 +25,14 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Buttons, ComCtrls, LanguageObjects,
   AppData, AppDataBase, SettingsStorage, Functions, ListActns, pngimage,
-  PngImageList, ImgList;
+  PngImageList, ImgList, VirtualTrees;
 
 type
   TPage = class
   private
     FCaption: string;
     FPanel: TPanel;
-    FNode: TTreeNode;
+    FNode: PVirtualNode;
     FButton: TSpeedButton;
     FResName: string;
   protected
@@ -40,7 +40,7 @@ type
     constructor Create(Caption: string; Panel: TPanel; ResName: string);
     property Caption: string read FCaption;
     property Panel: TPanel read FPanel;
-    property Node: TTreeNode read FNode write FNode;
+    property Node: PVirtualNode read FNode write FNode;
     property Button: TSpeedButton read FButton write FButton;
     property ResName: string read FResName;
   end;
@@ -52,6 +52,25 @@ type
   public
     property Items[Index: Integer]: TPage read Get2 write Put2; default;
     function Find(P: TPanel): TPage;
+  end;
+
+  TPageTree = class(TVirtualStringTree)
+  private
+    FColName: TVirtualTreeColumn;
+    FPages: TPageList;
+  protected
+    procedure DoGetText(Node: PVirtualNode; Column: TColumnIndex;
+      TextType: TVSTTextType; var Text: string); override;
+    function DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind;
+      Column: TColumnIndex; var Ghosted: Boolean;
+      var Index: Integer): TCustomImageList; override;
+    procedure DoInitNode(Parent: PVirtualNode; Node: PVirtualNode;
+      var InitStates: TVirtualNodeInitStates); override;
+    procedure Resize; override;
+    procedure DoMeasureItem(TargetCanvas: TCanvas; Node: PVirtualNode;
+      var NodeHeight: Integer); override;
+  public
+    constructor Create(AOwner: TComponent; Pages: TPageList);
   end;
 
   TfrmSettingsBase = class(TForm)
@@ -82,12 +101,13 @@ type
       Shift: TShiftState);
     procedure chkProxyClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     FSaveSettings: Boolean;
     FShowGeneral: Boolean;
-    FTreeView: TTreeView;
-    procedure TreeViewChange(Sender: TObject; Node: TTreeNode);
+    FTreeView: TPageTree;
     procedure NavButtonClick(Sender: TObject);
+    procedure TreeViewChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
   protected
     FPageList: TPageList;
     FActivePage: TPage;
@@ -273,16 +293,11 @@ begin
   begin
     pnlLeft.Width := 160;
 
-    FTreeView := TTreeView.Create(pnlLeft);
+    FTreeView := TPageTree.Create(pnlLeft, FPageList);
     FTreeView.Parent := pnlLeft;
-    FTreeView.OnChange := TreeViewChange;
-    FTreeView.ReadOnly := True;
-    FTreeView.ShowButtons := False;
-    FTreeView.ShowLines := False;
-    FTreeView.HideSelection := False;
-    FTreeView.RowSelect := True;
     FTreeView.Images := FTreeImages;
     FTreeView.Align := alClient;
+    FTreeView.OnChange := TreeViewChange;
     FTreeView.Show;
   end;
 
@@ -299,26 +314,6 @@ begin
         Png.Free;
         Res.Free;
       end;
-      {
-      HIco := LoadImage(HInstance, PChar(FPageList[i].ResName), IMAGE_ICON,
-        16, 16, LR_DEFAULTCOLOR);
-      if HIco > 0 then
-      begin
-        Ico := TIcon.Create;
-        try
-          Ico.Handle := HIco;
-          FTreeImages.AddIcon(Ico);
-        finally
-          Ico.Free;
-        end;
-      end;
-      }
-      Item := FTreeView.Items.Add(nil, FPageList[i].Caption);
-      Item.Text := StringReplace(Item.Text, '&', '', [rfReplaceAll]);
-      Item.ImageIndex := FTreeImages.Count - 1;
-      Item.SelectedIndex := FTreeImages.Count - 1;
-
-      FPageList[i].FNode := Item;
     end else
     begin
       Btn := TSpeedButton.Create(pnlLeft);
@@ -341,7 +336,7 @@ begin
           Btn.Glyph.TransparentMode := tmAuto;
           Btn.Glyph.Transparent := True;
           Btn.Glyph.TransparentColor := Btn.Glyph.Canvas.Pixels[0, 0];
-          Btn.Layout := blGlyphTop;
+          Btn.Layout := Buttons.blGlyphTop;
           DestroyIcon(HIco);
         finally
           Ico.Free;
@@ -404,16 +399,6 @@ begin
   txtHost.Text := AppGlobals.ProxyHost;
   txtPort.Text := IntToStr(AppGlobals.ProxyPort);
 
-  for n := 0 to ControlCount - 1 do
-    for i := 0 to FPageList.Count - 1 do
-      if Controls[n] = FPageList[i].Panel then
-      begin
-        TPanel(Controls[n]).Enabled := False;
-        TPanel(Controls[n]).Align := alClient;
-        TPanel(Controls[n]).BevelOuter := bvNone;
-        Break;
-      end;
-
   lstLanguages.Clear;
   lstLanguages.Images := AppGlobals.LanguageIcons.List;
   for i := 0 to LanguageList.Count - 1 do
@@ -458,6 +443,24 @@ begin
   end;
 end;
 
+procedure TfrmSettingsBase.FormShow(Sender: TObject);
+var
+  i, n: Integer;
+begin
+  for n := 0 to ControlCount - 1 do
+    for i := 0 to FPageList.Count - 1 do
+      if Controls[n] = FPageList[i].Panel then
+      begin
+        TPanel(Controls[n]).Enabled := False;
+        TPanel(Controls[n]).Align := alClient;
+        TPanel(Controls[n]).BevelOuter := bvNone;
+        // Vermeidet Flackern nach anklicken im Tree/aktivieren.
+        // Das Align := alClient wird da wohl erst aktiv.
+        TPanel(Controls[n]).SendToBack;
+        Break;
+      end;
+end;
+
 procedure TfrmSettingsBase.lstLanguagesChange(Sender: TObject);
 begin
   if lstLanguages.ItemIndex > -1 then
@@ -467,16 +470,15 @@ begin
   end;
 end;
 
-procedure TfrmSettingsBase.TreeViewChange(Sender: TObject;
-  Node: TTreeNode);
+procedure TfrmSettingsBase.TreeViewChange(Sender: TBaseVirtualTree;
+  Node: PVirtualNode);
 var
   i: Integer;
 begin
   for i := 0 to FPageList.Count - 1 do
     if (FPageList[i].Node = Node) then
     begin
-      if FPageList[i].Node.Enabled then
-        SetPage(FPageList[i]);
+      SetPage(FPageList[i]);
       Break;
     end;
 end;
@@ -514,7 +516,8 @@ begin
 
   if FUseTree then
   begin
-    FActivePage.Node.Selected := True;
+    FTreeView.FocusedNode := FActivePage.Node;
+    FTreeView.Selected[FActivePage.Node] := True;
   end else
   begin
     FActivePage.Button.Down := True;
@@ -543,6 +546,69 @@ begin
   FActivePage.Button.Down := True;
   FActivePage.Panel.Enabled := True;
   FActivePage.Panel.BringToFront;
+end;
+
+{ TPageTree }
+
+constructor TPageTree.Create(AOwner: TComponent; Pages: TPageList);
+var
+  i: Integer;
+begin
+  inherited Create(AOwner);
+
+  FPages := Pages;
+
+  for i := 0 to Pages.Count - 1 do
+    Pages[i].Node := AddChild(nil);
+
+  FColName := Header.Columns.Add;
+  FColName.Text := _('Name');
+
+  TreeOptions.SelectionOptions := [toDisableDrawSelection, toFullRowSelect];
+  TreeOptions.PaintOptions := [toThemeAware, toHideFocusRect];
+  TreeOptions.MiscOptions := TreeOptions.MiscOptions - [toAcceptOLEDrop] + [toFullRowDrag];
+end;
+
+function TPageTree.DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind;
+  Column: TColumnIndex; var Ghosted: Boolean;
+  var Index: Integer): TCustomImageList;
+begin
+  Result := inherited;
+
+  if Node <> nil then
+    if ((Kind = ikNormal) or (Kind = ikSelected)) and (Column = 0) then
+      Index := Node.Index;
+end;
+
+procedure TPageTree.DoGetText(Node: PVirtualNode; Column: TColumnIndex;
+  TextType: TVSTTextType; var Text: string);
+begin
+  inherited;
+
+  if Column = 0 then
+    Text := FPages[Node.Index].FCaption;
+end;
+
+procedure TPageTree.DoInitNode(Parent, Node: PVirtualNode;
+  var InitStates: TVirtualNodeInitStates);
+begin
+  inherited;
+
+end;
+
+procedure TPageTree.DoMeasureItem(TargetCanvas: TCanvas;
+  Node: PVirtualNode; var NodeHeight: Integer);
+begin
+  inherited;
+
+  NodeHeight := 27;
+end;
+
+procedure TPageTree.Resize;
+begin
+  inherited;
+
+  FColName.Width := ClientWidth;
 end;
 
 end.
