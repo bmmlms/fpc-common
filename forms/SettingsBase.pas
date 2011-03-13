@@ -417,8 +417,6 @@ begin
       lstLanguages.ItemIndex := i;
       Break;
     end;
-
-  SetPage(FPageList[0]);
 end;
 
 procedure TfrmSettingsBase.FormDestroy(Sender: TObject);
@@ -459,6 +457,9 @@ begin
         TPanel(Controls[n]).SendToBack;
         Break;
       end;
+
+  SetPage(FPageList[0]);
+  FTreeView.SetFocus;
 end;
 
 procedure TfrmSettingsBase.lstLanguagesChange(Sender: TObject);
@@ -506,6 +507,8 @@ end;
 
 procedure TfrmSettingsBase.SetPage(Page: TPage);
 begin
+  if Page = FActivePage then
+    Exit;
   if FActivePage <> nil then
     FActivePage.Panel.Enabled := False;
 
