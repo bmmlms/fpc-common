@@ -562,7 +562,6 @@ begin
     Pages[i].Node := AddChild(nil);
 
   FColName := Header.Columns.Add;
-  FColName.Text := _('Name');
 
   TreeOptions.SelectionOptions := [toDisableDrawSelection, toFullRowSelect];
   TreeOptions.PaintOptions := [toThemeAware, toHideFocusRect];
