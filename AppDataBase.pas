@@ -43,6 +43,7 @@ type
     FFirstStartShown: Boolean;
     FLastUsedVersion: TAppVersion;
     FSuppressUpdatedInfo: Boolean;
+    FFirstStart: Boolean;
 
     FMainWidthDefault: Integer;
     FMainHeightDefault: Integer;
@@ -142,6 +143,7 @@ type
     property FirstStartShown: Boolean read FFirstStartShown write FFirstStartShown;
     property LastUsedVersion: TAppVersion read FLastUsedVersion;
     property SuppressUpdatedInfo: Boolean read FSuppressUpdatedInfo write FSuppressUpdatedInfo;
+    property FirstStart: Boolean read FFirstStart write FFirstStart;
     property WindowHandle: Cardinal read FWindowHandle write FSetWindowHandle;
     property InfoShown[Idx: Integer]: Boolean read FGetInfoShown write FSetInfoShown;
 
@@ -310,6 +312,10 @@ begin
   FStorage.Read('InstallUpdateOnStart', FInstallUpdateOnStart, False);
   FStorage.Read('Language', FLanguage, '');
   FStorage.Read('FirstStartShown', FFirstStartShown, False);
+
+  if not FFirstStartShown then
+    FFirstStart := True;
+
   FStorage.Read('LastUsedVersion', LastUsedVersion, AppVersion.AsString);
   FStorage.Read('SuppressUpdatedInfo', FSuppressUpdatedInfo, False);
   try

@@ -26,6 +26,7 @@ uses
   Dialogs, StdCtrls, ExtCtrls, AppData, LanguageObjects;
 
 type
+  TMsgButtons = (btOK, btOKCancel);
   TMsgRetTypes = (mtOK, mtCancel, mtDontShow);
 
   TfrmMsgDlg = class(TForm)
@@ -40,13 +41,15 @@ type
     procedure cmdCancelClick(Sender: TObject);
     procedure FormKeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure FormActivate(Sender: TObject);
   private
     FID: Integer;
     FRes: TMsgRetTypes;
-    function ShowMsgInternal(Text: string; Buttons, ID: Integer): TMsgRetTypes;
+    function ShowMsgInternal(Text: string; ID: Integer; Buttons: TMsgButtons): TMsgRetTypes; overload;
+    function ShowMsgInternal(Text: string; Buttons: TMsgButtons): TMsgRetTypes; overload;
   public
-    class function ShowMsg(Owner: TForm; Text: string; Buttons, ID: Integer):
-      TMsgRetTypes;
+    class function ShowMsg(Owner: TForm; Text: string; ID: Integer; Buttons: TMsgButtons): TMsgRetTypes; overload;
+    class function ShowMsg(Owner: TForm; Text: string; Buttons: TMsgButtons): TMsgRetTypes; overload;
   end;
 
 implementation
@@ -67,10 +70,19 @@ begin
   Close;
 end;
 
+procedure TfrmMsgDlg.FormActivate(Sender: TObject);
+begin
+  if not chkNotShowAgain.Visible then
+    txtText.Height := Bevel1.Top - 4 - txtText.Top
+  else
+    txtText.Height := chkNotShowAgain.Top - 4 - txtText.Top;
+end;
+
 procedure TfrmMsgDlg.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  if chkNotShowAgain.Checked then
-    AppGlobals.InfoShown[FID] := True;
+  if FID > -1 then
+    if chkNotShowAgain.Checked then
+      AppGlobals.InfoShown[FID] := True;
 end;
 
 procedure TfrmMsgDlg.FormCreate(Sender: TObject);
@@ -89,41 +101,49 @@ begin
   end;
 end;
 
-class function TfrmMsgDlg.ShowMsg(Owner: TForm; Text: string; Buttons,
-  ID: Integer): TMsgRetTypes;
+class function TfrmMsgDlg.ShowMsg(Owner: TForm; Text: string; ID: Integer; Buttons: TMsgButtons): TMsgRetTypes;
 var
   M: TfrmMsgDlg;
 begin
-  if AppGlobals.InfoShown[ID] then
-  begin
-    Result := mtDontShow;
-    Exit;
-  end;
+  if ID > -1 then
+    if AppGlobals.InfoShown[ID] then
+    begin
+      Result := mtDontShow;
+      Exit;
+    end;
 
   M := TfrmMsgDlg.Create(Owner);
   try
     if (Owner = nil) or (not Owner.Visible) or (IsIconic(Owner.Handle)) then
       M.Position := poScreenCenter;
-    M.ShowMsgInternal(Text, Buttons, ID);
+    M.ShowMsgInternal(Text, ID, Buttons);
     Result := M.FRes;
   finally
     M.Free;
   end;
 end;
 
-function TfrmMsgDlg.ShowMsgInternal(Text: string; Buttons, ID: Integer): TMsgRetTypes;
+class function TfrmMsgDlg.ShowMsg(Owner: TForm; Text: string; Buttons: TMsgButtons): TMsgRetTypes;
+begin
+  ShowMsg(Owner, Text, -1, Buttons);
+end;
+
+function TfrmMsgDlg.ShowMsgInternal(Text: string; ID: Integer; Buttons: TMsgButtons): TMsgRetTypes;
 begin
   FID := ID;
 
-  if Buttons = 2 then
-    Self.cmdCancel.Visible := True
-  else
-    Self.cmdCancel.Visible := False;
+  cmdCancel.Visible := Buttons = btOKCancel;
+  chkNotShowAgain.Visible := ID > -1;
 
   txtText.Text := Text;
   Self.ShowModal;
 
   Result := Self.FRes;
+end;
+
+function TfrmMsgDlg.ShowMsgInternal(Text: string; Buttons: TMsgButtons): TMsgRetTypes;
+begin
+  ShowMsgInternal(Text, -1, Buttons);
 end;
 
 end.

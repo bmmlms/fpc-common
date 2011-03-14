@@ -54,6 +54,7 @@ object frmMsgDlg: TfrmMsgDlg
   KeyPreview = True
   OldCreateOrder = False
   Position = poOwnerFormCenter
+  OnActivate = FormActivate
   OnClose = FormClose
   OnCreate = FormCreate
   OnKeyUp = FormKeyUp
@@ -92,7 +93,6 @@ object frmMsgDlg: TfrmMsgDlg
     ModalResult = 1
     TabOrder = 0
     OnClick = cmdOKClick
-    ExplicitTop = 132
   end
   object cmdCancel: TButton
     Left = 292
@@ -104,7 +104,6 @@ object frmMsgDlg: TfrmMsgDlg
     ModalResult = 2
     TabOrder = 1
     OnClick = cmdCancelClick
-    ExplicitTop = 132
   end
   object txtText: TMemo
     Left = 4
