@@ -31,13 +31,14 @@ type
   TPage = class
   private
     FCaption: string;
+    FOriginalCaption: string;
     FPanel: TPanel;
     FNode: PVirtualNode;
     FButton: TSpeedButton;
     FResName: string;
   protected
   public
-    constructor Create(Caption: string; Panel: TPanel; ResName: string);
+    constructor Create(OriginalCaption: string; Panel: TPanel; ResName: string);
     property Caption: string read FCaption;
     property Panel: TPanel read FPanel;
     property Node: PVirtualNode read FNode write FNode;
@@ -133,11 +134,12 @@ implementation
 
 { TPage }
 
-constructor TPage.Create(Caption: string; Panel: TPanel; ResName: string);
+constructor TPage.Create(OriginalCaption: string; Panel: TPanel; ResName: string);
 begin
   inherited Create;
 
-  FCaption := Caption;
+  FOriginalCaption := OriginalCaption;
+  FCaption := _(FOriginalCaption);
   FPanel := Panel;
   FResName := ResName;
 end;
@@ -175,6 +177,8 @@ begin
 end;
 
 procedure TfrmSettingsBase.PostTranslate;
+var
+  i: Integer;
 begin
   if ((AppGlobals.Portable = poNo) and (not AppGlobals.PortableAllowed)) or (AppGlobals.Portable = poUndefined) then
   begin
@@ -186,6 +190,16 @@ begin
     lblPortable.Caption := _('This application is using portable settings. ' + 'To copy these settings to the registry/application data folder, press ''Copy profile''.')
   else if AppGlobals.Portable = poNo then
     lblPortable.Caption := _('This application is using settings from the registry/application data folder. ' + 'To copy these settings to a portable profile, press ''Copy profile''.');
+
+  for i := 0 to FPageList.Count - 1 do
+  begin
+    FPageList[i].FCaption := _(FPageList[i].FOriginalCaption);
+    if FUseTree then
+    begin
+      FTreeView.Invalidate;
+    end else
+      FPageList[i].Button.Caption := FPageList[i].FCaption;
+  end;
 end;
 
 procedure TfrmSettingsBase.btnCopyProfileClick(Sender: TObject);
@@ -459,7 +473,8 @@ begin
       end;
 
   SetPage(FPageList[0]);
-  FTreeView.SetFocus;
+  if FUseTree then
+    FTreeView.SetFocus;
 end;
 
 procedure TfrmSettingsBase.lstLanguagesChange(Sender: TObject);
@@ -500,9 +515,9 @@ procedure TfrmSettingsBase.RegisterPages;
 begin
   if FShowGeneral then
     if FUseTree then
-      FPageList.Add(TPage.Create(_('General'), pnlGeneral, 'SETTINGS'))
+      FPageList.Add(TPage.Create('General', pnlGeneral, 'SETTINGS'))
     else
-      FPageList.Add(TPage.Create(_('&General'), pnlGeneral, 'SETTINGS'));
+      FPageList.Add(TPage.Create('&General', pnlGeneral, 'SETTINGS'));
 end;
 
 procedure TfrmSettingsBase.SetPage(Page: TPage);
