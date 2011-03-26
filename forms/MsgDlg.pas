@@ -48,8 +48,8 @@ type
     function ShowMsgInternal(Text: string; ID: Integer; Buttons: TMsgButtons): TMsgRetTypes; overload;
     function ShowMsgInternal(Text: string; Buttons: TMsgButtons): TMsgRetTypes; overload;
   public
-    class function ShowMsg(Owner: TForm; Text: string; ID: Integer; Buttons: TMsgButtons): TMsgRetTypes; overload;
-    class function ShowMsg(Owner: TForm; Text: string; Buttons: TMsgButtons): TMsgRetTypes; overload;
+    class function ShowMsg(Owner: TCustomForm; Text: string; ID: Integer; Buttons: TMsgButtons): TMsgRetTypes; overload;
+    class function ShowMsg(Owner: TCustomForm; Text: string; Buttons: TMsgButtons): TMsgRetTypes; overload;
   end;
 
 implementation
@@ -101,7 +101,7 @@ begin
   end;
 end;
 
-class function TfrmMsgDlg.ShowMsg(Owner: TForm; Text: string; ID: Integer; Buttons: TMsgButtons): TMsgRetTypes;
+class function TfrmMsgDlg.ShowMsg(Owner: TCustomForm; Text: string; ID: Integer; Buttons: TMsgButtons): TMsgRetTypes;
 var
   M: TfrmMsgDlg;
 begin
@@ -123,7 +123,7 @@ begin
   end;
 end;
 
-class function TfrmMsgDlg.ShowMsg(Owner: TForm; Text: string; Buttons: TMsgButtons): TMsgRetTypes;
+class function TfrmMsgDlg.ShowMsg(Owner: TCustomForm; Text: string; Buttons: TMsgButtons): TMsgRetTypes;
 begin
   ShowMsg(Owner, Text, -1, Buttons);
 end;
