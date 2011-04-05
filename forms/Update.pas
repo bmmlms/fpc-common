@@ -201,7 +201,7 @@ end;
 
 procedure TfrmUpdate.UpdaterNoUpdateFound(Sender: TObject);
 begin
-  lblState.Caption := _('No newer version could be found');
+  lblState.Caption := _('No newer version was found');
   lblNewestVersion.Caption := Updater.FoundVersion.AsString;
 end;
 
