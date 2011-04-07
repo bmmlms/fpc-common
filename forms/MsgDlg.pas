@@ -125,7 +125,7 @@ end;
 
 class function TfrmMsgDlg.ShowMsg(Owner: TCustomForm; Text: string; Buttons: TMsgButtons): TMsgRetTypes;
 begin
-  ShowMsg(Owner, Text, -1, Buttons);
+  Result := ShowMsg(Owner, Text, -1, Buttons);
 end;
 
 function TfrmMsgDlg.ShowMsgInternal(Text: string; ID: Integer; Buttons: TMsgButtons): TMsgRetTypes;
@@ -143,7 +143,7 @@ end;
 
 function TfrmMsgDlg.ShowMsgInternal(Text: string; Buttons: TMsgButtons): TMsgRetTypes;
 begin
-  ShowMsgInternal(Text, -1, Buttons);
+  Result := ShowMsgInternal(Text, -1, Buttons);
 end;
 
 end.

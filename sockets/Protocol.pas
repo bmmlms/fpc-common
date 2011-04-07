@@ -286,6 +286,7 @@ var
   PacketRead: Boolean;
   BytesParsed: UInt64;
 begin
+  CS := nil;
   PacketRead := False;
 
   Stream.Seek(0, soFromBeginning);
@@ -331,7 +332,7 @@ begin
       P.Free;
   end;
 
-  if PacketRead then
+  if (CS <> nil) and PacketRead then
   begin
     CS.FCommandBytesTransferred := CS.FCommandBytesTransferred + BytesParsed;
   end;

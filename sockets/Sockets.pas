@@ -47,6 +47,8 @@ type
   public
     procedure Process; virtual;
 
+    procedure Disconnected; virtual;
+
     property RecvStream: TExtendedStream read FGetRecvDataStream;
 
     property DebugMsg: string read FDebugMsg;
@@ -254,7 +256,7 @@ end;
 
 procedure TSocketThread.DoEnded;
 begin
-
+  FRecvStream.Disconnected;
 end;
 
 procedure TSocketThread.DoEndedEvent;
@@ -661,6 +663,11 @@ var
   Data: TWSAData;
 
 { TSocketStream }
+
+procedure TSocketStream.Disconnected;
+begin
+
+end;
 
 procedure TSocketStream.Process;
 begin

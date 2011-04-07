@@ -113,10 +113,11 @@ type
     FThread: TCommandThreadBase;
     FHost: string;
 
-    procedure ThreadConnected(Sender: TSocketThread);
     procedure ThreadBytesTransferred(Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal; Size, Transferred: UInt64);
     procedure ThreadCommandReceived(Socket: TSocketThread; Command: TCommand);
-    procedure ThreadEnded(Sender: TSocketThread);
+  protected
+    procedure ThreadConnected(Sender: TSocketThread); override;
+    procedure ThreadEnded(Sender: TSocketThread); override;
   public
     procedure Start;
     procedure Stop;
@@ -132,7 +133,7 @@ type
   end;
 
   TClientStream = class(TCommandStream)
-  protected
+  public
     procedure Process; override;
   end;
 

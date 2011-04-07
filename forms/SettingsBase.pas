@@ -71,7 +71,7 @@ type
     procedure DoMeasureItem(TargetCanvas: TCanvas; Node: PVirtualNode;
       var NodeHeight: Integer); override;
   public
-    constructor Create(AOwner: TComponent; Pages: TPageList);
+    constructor Create(AOwner: TComponent; Pages: TPageList); reintroduce;
   end;
 
   TfrmSettingsBase = class(TForm)
@@ -288,7 +288,6 @@ var
   Btn: TSpeedButton;
   HIco: THandle;
   Ico: TIcon;
-  Item: TTreeNode;
   Res: TResourceStream;
   Png: TPngImage;
 begin
@@ -402,7 +401,7 @@ end;
 
 procedure TfrmSettingsBase.FormCreate(Sender: TObject);
 var
-  i, n: Integer;
+  i: Integer;
   ComboItem: TComboExItem;
 begin
   chkAutoUpdateCheck.Checked := AppGlobals.AutoUpdate;
