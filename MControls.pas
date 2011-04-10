@@ -24,7 +24,7 @@ interface
 uses
   Windows, SysUtils, Classes, Messages, ComCtrls, ActiveX, Controls, Buttons,
   StdCtrls, Menus, VirtualTrees, DragDrop, DragDropFile, ShellApi,
-  Themes, ImgList, AppData, GUIFunctions, LanguageObjects;
+  Themes, ImgList, GUIFunctions, LanguageObjects;
 
 type
   TMTabSheet = class;
@@ -231,7 +231,8 @@ end;
 
 procedure TMPageControl.RemoveTab(Tab: TTabSheet);
 var
-  Idx: Integer;
+  i, Idx: Integer;
+  Msg: TMsg;
 begin
   SendMessage(Handle, WM_SETREDRAW, 0, 0);
   try
@@ -260,7 +261,16 @@ begin
 
     ActivePageIndex := Idx;
   finally
+    // Irgendwie glaube ich, dass das hier gegen den Springteufel-Effekt hilft..
+    i := 0;
+    while PeekMessage(Msg, 0, 0, 0, PM_REMOVE) do
+    begin
+      if i > 5000 then
+        Break;
+      Inc(i);
+    end;
     SendMessage(Handle, WM_SETREDRAW, 1, 0);
+    Repaint;
   end;
 end;
 
@@ -362,7 +372,7 @@ end;
 
 procedure TMTabSheet.FSetShowCloseButton(Value: Boolean);
 begin
-  FShowCloseButton := False;
+  FShowCloseButton := Value;
   AlignButton;
 end;
 
