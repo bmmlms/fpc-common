@@ -231,8 +231,7 @@ end;
 
 procedure TMPageControl.RemoveTab(Tab: TTabSheet);
 var
-  i, Idx: Integer;
-  Msg: TMsg;
+  Idx: Integer;
 begin
   SendMessage(Handle, WM_SETREDRAW, 0, 0);
   try
@@ -261,16 +260,7 @@ begin
 
     ActivePageIndex := Idx;
   finally
-    // Irgendwie glaube ich, dass das hier gegen den Springteufel-Effekt hilft..
-    i := 0;
-    while PeekMessage(Msg, 0, 0, 0, PM_REMOVE) do
-    begin
-      if i > 5000 then
-        Break;
-      Inc(i);
-    end;
     SendMessage(Handle, WM_SETREDRAW, 1, 0);
-    Repaint;
   end;
 end;
 
