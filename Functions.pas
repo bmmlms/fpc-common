@@ -857,6 +857,7 @@ begin
             Red := PixelColor;
             Green := PixelColor shr 8;
             Blue := PixelColor shr 16;
+
             Grayshade := Round(0.3 * Red + 0.6 * Green + 0.1 * Blue);
             B.Canvas.Pixels[j, k] := RGB(Grayshade, Grayshade, Grayshade);
           end;

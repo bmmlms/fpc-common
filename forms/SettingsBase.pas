@@ -35,13 +35,18 @@ type
     FPanel: TPanel;
     FNode: PVirtualNode;
     FResName: string;
+    FImageIndex: Integer;
+    FParent: TPage;
   protected
   public
-    constructor Create(OriginalCaption: string; Panel: TPanel; ResName: string);
+    constructor Create(OriginalCaption: string; Panel: TPanel; ResName: string); overload;
+    constructor Create(OriginalCaption: string; Panel: TPanel; ResName: string; Parent: TPage); overload;
     property Caption: string read FCaption;
     property Panel: TPanel read FPanel;
     property Node: PVirtualNode read FNode write FNode;
     property ResName: string read FResName;
+    property ImageIndex: Integer read FImageIndex write FImageIndex;
+    property Parent: TPage read FParent;
   end;
 
   TPageList = class(TList)
@@ -70,6 +75,9 @@ type
       var NodeHeight: Integer); override;
   public
     constructor Create(AOwner: TComponent; Pages: TPageList); reintroduce;
+    function AddChild(Parent: PVirtualNode;
+      UserData: Pointer = nil): PVirtualNode; override;
+    procedure Setup;
   end;
 
   TfrmSettingsBase = class(TForm)
@@ -137,6 +145,13 @@ begin
   FCaption := _(FOriginalCaption);
   FPanel := Panel;
   FResName := ResName;
+end;
+
+constructor TPage.Create(OriginalCaption: string; Panel: TPanel; ResName: string; Parent: TPage);
+begin
+  Create(OriginalCaption, Panel, ResName);
+
+  FParent := Parent;
 end;
 
 { TPageList }
@@ -304,11 +319,14 @@ begin
 
   for i := 0 to FPageList.Count - 1 do
   begin
+    if FPageList[i].FCaption = '' then
+      Continue;
+
     Res := TResourceStream.Create(HInstance, FPageList[i].ResName, MakeIntResource(RT_RCDATA));
     Png := TPngImage.Create;
     try
       Png.LoadFromStream(Res);
-      FTreeImages.AddPng(Png);
+      FPageList[i].ImageIndex := FTreeImages.AddPng(Png);
     finally
       Png.Free;
       Res.Free;
@@ -426,6 +444,7 @@ begin
       end;
 
   SetPage(FPageList[0]);
+  FTreeView.Setup;
   FTreeView.SetFocus;
 end;
 
@@ -498,6 +517,16 @@ end;
 
 { TPageTree }
 
+function TPageTree.AddChild(Parent: PVirtualNode;
+  UserData: Pointer): PVirtualNode;
+begin
+  Result := inherited;
+
+  Expanded[Result] := True;
+  if Parent <> nil then
+    Expanded[Parent] := True;
+end;
+
 constructor TPageTree.Create(AOwner: TComponent; Pages: TPageList);
 var
   i: Integer;
@@ -505,9 +534,6 @@ begin
   inherited Create(AOwner);
 
   FPages := Pages;
-
-  for i := 0 to Pages.Count - 1 do
-    Pages[i].Node := AddChild(nil);
 
   FColName := Header.Columns.Add;
 
@@ -519,21 +545,29 @@ end;
 function TPageTree.DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind;
   Column: TColumnIndex; var Ghosted: Boolean;
   var Index: Integer): TCustomImageList;
+var
+  i: Integer;
 begin
   Result := inherited;
 
   if Node <> nil then
     if ((Kind = ikNormal) or (Kind = ikSelected)) and (Column = 0) then
-      Index := Node.Index;
+      for i := 0 to FPages.Count - 1 do
+        if FPages[i].Node = Node then
+          Index := FPages[i].ImageIndex;
 end;
 
 procedure TPageTree.DoGetText(Node: PVirtualNode; Column: TColumnIndex;
   TextType: TVSTTextType; var Text: string);
+var
+  i: Integer;
 begin
   inherited;
 
   if Column = 0 then
-    Text := FPages[Node.Index].FCaption;
+    for i := 0 to FPages.Count - 1 do
+      if FPages[i].Node = Node then
+        Text := FPages[i].Caption;
 end;
 
 procedure TPageTree.DoInitNode(Parent, Node: PVirtualNode;
@@ -556,6 +590,17 @@ begin
   inherited;
 
   FColName.Width := ClientWidth;
+end;
+
+procedure TPageTree.Setup;
+var
+  i: Integer;
+begin
+  for i := 0 to FPages.Count - 1 do
+    if FPages[i].Parent = nil then
+      FPages[i].Node := AddChild(nil)
+    else if FPages[i].Parent <> nil then
+      FPages[i].Node := AddChild(FPages[i].Parent.Node);
 end;
 
 end.

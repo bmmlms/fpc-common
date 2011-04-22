@@ -24,7 +24,7 @@ interface
 uses
   Windows, WinSock, Forms, AppData, UpdateClient, Update, Wizard,
   ProfileSettings, Functions, SettingsStorage, LanguageObjects,
-  AppDataBase, About, Menus, UpdatedInfo;
+  AppDataBase, About, Menus, UpdatedInfo, Logging;
 
 type
   TPatch = packed record

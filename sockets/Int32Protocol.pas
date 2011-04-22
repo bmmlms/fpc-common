@@ -63,7 +63,7 @@ end;
 
 procedure TInt32SocketThread.DoReceivedData(Buf: Pointer; Len: Integer);
 var
-  CLen: Cardinal;
+  CLen: u_long;
   S: AnsiString;
 begin
   inherited;
@@ -96,7 +96,7 @@ end;
 
 procedure TInt32SocketThread.Write(XML: AnsiString);
 var
-  L: Cardinal;
+  L: u_long;
 begin
   FSendLock.Enter;
   try
