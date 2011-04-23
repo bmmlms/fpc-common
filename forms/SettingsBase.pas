@@ -443,8 +443,8 @@ begin
         Break;
       end;
 
-  SetPage(FPageList[0]);
   FTreeView.Setup;
+  SetPage(FPageList[0]);
   FTreeView.SetFocus;
 end;
 
