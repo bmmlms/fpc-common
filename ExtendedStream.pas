@@ -144,6 +144,8 @@ begin
   // Dann wird nur noch die andere benutzt zum String lesen.
   // Sind ATM noch zwei um alte streamWriter-Versionen zu unterstützen.
   Read(Len);
+  if Len > Size then
+    raise Exception.Create('Len > Size');
   if Len > 0 then
   begin
     SetLength(Value, Len);
@@ -158,6 +160,8 @@ var
 begin
   Value := '';
   Read(Len);
+  if Len > Size then
+    raise Exception.Create('Len > Size');
   if Len > 0 then
   begin
     P := GetMemory(Len + 2);
