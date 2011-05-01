@@ -80,6 +80,8 @@ type
     function CreatePath: Boolean;
     function GetFilePath(Filename: string): string; virtual;
     function PrepareSave: Boolean; virtual; abstract;
+
+    property DataDir: string read FDataDir;
   end;
 
   TSettingsInstalled = class(TSettingsStorage)

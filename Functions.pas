@@ -52,7 +52,7 @@ function DownCase(ch: Char): Char;
 function MakeSize(Size: UInt64): string;
 function DiskSpaceOkay(Path: string; MinSpaceGB: Int64): Boolean;
 procedure FindFiles(PathPattern: string; Files: TStringList);
-function RunProcess(Filename: string; Timeout: Integer; var Output: AnsiString): Integer; overload;
+function RunProcess(Filename, WorkingDir: string; Timeout: Integer; var Output: AnsiString): Integer; overload;
 function RunProcess(Filename: string; var Handle: Cardinal; Hide: Boolean = False): Boolean; overload;
 function RunProcess(Filename: string; Hide: Boolean = False): Boolean; overload;
 function GetCPUCount: DWord;
@@ -431,7 +431,7 @@ begin
   end;
 end;
 
-function RunProcess(Filename: string; Timeout: Integer; var Output: AnsiString): Integer; overload;
+function RunProcess(Filename, WorkingDir: string; Timeout: Integer; var Output: AnsiString): Integer; overload;
 var
   OK: Boolean;
   Handle: Cardinal;
@@ -480,7 +480,7 @@ begin
   SI.hStdInput := ReadPipeIn;
   OK := CreateProcess(nil, @Filename[1], nil, nil, True,
     CREATE_NEW_PROCESS_GROUP or NORMAL_PRIORITY_CLASS or CREATE_NO_WINDOW,
-    nil, nil, SI, PI);
+    nil, @WorkingDir[1], SI, PI);
   try
     if OK then
     begin

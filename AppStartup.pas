@@ -128,7 +128,6 @@ begin
     finally
       About.Free;
     end;
-    AppGlobals.FirstStartShown := True;
   end;
 
   if not AppGlobals.WasSetup then
