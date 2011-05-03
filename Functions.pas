@@ -445,6 +445,7 @@ var
   ReadCount: DWORD;
   Avail: DWORD;
   Tmp: AnsiString;
+  Started: Cardinal;
 begin
   Result := 1;
   Output := '';
@@ -486,6 +487,37 @@ begin
     begin
       Handle := PI.hProcess;
 
+      Result := 0;
+
+      Started := GetTickCount;
+      while WaitForSingleObject(Handle, 100) = WAIT_TIMEOUT do
+      begin
+        PeekNamedPipe(ReadPipeOut, nil, 0, nil, @Avail, nil);
+        if Avail > 0 then
+        begin
+          SetLength(Tmp, Avail);
+          ReadFile(ReadPipeOut, Tmp[1], Avail, ReadCount, nil);
+          Output := Output + Tmp;
+
+          Started := GetTickCount;
+        end;
+
+        if Started + Timeout < GetTickCount then
+        begin
+          Result := 2;
+          Exit;
+        end;
+      end;
+
+      PeekNamedPipe(ReadPipeOut, nil, 0, nil, @Avail, nil);
+      if Avail > 0 then
+      begin
+        SetLength(Tmp, Avail);
+        ReadFile(ReadPipeOut, Tmp[1], Avail, ReadCount, nil);
+        Output := Output + Tmp;
+      end;
+
+      {
       if WaitForSingleObject(Handle, Timeout) = WAIT_OBJECT_0 then
         Result := 0
       else
@@ -499,6 +531,7 @@ begin
         Output := Output + Tmp;
       end;
       Result := 0;
+      }
     end;
   finally
     CloseHandle(PI.hThread);
