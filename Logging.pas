@@ -36,14 +36,14 @@ begin
 end;
 
 class procedure TLogger.Write(Data: string);
+const
+  FILE_APPEND_DATA = 4;
 var
   H: THandle;
   W: Cardinal;
 begin
   Exit;
 
-  // FILE_APPEND_DATA ist in D2010 nicht definiert. Wohl neu, besser nie wieder benutzen.
-  {
   H := CreateFile(PChar(LoggingFile), FILE_APPEND_DATA, FILE_SHARE_READ or FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
   if H = INVALID_HANDLE_VALUE then
   begin
@@ -57,7 +57,7 @@ begin
 
     FileClose(H);
   end;
-  }
+
 end;
 
 initialization
