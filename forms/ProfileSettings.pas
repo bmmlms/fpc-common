@@ -46,7 +46,7 @@ begin
       ((Sender = btnCopy2) and (TSettingsInstalled.Active(AppGlobals.AppName)))) then
     if MsgBox(Handle, _('All settings of the other profile will be replaced by the current profile''s settings.'#13#10 +
                         'Please be aware that existing settings and files containing data will be overwritten.'#13#10 +
-                        'Proceed?'), 'Question', MB_ICONQUESTION or MB_YESNO or MB_DEFBUTTON2) = IDNO then
+                        'Proceed?'), _('Question'), MB_ICONQUESTION or MB_YESNO or MB_DEFBUTTON2) = IDNO then
     begin
       Exit;
     end;

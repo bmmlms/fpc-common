@@ -82,7 +82,6 @@ object frmProfileSettings: TfrmProfileSettings
     Padding.Right = 4
     Padding.Bottom = 4
     TabOrder = 0
-    ExplicitWidth = 309
     object Bevel2: TBevel
       Left = 4
       Top = 4
@@ -141,7 +140,6 @@ object frmProfileSettings: TfrmProfileSettings
       ParentDoubleBuffered = False
       TabOrder = 0
       OnClick = btnOkClick
-      ExplicitLeft = 208
     end
   end
   object pnlHeader: TPanel
@@ -156,7 +154,6 @@ object frmProfileSettings: TfrmProfileSettings
     Padding.Right = 4
     Padding.Bottom = 4
     TabOrder = 1
-    ExplicitWidth = 309
     object Shape1: TShape
       Left = 4
       Top = 4
@@ -206,7 +203,6 @@ object frmProfileSettings: TfrmProfileSettings
     Checked = True
     TabOrder = 2
     TabStop = True
-    ExplicitWidth = 301
   end
   object rbPortable: TRadioButton
     Left = 4
@@ -216,7 +212,6 @@ object frmProfileSettings: TfrmProfileSettings
     Anchors = [akLeft, akTop, akRight]
     Caption = 'Use settings from application path (portable)'
     TabOrder = 3
-    ExplicitWidth = 301
   end
   object btnDelete: TButton
     Left = 20
