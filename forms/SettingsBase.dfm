@@ -137,7 +137,7 @@ object frmSettingsBase: TfrmSettingsBase
       Align = alRight
       Caption = '&OK'
       Default = True
-      DoubleBuffered = True
+      DoubleBuffered = False
       Layout = blGlyphRight
       ParentDoubleBuffered = False
       TabOrder = 0
