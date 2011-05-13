@@ -19,6 +19,9 @@ var
 
 implementation
 
+var
+  CS: _RTL_CRITICAL_SECTION;
+
 { TLogger }
 
 class function TLogger.GetDesktopDir: string;
@@ -32,6 +35,7 @@ end;
 
 class procedure TLogger.Init;
 begin
+  InitializeCriticalSection(CS);
   LoggingFile := GetDesktopDir + 'streamwriter_log.txt';
 end;
 
@@ -42,22 +46,24 @@ var
   H: THandle;
   W: Cardinal;
 begin
-  Exit;
+  EnterCriticalSection(CS);
+  try
+    H := CreateFile(PChar(LoggingFile), FILE_APPEND_DATA, FILE_SHARE_READ or FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    if H = INVALID_HANDLE_VALUE then
+    begin
+      H := CreateFile(PChar(LoggingFile), GENERIC_WRITE, FILE_SHARE_READ or FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+    end;
 
-  H := CreateFile(PChar(LoggingFile), FILE_APPEND_DATA, FILE_SHARE_READ or FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-  if H = INVALID_HANDLE_VALUE then
-  begin
-    H := CreateFile(PChar(LoggingFile), GENERIC_WRITE, FILE_SHARE_READ or FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+    if H <> INVALID_HANDLE_VALUE then
+    begin
+      Data := TimeToStr(Now) + ' - ' + IntToStr(GetCurrentThreadId) + ' - ' + Data + #13#10;
+      WriteFile(H, Data[1], Length(Data) * SizeOf(Char), W, nil);
+
+      FileClose(H);
+    end;
+  finally
+    LeaveCriticalSection(CS);
   end;
-
-  if H <> INVALID_HANDLE_VALUE then
-  begin
-    Data := TimeToStr(Now) + ' - ' + Data + #13#10;
-    WriteFile(H, Data[1], Length(Data) * SizeOf(Char), W, nil);
-
-    FileClose(H);
-  end;
-
 end;
 
 initialization
