@@ -29,7 +29,7 @@ begin
   Result := GetShellFolder(CSIDL_DESKTOP);
   if (Trim(Result) <> '') then
   begin
-    Result := IncludeTrailingPathDelimiter(Result) + '\';
+    Result := IncludeTrailingPathDelimiter(Result);
   end;
 end;
 
