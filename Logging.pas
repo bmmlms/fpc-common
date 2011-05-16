@@ -46,6 +46,10 @@ var
   H: THandle;
   W: Cardinal;
 begin
+  {$IFNDEF DEBUG}
+  Exit;
+  {$ENDIF}
+
   EnterCriticalSection(CS);
   try
     H := CreateFile(PChar(LoggingFile), FILE_APPEND_DATA, FILE_SHARE_READ or FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
