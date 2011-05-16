@@ -69,8 +69,10 @@ function CmpInt(const A, B: Int64): Integer;
 function ParseVersion(const Version: string): TAppVersion;
 function IsVersionNewer(const Current, Found: TAppVersion): Boolean;
 procedure GetBitmap(const Resname: string; const NumGlyphs: Integer; Bmp: TBitmap);
-function BuildPattern(const s: string; var Hash: Cardinal; var NumChars: Integer): string;
+function BuildPattern(const s: string; var Hash: Cardinal; var NumChars: Integer; AlwaysAlter: Boolean): string;
 function CryptStr(const s: string): string;
+function TryRelativePath(const s: string; IsFile: Boolean): string;
+function TryUnRelativePath(const s: string; IsFile: Boolean): string;
 
 function VerSetConditionMask(dwlConditionMask: LONGLONG; TypeBitMask: DWORD; ConditionMask: Byte): LONGLONG; stdcall;
   external 'kernel32.dll';
@@ -937,14 +939,22 @@ begin
   SetLength(Result, Counter - 1);
 end;
 
-function BuildPattern(const s: string; var Hash: Cardinal; var NumChars: Integer): string;
+function BuildPattern(const s: string; var Hash: Cardinal; var NumChars: Integer; AlwaysAlter: Boolean): string;
+var
+  P: Integer;
 begin
-  Result := LowerCase(s);
-  Result := AnsiLowerCase(Result);
-  Result := '*' + Result + '*';
-  Result := StringReplace(Result, ' ', '*', [rfReplaceAll]);
-  Result := TrimChars(Result, '*');
+  P := 1;
+  if not AlwaysAlter then
+    P := Pos('*', s);
 
+  Result := Trim(LowerCase(s));
+  Result := AnsiLowerCase(Result);
+  if (AlwaysAlter) or (not AlwaysAlter and (P = 0)) then
+  begin
+    Result := '*' + Result + '*';
+    Result := StringReplace(Result, ' ', '*', [rfReplaceAll]);
+  end;
+  Result := TrimChars(Result, '*');
   NumChars := Length(Result) - OccurenceCount('*', Result) - OccurenceCount('?', Result);
   Hash := HashString(Result);
 end;
@@ -958,6 +968,42 @@ begin
     Exit;
   for i := 1 to Length(s) do
     Result[i] := Chr(Ord(s[i]) xor $45);
+end;
+
+function TryRelativePath(const s: string; IsFile: Boolean): string;
+var
+  TmpDir, AppDir: string;
+  sPath: string;
+begin
+  Result := s;
+  //if (Length(s) <= 2) or ((Length(s) >= 3) and not (Copy(s, 1, 2) = '\\')) then
+  begin
+    TmpDir := IncludeTrailingBackslash(ExtractFilePath(s));
+    AppDir := IncludeTrailingBackslash(ExtractFilePath(ParamStr(0)));
+    if Length(TmpDir) >= Length(AppDir) then
+      if Copy(LowerCase(TmpDir), 1, Length(AppDir)) = LowerCase(AppDir) then
+      begin
+        if IsFile then
+          TmpDir := Copy(IncludeTrailingBackslash(ExtractFilePath(s)), Length(AppDir), Length(IncludeTrailingBackslash(ExtractFilePath(s))) - Length(AppDir))
+        else
+          TmpDir := Copy(IncludeTrailingBackslash(s), Length(AppDir), Length(IncludeTrailingBackslash(s)) - Length(AppDir));
+        TmpDir := IncludeTrailingBackslash(TmpDir);
+        if IsFile then
+          TmpDir := TmpDir + ExtractFileName(s);
+        if (Length(TmpDir) > 0) and (Copy(TmpDir, 1, 1) = '\') then
+          TmpDir := Copy(TmpDir, 2, Length(TmpDir) - 1);
+        Result := TmpDir;
+      end;
+  end;
+end;
+
+function TryUnRelativePath(const s: string; IsFile: Boolean): string;
+begin
+  Result := s;
+  if (Length(Result) <= 2) or not ((Length(Result) >= 3) and ((Copy(Result, 1, 2) = '\\') or (Copy(Result, 2, 2) = ':\'))) then
+  begin
+    Result := IncludeTrailingBackslash(ExtractFilePath(ParamStr(0))) + Result;
+  end;
 end;
 
 end.

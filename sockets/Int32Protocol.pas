@@ -32,7 +32,7 @@ type
 
     procedure DoReceivedData(Buf: Pointer; Len: Integer); override;
     procedure DoConnected; override;
-    procedure DoReceivedString(D: string); virtual;
+    procedure DoReceivedString(D: AnsiString); virtual;
   public
     constructor Create(Host: string; Port: Integer);
     destructor Destroy; override;
@@ -89,7 +89,7 @@ begin
   end;
 end;
 
-procedure TInt32SocketThread.DoReceivedString(D: string);
+procedure TInt32SocketThread.DoReceivedString(D: AnsiString);
 begin
 
 end;
