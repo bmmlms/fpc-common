@@ -73,6 +73,7 @@ function BuildPattern(const s: string; var Hash: Cardinal; var NumChars: Integer
 function CryptStr(const s: string): string;
 function TryRelativePath(const s: string; IsFile: Boolean): string;
 function TryUnRelativePath(const s: string; IsFile: Boolean): string;
+function IsUTF8String(const s: AnsiString): Boolean;
 
 function VerSetConditionMask(dwlConditionMask: LONGLONG; TypeBitMask: DWORD; ConditionMask: Byte): LONGLONG; stdcall;
   external 'kernel32.dll';
@@ -1003,6 +1004,63 @@ begin
   if (Length(Result) <= 2) or not ((Length(Result) >= 3) and ((Copy(Result, 1, 2) = '\\') or (Copy(Result, 2, 2) = ':\'))) then
   begin
     Result := IncludeTrailingBackslash(ExtractFilePath(ParamStr(0))) + Result;
+  end;
+end;
+
+function IsUTF8String(const s: AnsiString): Boolean;
+  function UTF8CharLength(const c: Byte): Integer;
+  begin
+    Result := -1;
+    // First Byte: 0xxxxxxx
+    if ((c and $80) = $00) then
+    begin
+      Result := 1;
+    end
+    // First Byte: 110yyyyy
+    else if ((c and $E0) = $C0) then
+    begin
+      Result := 2;
+    end
+    // First Byte: 1110zzzz
+    else if ((c and $F0) = $E0) then
+    begin
+      Result := 3;
+    end
+    // First Byte: 11110uuu
+    else if ((c and $F8) = $F0) then
+    begin
+      Result := 4;
+    end;
+  end;
+  function UTF8IsTrailChar(const c: Byte): BOOLEAN;
+  begin
+    // trail bytes have this form: 10xxxxxx
+    Result := ((c and $C0) = $80);
+  end;
+var
+  i, L: Integer;
+begin
+  Result := True;
+  i := 1;
+  while i <= Length(s) do
+  begin
+    L := UTF8CharLength(Byte(s[i]));
+
+    if ((L >= 1) and (L <= 4) and ((i + L - 1) < Length(s))) then
+    begin
+      while L > 1 do
+      begin
+        if not UTF8IsTrailChar(Byte(s[i + 1])) then
+        begin
+          Result := False;
+          Exit;
+        end;
+        Dec(L);
+        Inc(i);
+      end;
+    end;
+
+    Inc(i, L);
   end;
 end;
 

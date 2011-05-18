@@ -45,7 +45,7 @@ type
     procedure WriteDebug(Text: string; T, Level: Integer); overload;
   protected
   public
-    procedure Process; virtual;
+    procedure Process(Received: Cardinal); virtual;
 
     procedure Disconnected; virtual;
 
@@ -293,12 +293,14 @@ begin
 end;
 
 procedure TSocketThread.Execute;
+const
+  BufSize = 65536;
 var
   Addr: sockaddr_in;
   Res, RecvRes, SendRes: Integer;
   readfds, writefds, exceptfds: TFdSet;
   timeout: TimeVal;
-  Buf: array[0..8191] of Byte;
+  Buf: array[0..BufSize - 1] of Byte;
   Hostx: Integer;
   NonBlock: Integer;
   Ticks, StartTime: Cardinal;
@@ -400,7 +402,7 @@ begin
 
         if FD_ISSET(FSocketHandle, readfds) then
         begin
-          RecvRes := recv(FSocketHandle, Buf, 8192, 0);
+          RecvRes := recv(FSocketHandle, Buf, BufSize, 0);
 
           if RecvRes = 0 then
           begin
@@ -418,7 +420,7 @@ begin
             LastTimeReceived := GetTickCount;
             FRecvStream.Seek(0, soFromEnd);
             FRecvStream.WriteBuffer(Buf, RecvRes);
-            FRecvStream.Process;
+            FRecvStream.Process(RecvRes);
             DoReceivedData(@Buf[1], RecvRes);
           end else
           begin
@@ -669,7 +671,7 @@ begin
 
 end;
 
-procedure TSocketStream.Process;
+procedure TSocketStream.Process(Received: Cardinal);
 begin
 
 end;

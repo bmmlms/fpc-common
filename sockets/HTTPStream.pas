@@ -55,7 +55,7 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    procedure Process; override;
+    procedure Process(Received: Cardinal); override;
 
     property HeaderRemoved: Boolean read FHeaderRemoved;
     property HeaderType: string read FHeaderType;
@@ -84,7 +84,7 @@ begin
     raise Exception.Create('Response code could not be determined');
 end;
 
-procedure THTTPStream.Process;
+procedure THTTPStream.Process(Received: Cardinal);
 var
   P, Len, RemoveTo: Integer;
   B: PByte;

@@ -134,7 +134,7 @@ type
 
   TClientStream = class(TCommandStream)
   public
-    procedure Process; override;
+    procedure Process(Received: Cardinal); override;
   end;
 
 implementation
@@ -395,7 +395,7 @@ end;
 
 { TClientStream }
 
-procedure TClientStream.Process;
+procedure TClientStream.Process(Received: Cardinal);
 begin
   inherited;
 
