@@ -72,6 +72,7 @@ type
     FMaxWidth: Integer;
     Button: TMTabSheetCloseButton;
     FShowCloseButton: Boolean;
+    FOnClosed: TNotifyEvent;
 
     procedure SetCaptionInternal(Value: string);
     procedure FSetMaxWidth(Value: Integer);
@@ -82,10 +83,12 @@ type
     procedure AlignButton;
   public
     constructor Create(AOwner: TComponent); reintroduce; virtual;
+    destructor Destroy; override;
   public
     property Caption: string read FGetCaption write FSetCaption;
     property MaxWidth: Integer read FMaxWidth write FSetMaxWidth;
     property ShowCloseButton: Boolean read FShowCloseButton write FSetShowCloseButton;
+    property OnClosed: TNotifyEvent read FOnClosed write FOnClosed;
   end;
 
   TMVirtualStringTree = class(TVirtualStringTree)
@@ -235,6 +238,9 @@ var
 begin
   SendMessage(Handle, WM_SETREDRAW, 0, 0);
   try
+    if Assigned(TMTabSheet(Tab).FOnClosed) then
+      TMTabSheet(Tab).FOnClosed(Tab);
+
     if Tab = ActivePage then
     begin
       if PageCount - 1 > ActivePageIndex then
@@ -338,6 +344,12 @@ begin
   AlignButton;
   Button.Show;
   FMaxWidth := TMPageControl(AOwner).FMaxTabWidth;
+end;
+
+destructor TMTabSheet.Destroy;
+begin
+
+  inherited;
 end;
 
 function TMTabSheet.FGetCaption: string;
