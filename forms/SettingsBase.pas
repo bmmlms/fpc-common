@@ -73,6 +73,7 @@ type
     procedure Resize; override;
     procedure DoMeasureItem(TargetCanvas: TCanvas; Node: PVirtualNode;
       var NodeHeight: Integer); override;
+    function DoCollapsing(Node: PVirtualNode): Boolean; override;
   public
     constructor Create(AOwner: TComponent; Pages: TPageList); reintroduce;
     function AddChild(Parent: PVirtualNode;
@@ -291,9 +292,6 @@ end;
 constructor TfrmSettingsBase.Create(AOwner: TComponent; ShowGeneral: Boolean);
 var
   i: Integer;
-  Btn: TSpeedButton;
-  HIco: THandle;
-  Ico: TIcon;
   Res: TResourceStream;
   Png: TPngImage;
 begin
@@ -528,8 +526,6 @@ begin
 end;
 
 constructor TPageTree.Create(AOwner: TComponent; Pages: TPageList);
-var
-  i: Integer;
 begin
   inherited Create(AOwner);
 
@@ -540,6 +536,11 @@ begin
   TreeOptions.SelectionOptions := [toDisableDrawSelection, toFullRowSelect];
   TreeOptions.PaintOptions := [toThemeAware, toHideFocusRect];
   TreeOptions.MiscOptions := TreeOptions.MiscOptions - [toAcceptOLEDrop] + [toFullRowDrag];
+end;
+
+function TPageTree.DoCollapsing(Node: PVirtualNode): Boolean;
+begin
+  Result := False;
 end;
 
 function TPageTree.DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind;

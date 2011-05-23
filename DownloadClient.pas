@@ -22,22 +22,19 @@ unit DownloadClient;
 interface
 
 uses
-  Windows, SysUtils, StrUtils, Classes, AppData, AppDataBase,
-  HTTPThread, Functions, ShellApi, LanguageObjects, Sockets;
+  Windows, SysUtils, StrUtils, Classes, AppData, AppDataBase, HTTPThread,
+  Functions, ShellApi, LanguageObjects, Sockets;
 
 type
   TDownloadThread = class(THTTPThread)
   private
-    FTarget: TMemoryStream;
     FOnFileDownloaded: TSocketEvent;
     FOnError: TSocketEvent;
-
-    function GetValue(Data, Name: AnsiString): AnsiString;
   protected
     procedure DoReceivedData(Buf: Pointer; Len: Integer); override;
     procedure DoEnded; override;
   public
-    constructor Create(URL: string);
+    constructor Create(URL: string); reintroduce;
   end;
 
   TDownloadClient = class
@@ -84,30 +81,7 @@ begin
   FUserAgent := AnsiString(AppGlobals.AppName) + ' v' + AppGlobals.AppVersion.AsString;
 end;
 
-function TDownloadThread.GetValue(Data, Name: AnsiString): AnsiString;
-var
-  n, n2: Integer;
-  Data2: AnsiString;
-begin
-  Data2 := AnsiString(AnsiLowerCase(string(Data)));
-  Name := AnsiString(AnsiLowerCase(string(Name)) + '=');
-  Result := '';
-  n := Pos(string(Name), string(Data2));
-  if n > 0 then
-  begin
-    n2 := PosEx(#10, string(Data), n);
-    if n2 > 0 then
-      Result := AnsiString(Copy(string(Data), n + Length(Name), n2 - n - Length(Name)))
-    else
-      Result := AnsiString(Copy(string(Data), n + Length(Name), Length(Data)));
-  end;
-  Result := AnsiString(Trim(string(Result)));
-end;
-
 procedure TDownloadThread.DoEnded;
-var
-  Data, Version: AnsiString;
-  CL: AnsiString;
 begin
   inherited;
   if FTypedStream.ResponseCode = 200 then

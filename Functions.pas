@@ -52,7 +52,7 @@ function DownCase(ch: Char): Char;
 function MakeSize(Size: UInt64): string;
 function DiskSpaceOkay(Path: string; MinSpaceGB: Int64): Boolean;
 procedure FindFiles(PathPattern: string; Files: TStringList);
-function RunProcess(Filename, WorkingDir: string; Timeout: Integer; var Output: AnsiString): Integer; overload;
+function RunProcess(Filename, WorkingDir: string; Timeout: Cardinal; var Output: AnsiString): Integer; overload;
 function RunProcess(Filename: string; var Handle: Cardinal; Hide: Boolean = False): Boolean; overload;
 function RunProcess(Filename: string; Hide: Boolean = False): Boolean; overload;
 function GetCPUCount: DWord;
@@ -433,7 +433,7 @@ begin
   end;
 end;
 
-function RunProcess(Filename, WorkingDir: string; Timeout: Integer; var Output: AnsiString): Integer; overload;
+function RunProcess(Filename, WorkingDir: string; Timeout: Cardinal; var Output: AnsiString): Integer; overload;
 var
   OK: Boolean;
   Handle: Cardinal;
@@ -973,7 +973,6 @@ end;
 function TryRelativePath(const s: string; IsFile: Boolean): string;
 var
   TmpDir, AppDir: string;
-  sPath: string;
 begin
   Result := s;
   //if (Length(s) <= 2) or ((Length(s) >= 3) and not (Copy(s, 1, 2) = '\\')) then

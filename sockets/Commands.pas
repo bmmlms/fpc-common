@@ -211,8 +211,6 @@ var
   CommandVersion, CommandLen, CommandType: Cardinal;
   CmdType: TCommandTypes;
 begin
-  Result := nil;
-
   Stream.Seek(0, soFromBeginning);
   Stream.Read(CommandVersion, SizeOf(CommandVersion));
   Stream.Read(CommandLen, SizeOf(CommandLen));

@@ -147,7 +147,7 @@ begin
     if FSendCache.Count = 0 then
       Exit;
 
-    if FSender > FSendCache.Count - 1 then
+    if Integer(FSender) > FSendCache.Count - 1 then
       FSender := 0;
 
     if FSendCache[FSender].FCommandStream.Size = 0 then
