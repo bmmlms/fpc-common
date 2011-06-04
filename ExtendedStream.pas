@@ -40,7 +40,6 @@ type
     procedure Read(var Value: Integer); overload;
     procedure Read(var Value: Cardinal); overload;
     procedure Read(var Value: Boolean); overload;
-    procedure Read(var Value: AnsiString); overload;
     procedure Read(var Value: UnicodeString); overload;
     procedure Read(var Value: TDateTime); overload;
     procedure Read(var Value: UInt64); overload;
@@ -134,23 +133,6 @@ end;
 procedure TExtendedStream.Write(Value: Byte);
 begin
   WriteBuffer(Value, SizeOf(Byte));
-end;
-
-procedure TExtendedStream.Read(var Value: AnsiString);
-var
-  Len: Integer;
-begin
-  // REMARK: Diese Funktion wird rausgeworfen irgendwann.
-  // Dann wird nur noch die andere benutzt zum String lesen.
-  // Sind ATM noch zwei um alte streamWriter-Versionen zu unterstützen.
-  Read(Len);
-  if Len > Size then
-    raise Exception.Create('Len > Size');
-  if Len > 0 then
-  begin
-    SetLength(Value, Len);
-    ReadBuffer(Value[1], Len);
-  end;
 end;
 
 procedure TExtendedStream.Read(var Value: UnicodeString);

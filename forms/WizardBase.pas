@@ -134,9 +134,6 @@ begin
 
   AppGlobals.AutoUpdate := chkAutoUpdate.Checked;
 
-  // Das passt so, sonst kommt das FirstStart Form zwei mal.
-  //AppGlobals.FirstStartShown := True;
-
   AppGlobals.WasSetup := True;
   AppGlobals.Save(Handle);
 
