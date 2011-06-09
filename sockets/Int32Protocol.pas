@@ -76,12 +76,12 @@ begin
     if CLen > 262144 then
       raise Exception.Create('');
 
-    if (CLen > 0) and (FRecvStream.Size >= CLen - 4) then
+    if (CLen > 0) and (FRecvStream.Size >= CLen + 4) then
     begin
       FRecvStream.Seek(4, soFromBeginning);
       SetLength(S, CLen);
       FRecvStream.Read(S[1], CLen);
-      FRecvStream.RemoveRange(0, 4 + CLen);
+      FRecvStream.RemoveRange(0, CLen + 4);
 
       DoReceivedString(S);
     end else
