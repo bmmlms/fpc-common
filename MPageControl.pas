@@ -18,7 +18,7 @@ type
     FImageIndex: Integer;
     FShowCloseButton: Boolean;
     FMaxWidth: Integer;
-    FPageIndex: Integer;
+    FTabIndex: Integer;
 
     FHeaderRect: TAdvancedRect;
     FImageRect: TAdvancedRect;
@@ -44,6 +44,7 @@ type
     property MaxWidth: Integer read FMaxWidth write FSetMaxWidth;
     property Color;
     property PageControl: TMPageControl read FPageControl write FSetPageControl;
+    property TabIndex: Integer read FTabIndex;
 
     property OnClosed: TNotifyEvent read FOnClosed write FOnClosed;
   end;
@@ -82,6 +83,7 @@ type
     function FGetPageCount: Integer;
   protected
     procedure Resize; override;
+    procedure TabClosed(Tab: TMTabSheet); virtual;
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X: Integer;
       Y: Integer); override;
 
@@ -260,17 +262,19 @@ begin
         begin
           if FPages.Count = 0 then
             ActivePage := nil
-          else if (FPages.Count > 0) and (Item.FPageIndex = 0) then
+          else if (FPages.Count > 0) and (Item.FTabIndex = 0) then
             ActivePage := FPages[0] // War die Seite ganz links, also wieder ganz links aktivieren
-          else if FPages.Count > Item.FPageIndex then
-            ActivePage := FPages[Item.FPageIndex] // Es gibt rechts noch was, also das aktivieren
-          else if FPages.Count > Item.FPageIndex - 1 then
-            ActivePage := FPages[Item.FPageIndex - 1] // Das links von der Seite aktivieren
+          else if FPages.Count > Item.FTabIndex then
+            ActivePage := FPages[Item.FTabIndex] // Es gibt rechts noch was, also das aktivieren
+          else if FPages.Count > Item.FTabIndex - 1 then
+            ActivePage := FPages[Item.FTabIndex - 1] // Das links von der Seite aktivieren
           else if FPages.Count > 0 then
             ActivePage := FPages[0];
         end;
         if Assigned(Item.FOnClosed) then
           Item.FOnClosed(Item);
+
+        TabClosed(Item);
 
         if Parent <> nil then
         begin
@@ -420,7 +424,7 @@ begin
     begin
       Page := FPages[i];
 
-      Page.FPageIndex := i;
+      Page.FTabIndex := i;
       T := Page.FCaption;
       if Page.FMaxWidth > 0 then
       begin
@@ -548,6 +552,11 @@ begin
   FHeaderRect.Left := 0;
   FHeaderRect.Width := Width;
   FHeaderRect.Bottom := FHeaderHeight;
+end;
+
+procedure TMPageControl.TabClosed(Tab: TMTabSheet);
+begin
+
 end;
 
 procedure TMPageControl.WMNCCalcSize(var Message: TWMNCCalcSize);
