@@ -651,7 +651,7 @@ var
   X, Y: Integer;
   Paint: Boolean;
   T, B: TMTabSheet;
-  tme: TTRACKMOUSEEVENT;
+  TME: tagTRACKMOUSEEVENT;
 begin
   X := Message.XCursor;
   Y := Message.YCursor;
@@ -677,7 +677,7 @@ begin
   end;
 
   TME.cbSize := SizeOf(TME);
-  TME.dwFlags := TME_LEAVE or TME_NONCLIENT;
+  TME.dwFlags := TME_LEAVE or $00000010; //TME_NONCLIENT, D2010 kennt es nicht.
   TME.hwndTrack := Handle;
   TrackMouseEvent(TME);
 end;
