@@ -27,6 +27,7 @@ uses
   Themes, ImgList, GUIFunctions, LanguageObjects;
 
 type
+  {
   TMTabSheet = class;
 
   TMTabSheetCloseButton = class(TSpeedButton)
@@ -90,6 +91,7 @@ type
     property ShowCloseButton: Boolean read FShowCloseButton write FSetShowCloseButton;
     property OnClosed: TNotifyEvent read FOnClosed write FOnClosed;
   end;
+  }
 
   TMVirtualStringTree = class(TVirtualStringTree)
   private
@@ -117,6 +119,7 @@ implementation
 
 { TMTabSheetCloseButton }
 
+{
 constructor TMTabSheetCloseButton.Create(AOwner: TComponent);
 begin
   inherited;
@@ -174,9 +177,9 @@ begin
     DrawFrameControl(Canvas.Handle, ClientRect, uType, uState);
   end;
 end;
-
+}
 { TMPageControl }
-
+{
 procedure TMPageControl.AlignButtons;
 var
   i: Integer;
@@ -300,9 +303,9 @@ begin
   end;
   inherited;
 end;
-
+}
 { TMTabSheet }
-
+{
 procedure TMTabSheet.AlignButton;
 var
   PageControl: TPageControl;
@@ -401,7 +404,7 @@ begin
 
   inherited Caption := s2 + s;
 end;
-
+}
 { TMStatusBar }
 
 constructor TMStatusBar.Create(AOwner: TComponent);
