@@ -253,6 +253,8 @@ begin
 
         Item.Parent := Self;
         Item.Align := alClient;
+        Item.Padding.Top := 2;
+        Item.Padding.Bottom := 2;
         Item.FPageControl := Self;
         Item.Visible := Item = FActivePage;
       end;
