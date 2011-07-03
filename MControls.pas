@@ -27,7 +27,6 @@ uses
   Themes, ImgList, GUIFunctions, LanguageObjects;
 
 type
-  {
   TMTabSheet = class;
 
   TMTabSheetCloseButton = class(TSpeedButton)
@@ -44,6 +43,7 @@ type
   TMPageControl = class(TPageControl)
   private
     FMaxTabWidth: Integer;
+    FLocked: Boolean;
 
     procedure AlignButtons;
     procedure RemoveTab(Tab: TTabSheet);
@@ -82,16 +82,17 @@ type
     procedure FSetShowCloseButton(Value: Boolean);
 
     procedure AlignButton;
+  protected
+    procedure WndProc(var Message: TMessage); override;
   public
     constructor Create(AOwner: TComponent); reintroduce; virtual;
     destructor Destroy; override;
-  public
+
     property Caption: string read FGetCaption write FSetCaption;
     property MaxWidth: Integer read FMaxWidth write FSetMaxWidth;
     property ShowCloseButton: Boolean read FShowCloseButton write FSetShowCloseButton;
     property OnClosed: TNotifyEvent read FOnClosed write FOnClosed;
   end;
-  }
 
   TMVirtualStringTree = class(TVirtualStringTree)
   private
@@ -119,7 +120,6 @@ implementation
 
 { TMTabSheetCloseButton }
 
-{
 constructor TMTabSheetCloseButton.Create(AOwner: TComponent);
 begin
   inherited;
@@ -177,9 +177,9 @@ begin
     DrawFrameControl(Canvas.Handle, ClientRect, uType, uState);
   end;
 end;
-}
+
 { TMPageControl }
-{
+
 procedure TMPageControl.AlignButtons;
 var
   i: Integer;
@@ -239,7 +239,8 @@ procedure TMPageControl.RemoveTab(Tab: TTabSheet);
 var
   Idx: Integer;
 begin
-  SendMessage(Handle, WM_SETREDRAW, 0, 0);
+  LockWindowUpdate(Handle);
+  //FLocked := True;
   try
     if Assigned(TMTabSheet(Tab).FOnClosed) then
       TMTabSheet(Tab).FOnClosed(Tab);
@@ -269,7 +270,9 @@ begin
 
     ActivePageIndex := Idx;
   finally
-    SendMessage(Handle, WM_SETREDRAW, 1, 0);
+    //FLocked := False;
+    //Refresh;
+    LockWindowUpdate(0);
   end;
 end;
 
@@ -282,6 +285,9 @@ procedure TMPageControl.WndProc(var Message: TMessage);
 var
   i: Integer;
 begin
+  if ((Message.Msg = WM_PAINT) or (Message.Msg = WM_ERASEBKGND)) and (FLocked) then
+    Exit;
+
   if Message.Msg = WM_PAINT then
     AlignButtons;
   if Message.Msg = WM_USER + 1245 then
@@ -303,9 +309,9 @@ begin
   end;
   inherited;
 end;
-}
+
 { TMTabSheet }
-{
+
 procedure TMTabSheet.AlignButton;
 var
   PageControl: TPageControl;
@@ -404,7 +410,15 @@ begin
 
   inherited Caption := s2 + s;
 end;
-}
+
+procedure TMTabSheet.WndProc(var Message: TMessage);
+begin
+  //if (PageControl <> nil) and (TMPageControl(PageControl).FLocked) then
+  //  Exit;
+
+  inherited;
+end;
+
 { TMStatusBar }
 
 constructor TMStatusBar.Create(AOwner: TComponent);
