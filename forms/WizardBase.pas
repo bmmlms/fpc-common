@@ -30,11 +30,13 @@ type
   TStep = class
   private
     FCaption: string;
+    FDescription: string;
     FPanel: TPanel;
   protected
   public
     constructor Create(Caption: string; Panel: TPanel);
     property Caption: string read FCaption;
+    property Description: string read FDescription write FDescription;
     property Panel: TPanel read FPanel;
   end;
 
@@ -48,7 +50,6 @@ type
 
   TfrmWizardBase = class(TForm)
     pnlLanguage: TPanel;
-    lblLanguage: TLabel;
     pnlNav: TPanel;
     btnBack: TBitBtn;
     btnNext: TBitBtn;
@@ -62,11 +63,11 @@ type
     lstLanguages: TComboBoxEx;
     lblLanguageList: TLabel;
     optAppData: TRadioButton;
-    lblData: TLabel;
     optPortable: TRadioButton;
     lblAppData: TLabel;
     lblPortable: TLabel;
-    lblUpdates: TLabel;
+    pnlDesc: TPanel;
+    lblDesc: TLabel;
     procedure FormDestroy(Sender: TObject);
     procedure btnBackClick(Sender: TObject);
     procedure btnNextClick(Sender: TObject);
@@ -79,6 +80,7 @@ type
   private
     FInitializedSteps: TList;
     procedure SetText;
+    procedure FSetDescription(Value: string);
   protected
     FStepList: TStepList;
     FActiveIndex: Integer;
@@ -90,10 +92,10 @@ type
     procedure Finish; virtual;
     function IsValid(Step: TStep): Boolean; virtual;
     procedure InitStep(Step: TStep); virtual;
-  private
-
   public
     constructor Create(AOwner: TComponent); override;
+
+    property Description: string write FSetDescription;
   end;
 
 implementation
@@ -222,6 +224,11 @@ begin
   SetText;
 end;
 
+procedure TfrmWizardBase.FSetDescription(Value: string);
+begin
+  lblDesc.Caption := Value;
+end;
+
 procedure TfrmWizardBase.InitStep(Step: TStep);
 begin
   if Step.Panel = pnlStorage then
@@ -298,6 +305,10 @@ begin
   FStepList.Add(TStep.Create('Select language', pnlLanguage));
   FStepList.Add(TStep.Create('Configure settings', pnlStorage));
   FStepList.Add(TStep.Create('Configure updates', pnlUpdates));
+
+  FStepList[0].Description := Format(_('Welcome to %s!'#13#10'This wizard will guide you through the initial setup.'#13#10'Please select your language now.'), [AppGlobals.AppName]);
+  FStepList[1].Description := _('Please select where application data should be saved.');
+  FStepList[2].Description := _('Please choose whether automatic search for updates should be enabled.');
 end;
 
 procedure TfrmWizardBase.SetStep(Idx: Integer);
@@ -336,6 +347,13 @@ begin
   FActiveSetup.Panel.Enabled := True;
   FActiveSetup.Panel.BringToFront;
   lblTop.Caption := _(FActiveSetup.Caption);
+
+  if FActiveSetup.FDescription <> '' then
+  begin
+    lblDesc.Caption := _(FActiveSetup.FDescription);
+    pnlDesc.Visible := True;
+  end else
+    pnlDesc.Visible := False;
 end;
 
 procedure TfrmWizardBase.SetText;
@@ -345,9 +363,6 @@ begin
   lblPortable.Caption := Format(_('Settings will be saved to application folder which is "%s" at the moment.'#13#10'This makes sense if the application was not installed and should be portable.'),
     [TSettingsPortable.GetDataDir]);
   lblTop.Caption := _(FActiveSetup.FCaption);
-  lblLanguage.Caption := Format(_('Welcome to %s!'#13#10'This wizard will guide you through the initial setup.'#13#10'Please select your language now.'), [AppGlobals.AppName]);
-  lblData.Caption := _('Please select where application data should be saved.');
-  lblUpdates.Caption := _('Please choose if automatic search for updates should be enabled.'#13#10'No personal information will be transferred and you will be asked before an update will be downloaded or applied.');
 end;
 
 { TStepList }

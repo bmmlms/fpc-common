@@ -1001,6 +1001,8 @@ end;
 function TryUnRelativePath(const s: string; IsFile: Boolean): string;
 begin
   Result := s;
+  if Result = '' then
+    Exit;
   if (Length(Result) <= 2) or not ((Length(Result) >= 3) and ((Copy(Result, 1, 2) = '\\') or (Copy(Result, 2, 2) = ':\'))) then
   begin
     Result := IncludeTrailingBackslash(ExtractFilePath(ParamStr(0))) + Result;

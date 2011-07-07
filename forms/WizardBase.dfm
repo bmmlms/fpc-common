@@ -21,33 +21,22 @@ object frmWizardBase: TfrmWizardBase
   TextHeight = 13
   object pnlLanguage: TPanel
     Left = 4
-    Top = 48
+    Top = 96
     Width = 393
     Height = 213
     Align = alCustom
     BevelOuter = bvNone
     TabOrder = 0
-    object lblLanguage: TLabel
-      Left = 8
-      Top = 4
-      Width = 381
-      Height = 49
-      AutoSize = False
-      Caption = '-'
-      Color = clBtnFace
-      ParentColor = False
-      WordWrap = True
-    end
     object lblLanguageList: TLabel
       Left = 8
-      Top = 64
+      Top = 4
       Width = 51
       Height = 13
       Caption = 'Language:'
     end
     object lstLanguages: TComboBoxEx
       Left = 8
-      Top = 80
+      Top = 20
       Width = 165
       Height = 22
       ItemsEx = <>
@@ -169,25 +158,14 @@ object frmWizardBase: TfrmWizardBase
   end
   object pnlStorage: TPanel
     Left = 408
-    Top = 48
+    Top = 96
     Width = 393
     Height = 241
     BevelOuter = bvNone
     TabOrder = 2
-    object lblData: TLabel
-      Left = 8
-      Top = 4
-      Width = 381
-      Height = 37
-      AutoSize = False
-      Caption = '-'
-      Color = clBtnFace
-      ParentColor = False
-      WordWrap = True
-    end
     object lblAppData: TLabel
       Left = 24
-      Top = 60
+      Top = 20
       Width = 361
       Height = 53
       AutoSize = False
@@ -196,7 +174,7 @@ object frmWizardBase: TfrmWizardBase
     end
     object lblPortable: TLabel
       Left = 24
-      Top = 144
+      Top = 100
       Width = 361
       Height = 53
       AutoSize = False
@@ -205,7 +183,7 @@ object frmWizardBase: TfrmWizardBase
     end
     object optAppData: TRadioButton
       Left = 8
-      Top = 36
+      Top = 0
       Width = 353
       Height = 21
       Caption = 'Save data to registry/application data folder'
@@ -213,7 +191,7 @@ object frmWizardBase: TfrmWizardBase
     end
     object optPortable: TRadioButton
       Left = 8
-      Top = 120
+      Top = 80
       Width = 353
       Height = 21
       Caption = 'Save data to application path'
@@ -222,25 +200,14 @@ object frmWizardBase: TfrmWizardBase
   end
   object pnlUpdates: TPanel
     Left = 4
-    Top = 272
+    Top = 316
     Width = 393
     Height = 213
     BevelOuter = bvNone
     TabOrder = 3
-    object lblUpdates: TLabel
-      Left = 8
-      Top = 4
-      Width = 381
-      Height = 53
-      AutoSize = False
-      Caption = '-'
-      Color = clBtnFace
-      ParentColor = False
-      WordWrap = True
-    end
     object chkAutoUpdate: TCheckBox
       Left = 8
-      Top = 64
+      Top = 0
       Width = 341
       Height = 21
       Caption = 'Enable automatic search for updates'
@@ -295,6 +262,27 @@ object frmWizardBase: TfrmWizardBase
       ExplicitTop = 4
       ExplicitWidth = 190
       ExplicitHeight = 30
+    end
+  end
+  object pnlDesc: TPanel
+    Left = 0
+    Top = 41
+    Width = 809
+    Height = 48
+    Align = alTop
+    BevelOuter = bvNone
+    Padding.Left = 8
+    Padding.Top = 4
+    Padding.Right = 8
+    Padding.Bottom = 4
+    TabOrder = 5
+    object lblDesc: TLabel
+      Left = 8
+      Top = 4
+      Width = 793
+      Height = 13
+      Align = alTop
+      ExplicitWidth = 3
     end
   end
 end
