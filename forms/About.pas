@@ -286,7 +286,7 @@ procedure TScrollText.BuildBitmap;
       if Copy(Line, 1, 4) = '&IMG' then
       begin
         Idx := StrToInt(Copy(Line, 5, 1));
-        Result := Result + FBmps[Idx].Height;
+        Result := Result + FBmps[Idx].Height + 20;
       end else
       begin
         if Copy(Line, 1, 2) = '&U' then
@@ -338,7 +338,7 @@ begin
       Idx := StrToInt(Copy(Line, 5, 1));
       FBMP.Canvas.Draw(FBmp.Width div 2 - FBmps[Idx].Width div 2, i * H + (i * 3) + ImageHeight, FBmps[Idx]);
       ImageHeight := ImageHeight + FBmps[Idx].Height + 20;
-      FTextHeight := FTextHeight + FBmps[Idx].Height;
+      FTextHeight := FTextHeight + FBmps[Idx].Height + 20;
     end else
     begin
       if Copy(Line, 1, 2) = '&U' then
@@ -373,22 +373,6 @@ begin
   begin
     AppGlobals.BuildThanksText;
     FText.Text := AppGlobals.ProjectThanksText;
-
-    for i := 0 to FText.Count - 1 do
-    begin
-      {
-      if Copy(FText[i], 1, 4) = '&IMG' then
-      begin
-        ResStream := TResourceStream.Create(HInstance, 'THANKSIMAGE', RT_RCDATA);
-        try
-          FImage := TJPEGImage.Create;
-          FImage.LoadFromStream(ResStream);
-        finally
-          ResStream.Free;
-        end;
-      end;
-      }
-    end;
 
     BuildBitmap;
 
