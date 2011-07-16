@@ -67,10 +67,12 @@ object frmAbout: TfrmAbout
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 0
     OnChange = pagAboutChange
-    ExplicitWidth = 461
     object tabAbout: TTabSheet
       Caption = 'About'
-      ExplicitWidth = 453
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         405
         185)
@@ -293,7 +295,10 @@ object frmAbout: TfrmAbout
     object tabLicense: TTabSheet
       Caption = 'License'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
       ExplicitWidth = 421
+      ExplicitHeight = 0
       DesignSize = (
         405
         185)
@@ -346,7 +351,6 @@ object frmAbout: TfrmAbout
     Padding.Right = 4
     Padding.Bottom = 4
     TabOrder = 1
-    ExplicitWidth = 469
     object Bevel2: TBevel
       Left = 4
       Top = 4
@@ -370,7 +374,6 @@ object frmAbout: TfrmAbout
       ParentDoubleBuffered = False
       TabOrder = 0
       OnClick = btnCloseClick
-      ExplicitLeft = 368
     end
   end
 end

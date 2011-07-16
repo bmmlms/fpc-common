@@ -32,9 +32,8 @@ type
     FOffset, FTextHeight: Integer;
     FText: TStringList;
     FTimer: TTimer;
-    FBMP: TBitmap;
-
-    FImage: TJPEGImage;
+    FBmp: TBitmap;
+    FBmps: array of TBitmap;
 
     procedure TimerOnTimer(Sender: TObject);
     procedure BuildBitmap;
@@ -211,14 +210,51 @@ end;
 { TScrollText }
 
 constructor TScrollText.Create(AOwner: TComponent);
+var
+  i: Integer;
+  ResStream: TResourceStream;
+  Image: TJPEGImage;
+  Bmp: TBitmap;
 begin
   inherited;
 
   FOffset := MaxInt;
   FTextHeight := 0;
 
+  FBmp := TBitmap.Create;
+
   FText := TStringList.Create;
-  FBMP := TBitmap.Create;
+  SetLength(FBmps, 0);
+
+  i := 0;
+  while True do
+  begin
+    try
+      ResStream := TResourceStream.Create(HInstance, 'THANKSIMAGE' + IntToStr(i), RT_RCDATA);
+    except
+      Break;
+    end;
+
+    try
+      Image := TJPEGImage.Create;
+      try
+        Image.LoadFromStream(ResStream);
+
+        Bmp := TBitmap.Create;
+        Bmp.Width := Image.Width;
+        Bmp.Height := Image.Height;
+        Bmp.Canvas.Draw(0, 0, Image);
+
+        SetLength(FBmps, Length(FBmps) + 1);
+        FBmps[Length(FBmps) - 1] := Bmp;
+      finally
+        Image.Free;
+      end;
+    finally
+      ResStream.Free;
+    end;
+    Inc(i);
+  end;
 
   FTimer := TTimer.Create(Self);
   FTimer.Enabled := False;
@@ -226,19 +262,20 @@ begin
 end;
 
 destructor TScrollText.Destroy;
+var
+  i: Integer;
 begin
   FText.Free;
-  FBMP.Free;
-  if FImage <> nil then
-    FImage.Free;
+  for i := 0 to Length(FBmps) - 1 do
+    FBmps[i].Free;
+  FBmp.Free;
   inherited;
 end;
 
 procedure TScrollText.BuildBitmap;
   function GetTextHeight: Integer;
   var
-    i: Integer;
-    H: Integer;
+    i, H, Idx, OS: Integer;
     Line: string;
   begin
     Result := 0;
@@ -248,7 +285,8 @@ procedure TScrollText.BuildBitmap;
       Line := FText[i];
       if Copy(Line, 1, 4) = '&IMG' then
       begin
-        Result := Result + FImage.Height;
+        Idx := StrToInt(Copy(Line, 5, 1));
+        Result := Result + FBmps[Idx].Height;
       end else
       begin
         if Copy(Line, 1, 2) = '&U' then
@@ -256,12 +294,15 @@ procedure TScrollText.BuildBitmap;
           FBMP.Canvas.Font.Style := FBMP.Canvas.Font.Style + [fsBold];
           H := FBMP.Canvas.TextHeight('A');
           Line := Copy(Line, 3, Length(Line));
+          FBMP.Canvas.Font.Style := FBMP.Canvas.Font.Style - [fsBold];
         end;
         if (Copy(Line, 1, 1) = '&') and (StrToIntDef(Copy(Line, 2, 2), -1) <> -1) then
         begin
+          OS := FBMP.Canvas.Font.Size;
           FBMP.Canvas.Font.Size := StrToInt(Copy(Line, 2, 2));
           H := FBMP.Canvas.TextHeight('A');
           Line := Copy(Line, 4, Length(Line));
+          FBMP.Canvas.Font.Size := OS;
         end;
         Result := Result + H + 3;
       end;
@@ -269,8 +310,7 @@ procedure TScrollText.BuildBitmap;
   end;
 var
   R: TRect;
-  L, H, ImageHeight: Integer;
-  i: Integer;
+  i, L, H, Idx, ImageHeight: Integer;
   Line: string;
 begin
   FBMP.Height := GetTextHeight + ClientHeight;
@@ -295,9 +335,10 @@ begin
     FBMP.Canvas.Font.Size := 8;
     if Copy(Line, 1, 4) = '&IMG' then
     begin
-      FBMP.Canvas.Draw(FBMP.Width div 2 - FImage.Width div 2, i * H + (i * 3), FImage);
-      ImageHeight := ImageHeight + FImage.Height;
-      FTextHeight := FTextHeight + FImage.Height;
+      Idx := StrToInt(Copy(Line, 5, 1));
+      FBMP.Canvas.Draw(FBmp.Width div 2 - FBmps[Idx].Width div 2, i * H + (i * 3) + ImageHeight, FBmps[Idx]);
+      ImageHeight := ImageHeight + FBmps[Idx].Height + 20;
+      FTextHeight := FTextHeight + FBmps[Idx].Height;
     end else
     begin
       if Copy(Line, 1, 2) = '&U' then
@@ -335,6 +376,7 @@ begin
 
     for i := 0 to FText.Count - 1 do
     begin
+      {
       if Copy(FText[i], 1, 4) = '&IMG' then
       begin
         ResStream := TResourceStream.Create(HInstance, 'THANKSIMAGE', RT_RCDATA);
@@ -345,6 +387,7 @@ begin
           ResStream.Free;
         end;
       end;
+      }
     end;
 
     BuildBitmap;
