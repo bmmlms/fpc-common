@@ -362,7 +362,6 @@ end;
 procedure TScrollText.Paint;
 var
   i: Integer;
-  ResStream: TResourceStream;
 begin
   inherited;
 

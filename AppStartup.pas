@@ -53,6 +53,7 @@ var
   UpdatedInfo: TfrmUpdatedInfo;
   ProfileSettings: TfrmProfileSettings;
 begin
+  Randomize;
   Result := True;
 
   SetErrorMode(SEM_FAILCRITICALERRORS);
