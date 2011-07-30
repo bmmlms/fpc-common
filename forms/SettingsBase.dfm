@@ -240,14 +240,14 @@ object frmSettingsBase: TfrmSettingsBase
       TabOrder = 5
       OnClick = chkProxyClick
     end
-    object Button1: TButton
+    object btnDeleteProfile: TButton
       Left = 4
       Top = 280
       Width = 105
       Height = 29
       Caption = '&Delete profile'
       TabOrder = 6
-      OnClick = Button1Click
+      OnClick = btnDeleteProfileClick
     end
   end
   object Panel1: TPanel
