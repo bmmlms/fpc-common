@@ -250,13 +250,4 @@ object frmSettingsBase: TfrmSettingsBase
       OnClick = btnDeleteProfileClick
     end
   end
-  object Panel1: TPanel
-    Left = 605
-    Top = 41
-    Width = 4
-    Height = 389
-    Align = alRight
-    BevelOuter = bvNone
-    TabOrder = 4
-  end
 end

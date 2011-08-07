@@ -95,7 +95,6 @@ type
     chkAutoUpdateCheck: TCheckBox;
     lblPortable: TLabel;
     btnCopyProfile: TButton;
-    Panel1: TPanel;
     txtPort: TLabeledEdit;
     txtHost: TLabeledEdit;
     chkProxy: TCheckBox;
