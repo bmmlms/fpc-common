@@ -360,8 +360,6 @@ begin
 end;
 
 procedure TScrollText.Paint;
-var
-  i: Integer;
 begin
   inherited;
 
