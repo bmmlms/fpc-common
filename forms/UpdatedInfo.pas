@@ -23,9 +23,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure btnDonateClick(Sender: TObject);
   private
-    { Private-Deklarationen }
   public
-    { Public-Deklarationen }
   end;
 
 implementation

@@ -333,20 +333,6 @@ begin
   Language.Translate(Self, PreTranslate, PostTranslate);
 end;
 
-{
-procedure TfrmSettingsBase.EnablePanel(Panel: TPanel; Enable: Boolean);
-var
-  i: Integer;
-begin
-  for i := 0 to FPageList.Count - 1 do
-    if FPageList[i].FPanel = Panel then
-    begin
-      FPageList[i].FNode.Enabled := Enable;
-      Break;
-    end;
-end;
-}
-
 procedure TfrmSettingsBase.Finish;
 begin
   if FShowGeneral then

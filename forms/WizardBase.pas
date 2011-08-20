@@ -77,6 +77,8 @@ type
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormShow(Sender: TObject);
     procedure lstLanguagesSelect(Sender: TObject);
+    procedure lblPortableClick(Sender: TObject);
+    procedure lblAppDataClick(Sender: TObject);
   private
     FInitializedSteps: TList;
     procedure SetText;
@@ -279,12 +281,23 @@ begin
   end;
 end;
 
+procedure TfrmWizardBase.lblAppDataClick(Sender: TObject);
+begin
+  optAppData.Checked := True;
+end;
+
+procedure TfrmWizardBase.lblPortableClick(Sender: TObject);
+begin
+  optPortable.Checked := True;
+end;
+
 procedure TfrmWizardBase.lstLanguagesSelect(Sender: TObject);
 begin
   if lstLanguages.ItemIndex > -1 then
   begin
     Language.CurrentLanguage := TLanguage(lstLanguages.ItemsEx[lstLanguages.ItemIndex].Data);
     Language.Translate(Self);
+
     SetText;
   end;
 end;
@@ -307,13 +320,13 @@ begin
   FStepList.Add(TStep.Create('Configure updates', pnlUpdates));
 
   FStepList[0].Description := Format(_('Welcome to %s!'#13#10'This wizard will guide you through the initial setup.'#13#10'Please select your language now.'), [AppGlobals.AppName]);
-  FStepList[1].Description := _('Please select where application data should be saved.');
-  FStepList[2].Description := _('Please choose whether automatic search for updates should be enabled.');
+  FStepList[1].Description := 'Please select where application data should be saved.';
+  FStepList[2].Description := 'Please choose whether automatic search for updates should be enabled.';
 end;
 
 procedure TfrmWizardBase.SetStep(Idx: Integer);
 begin
-  if FActiveSetup <> nil then
+  if (FActiveSetup <> nil) and (Idx > -1) then
     FActiveSetup.Panel.Enabled := False;
 
   if Idx = -1 then
@@ -358,9 +371,12 @@ end;
 
 procedure TfrmWizardBase.SetText;
 begin
-  lblAppData.Caption := Format(_('Settings will be saved to "%s" and/or to the registry to "%s".'#13#10'This makes sense if the application was installed previously.'),
+  lblDesc.Caption := Format(_('Welcome to %s!'#13#10'This wizard will guide you through the initial setup.'#13#10'Please select your language now.'), [AppGlobals.AppName]);
+  FStepList[0].Description := Format(_('Welcome to %s!'#13#10'This wizard will guide you through the initial setup.'#13#10'Please select your language now.'), [AppGlobals.AppName]);
+
+  lblAppData.Caption := Format(_('Settings will be saved to "%s" and/or to the registry to "%s".'#13#10'This makes sense if the application was installed.'),
     [TSettingsInstalled.GetDataDir(AppGlobals.AppName), 'HKCU' + TSettingsInstalled.GetRegPath(AppGlobals.AppName)]);
-  lblPortable.Caption := Format(_('Settings will be saved to application folder which is "%s" at the moment.'#13#10'This makes sense if the application was not installed and should be portable.'),
+  lblPortable.Caption := Format(_('Settings will be saved to application folder which is "%s" at the moment.'#13#10'This makes sense if the application will be used in portable mode.'),
     [TSettingsPortable.GetDataDir]);
   lblTop.Caption := _(FActiveSetup.FCaption);
 end;

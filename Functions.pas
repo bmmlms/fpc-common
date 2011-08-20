@@ -52,7 +52,8 @@ function DownCase(ch: Char): Char;
 function MakeSize(Size: UInt64): string;
 function DiskSpaceOkay(Path: string; MinSpaceGB: Int64): Boolean;
 procedure FindFiles(PathPattern: string; Files: TStringList);
-function RunProcess(Filename, WorkingDir: string; Timeout: Cardinal; var Output: AnsiString; var ExitCode: DWORD): Integer; overload;
+function RunProcess(Filename, WorkingDir: string; Timeout: Cardinal; var Output: AnsiString;
+  var ExitCode: DWORD; TerminateFlag: PBoolean): Integer; overload;
 function RunProcess(Filename: string; var Handle: Cardinal; Hide: Boolean = False): Boolean; overload;
 function RunProcess(Filename: string; Hide: Boolean = False): Boolean; overload;
 function GetCPUCount: DWord;
@@ -433,7 +434,8 @@ begin
   end;
 end;
 
-function RunProcess(Filename, WorkingDir: string; Timeout: Cardinal; var Output: AnsiString; var ExitCode: DWORD): Integer; overload;
+function RunProcess(Filename, WorkingDir: string; Timeout: Cardinal; var Output: AnsiString;
+  var ExitCode: DWORD; TerminateFlag: PBoolean): Integer; overload;
 var
   OK: Boolean;
   Handle: Cardinal;
@@ -494,6 +496,14 @@ begin
       Started := GetTickCount;
       while WaitForSingleObject(Handle, 100) = WAIT_TIMEOUT do
       begin
+        try
+          if (TerminateFlag <> nil) and TerminateFlag^ then
+          begin
+            Result := 2;
+            Exit;
+          end;
+        except end;
+
         PeekNamedPipe(ReadPipeOut, nil, 0, nil, @Avail, nil);
         if Avail > 0 then
         begin

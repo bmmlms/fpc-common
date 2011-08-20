@@ -35,7 +35,6 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
-    { Private-Deklarationen }
   public
     constructor Create(AOwner: TComponent; ChangeLog: string); reintroduce;
   end;

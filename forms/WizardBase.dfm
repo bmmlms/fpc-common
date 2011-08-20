@@ -171,6 +171,7 @@ object frmWizardBase: TfrmWizardBase
       AutoSize = False
       Caption = '-'
       WordWrap = True
+      OnClick = lblAppDataClick
     end
     object lblPortable: TLabel
       Left = 24
@@ -180,6 +181,7 @@ object frmWizardBase: TfrmWizardBase
       AutoSize = False
       Caption = '-'
       WordWrap = True
+      OnClick = lblPortableClick
     end
     object optAppData: TRadioButton
       Left = 8
