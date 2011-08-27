@@ -81,7 +81,7 @@ end;
 procedure TfrmMsgDlg.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   if FID > -1 then
-    if chkNotShowAgain.Checked then
+    if chkNotShowAgain.Checked and (FRes = mtOK) then
       AppGlobals.InfoShown[FID] := True;
 end;
 
