@@ -42,6 +42,7 @@ type
 const
   WaitDir = WAIT_OBJECT_0;
   WaitTerm = WAIT_OBJECT_0 + 1;
+  FILE_LIST_DIRECTORY = $0001;
 
 implementation
 
