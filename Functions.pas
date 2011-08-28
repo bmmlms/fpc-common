@@ -67,7 +67,8 @@ function IsAdmin: LongBool;
 function HTML2Color(const HTML: string): Integer;
 function GetFileSize(const AFilename: string): Int64;
 function CmpInt(const A, B: Int64): Integer;
-function ParseVersion(const Version: string): TAppVersion;
+function ParseVersion(const Version: string): TAppVersion; overload;
+function ParseVersion(const Major, Minor, Revision, Build: Cardinal): TAppVersion; overload;
 function IsVersionNewer(const Current, Found: TAppVersion): Boolean;
 procedure GetBitmap(const Resname: string; const NumGlyphs: Integer; Bmp: TBitmap);
 function BuildPattern(const s: string; var Hash: Cardinal; var NumChars: Integer; AlwaysAlter: Boolean): string;
@@ -854,6 +855,15 @@ begin
   Result.Build :=  StrToInt(Copy(string(Version), Dots[2] + 1, Length(Version) - Dots[2]));
   Result.AsString := AnsiString(Format('%d.%d.%d.%d', [Result.Major, Result.Minor,
     Result.Revision, Result.Build]));
+end;
+
+function ParseVersion(const Major, Minor, Revision, Build: Cardinal): TAppVersion;
+begin
+  Result.Major := Major;
+  Result.Minor := Minor;
+  Result.Revision := Revision;
+  Result.Build := Build;
+  Result.AsString := AnsiString(Format('%d.%d.%d.%d', [Major, Minor, Revision, Build]));
 end;
 
 function IsVersionNewer(const Current, Found: TAppVersion): Boolean;

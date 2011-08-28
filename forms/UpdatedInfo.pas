@@ -22,6 +22,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure btnDonateClick(Sender: TObject);
+    procedure FormResize(Sender: TObject);
   private
   public
   end;
@@ -70,6 +71,12 @@ begin
     Key := 0;
     Close;
   end;
+end;
+
+procedure TfrmUpdatedInfo.FormResize(Sender: TObject);
+begin
+  btnDonateDe.Left := ClientWidth div 2 - btnDonateDe.Width div 2;
+  btnDonateEn.Left := ClientWidth div 2 - btnDonateEn.Width div 2;
 end;
 
 procedure TfrmUpdatedInfo.FormShow(Sender: TObject);

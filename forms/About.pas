@@ -63,9 +63,9 @@ type
     lblVersion: TLabel;
     lblCopyright: TLabel;
     lblHomepage: TLabel;
+    tabThanks: TTabSheet;
     btnDonateDe: TImage;
     btnDonateEn: TImage;
-    tabThanks: TTabSheet;
     procedure lblProjectLinkClick(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
@@ -76,6 +76,8 @@ type
     procedure lblHomepageClick(Sender: TObject);
     procedure btnDonateClick(Sender: TObject);
     procedure pagAboutChange(Sender: TObject);
+    procedure btnDonateEnClick(Sender: TObject);
+    procedure FormResize(Sender: TObject);
   private
     FScrollText: TScrollText;
   public
@@ -92,6 +94,11 @@ begin
 end;
 
 procedure TfrmAbout.btnDonateClick(Sender: TObject);
+begin
+  ShellExecute(0, 'open', PChar(AppGlobals.ProjectDonateLink), '', '', 1);
+end;
+
+procedure TfrmAbout.btnDonateEnClick(Sender: TObject);
 begin
   ShellExecute(0, 'open', PChar(AppGlobals.ProjectDonateLink), '', '', 1);
 end;
@@ -172,6 +179,12 @@ begin
     Key := 0;
     Close;
   end;
+end;
+
+procedure TfrmAbout.FormResize(Sender: TObject);
+begin
+  btnDonateDe.Left := tabAbout.ClientWidth div 2 - btnDonateDe.Width div 2;
+  btnDonateEn.Left := tabAbout.ClientWidth div 2 - btnDonateEn.Width div 2;
 end;
 
 procedure TfrmAbout.lblHomepageClick(Sender: TObject);

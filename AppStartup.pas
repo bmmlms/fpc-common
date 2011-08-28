@@ -22,7 +22,7 @@ unit AppStartup;
 interface
 
 uses
-  Windows, WinSock, Forms, AppData, UpdateClient, Update, Wizard,
+  Windows, SysUtils, WinSock, Forms, AppData, UpdateClient, Update, Wizard,
   ProfileSettings, Functions, SettingsStorage, LanguageObjects,
   AppDataBase, About, Menus, UpdatedInfo, Logging;
 
@@ -44,6 +44,8 @@ end;
 
 function InitApp: Boolean;
 var
+  Ver: TOSVersionInfo;
+  VerRec: TAppVersion;
   Res: Integer;
   OldProtect: Cardinal;
   Patch: TPatch;
@@ -57,6 +59,17 @@ begin
   Result := True;
 
   SetErrorMode(SEM_FAILCRITICALERRORS);
+
+  Ver.dwOSVersionInfoSize := SizeOf(ver);
+  if GetVersionEx(Ver) then
+  begin
+    VerRec := ParseVersion(Ver.dwMajorVersion, Ver.dwMinorVersion, 0, 0);
+    if not IsVersionNewer(ParseVersion('5.0.0.0'), VerRec) then
+    begin
+      MsgBox(0, Format(_('%s requires at least Windows XP, earlier versions are not supported.'), [AppGlobals.AppName]), _('Error'), MB_ICONERROR);
+      Halt;
+    end;
+  end;
 
   // Gibt manchmal bei ALT-GR eine Exception. Die möchten wir nicht.
   Patch.Call := $E8;
