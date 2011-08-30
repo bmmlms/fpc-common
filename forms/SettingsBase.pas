@@ -118,8 +118,8 @@ type
     FPageList: TPageList;
     FActivePage: TPage;
     FTreeImages: TPngImageList;
-    procedure SetPage(Page: TPage); overload;
-    procedure SetPage(Panel: TPanel); overload;
+    procedure SetPage(Page: TPage); overload; virtual;
+    procedure SetPage(Panel: TPanel); overload; virtual;
     procedure RegisterPages; virtual;
     procedure Finish; virtual;
     function CanFinish: Boolean; virtual;
