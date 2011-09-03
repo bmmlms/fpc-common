@@ -25,7 +25,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Buttons, ComCtrls, LanguageObjects,
   AppData, AppDataBase, SettingsStorage, Functions, ListActns, pngimage,
-  PngImageList, ImgList, VirtualTrees;
+  PngImageList, ImgList, VirtualTrees, ExtendedStream;
 
 type
   TPage = class
@@ -99,6 +99,8 @@ type
     txtHost: TLabeledEdit;
     chkProxy: TCheckBox;
     btnDeleteProfile: TButton;
+    btnExportProfile: TButton;
+    btnImportProfile: TButton;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
@@ -109,10 +111,13 @@ type
     procedure chkProxyClick(Sender: TObject);
     procedure btnDeleteProfileClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure btnExportProfileClick(Sender: TObject);
+    procedure btnImportProfileClick(Sender: TObject);
   private
     FSaveSettings: Boolean;
     FShowGeneral: Boolean;
     FTreeView: TPageTree;
+    FImportFilename: string;
     procedure TreeViewChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
   protected
     FPageList: TPageList;
@@ -125,10 +130,12 @@ type
     function CanFinish: Boolean; virtual;
     procedure PreTranslate; virtual;
     procedure PostTranslate; virtual;
+    procedure GetExportData(Stream: TExtendedStream); virtual; abstract;
   public
     constructor Create(AOwner: TComponent; ShowGeneral: Boolean); reintroduce;
 
     property SaveSettings: Boolean read FSaveSettings;
+    property ImportFilename: string read FImportFilename;
   end;
 
 implementation
@@ -257,6 +264,62 @@ begin
     AppGlobals.SkipSave := True;
     MsgBox(Handle, _('The profile was deleted.'#13#10 +
                      'When you exit the application, no data will be saved so that the profil will not be recreated.'), _('Info'), MB_ICONINFORMATION);
+  end;
+end;
+
+procedure TfrmSettingsBase.btnExportProfileClick(Sender: TObject);
+var
+  S: TExtendedStream;
+  Dlg: TSaveDialog;
+  Lst: TSettingsList;
+begin
+  try
+    Dlg := TSaveDialog.Create(Self);
+    Dlg.Filter := 'streamWriter profile (*.dat)|*.dat';
+    Dlg.Options := Dlg.Options + [ofOverwritePrompt];
+    Dlg.DefaultExt := '.dat';
+    S := TExtendedStream.Create;
+    Lst := TSettingsList.Create;
+    try
+      if Dlg.Execute then
+        if Dlg.FileName <> '' then
+        begin
+          S.Write(Cardinal(1));
+          AppGlobals.Storage.GetData(Lst);
+          Lst.Save(S);
+          GetExportData(S);
+          S.SaveToFile(Dlg.FileName);
+        end;
+    finally
+      Lst.Free;
+      S.Free;
+      Dlg.Free;
+    end;
+
+    MsgBox(Handle, _('The profile was exported successfully.'), _('Info'), MB_ICONINFORMATION);
+  except
+    MsgBox(Handle, _('An error occured while exporting the profile.'), _('Error'), MB_ICONERROR);
+  end;
+end;
+
+procedure TfrmSettingsBase.btnImportProfileClick(Sender: TObject);
+var
+  Dlg: TOpenDialog;
+begin
+  if MsgBox(Handle, _('The profile currently in use will be replaced with the imported one. After successful import streamWriter will restart.'#13#10'Do you want to continue?'), _('Question'), MB_ICONQUESTION or MB_YESNO) = IDYES then
+  begin
+    Dlg := TOpenDialog.Create(Self);
+    Dlg.Filter := 'streamWriter profile (*.dat)|*.dat';
+    try
+      if Dlg.Execute then
+        if Dlg.FileName <> '' then
+        begin
+          FImportFilename := Dlg.FileName;
+          Close;
+        end;
+    finally
+      Dlg.Free;
+    end;
   end;
 end;
 

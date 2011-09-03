@@ -249,5 +249,23 @@ object frmSettingsBase: TfrmSettingsBase
       TabOrder = 6
       OnClick = btnDeleteProfileClick
     end
+    object btnExportProfile: TButton
+      Left = 128
+      Top = 248
+      Width = 105
+      Height = 29
+      Caption = '&Export profile'
+      TabOrder = 7
+      OnClick = btnExportProfileClick
+    end
+    object btnImportProfile: TButton
+      Left = 128
+      Top = 280
+      Width = 105
+      Height = 29
+      Caption = '&Import profile'
+      TabOrder = 8
+      OnClick = btnImportProfileClick
+    end
   end
 end

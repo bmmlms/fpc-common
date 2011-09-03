@@ -23,7 +23,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Registry, IniFiles, GUIFunctions, ShlObj,
-  Functions;
+  Functions, Generics.Collections, ExtendedStream;
 
 const
   SETTINGS = 'Settings';
@@ -31,27 +31,59 @@ const
 type
   TDataType = (dtUnknown, dtString, dtInteger, dtBoolean);
 
-  TDataString = class
+  TDataEntry = class
+  private
+    FName, FSection: string;
   public
-    Name, Section: string;
-    D: string;
+    procedure Save(Stream: TExtendedStream); virtual;
+    class function Load(Stream: TExtendedStream): TDataEntry; virtual;
+
+    property Name: string read FName;
+    property Section: string read FSection;
+  end;
+
+  TDataString = class(TDataEntry)
+  private
+    FValue: string;
+  public
     constructor Create(Name, Section: string; D: string);
+
+    procedure Save(Stream: TExtendedStream); override;
+    procedure Load(Stream: TExtendedStream);
+
+    property Value: string read FValue;
   end;
 
-  TDataInteger = class
+  TDataInteger = class(TDataEntry)
+  private
+    FValue: Integer;
   public
-    Name, Section: string;
-    D: Integer;
     constructor Create(Name, Section: string; D: Integer);
+
+    procedure Save(Stream: TExtendedStream); override;
+    procedure Load(Stream: TExtendedStream);
+
+    property Value: Integer read FValue;
   end;
 
-  TDataBoolean = class
+  TDataBoolean = class(TDataEntry)
+  private
+    FValue: Boolean;
   public
-    Name, Section: string;
-    D: Boolean;
     constructor Create(Name, Section: string; D: Boolean);
+
+    procedure Save(Stream: TExtendedStream); override;
+    procedure Load(Stream: TExtendedStream);
+
+    property Value: Boolean read FValue;
   end;
-  
+
+  TSettingsList = class(TList<TDataEntry>)
+  public
+    procedure Save(Stream: TExtendedStream);
+    class function Load(Stream: TExtendedStream): TSettingsList;
+  end;
+
   TSettingsStorage = class
   private
   protected
@@ -62,8 +94,9 @@ type
   public
     constructor Create(AppName, AppPath: string); virtual;
 
-    procedure Assign(AssignFrom: TSettingsStorage);
-    procedure GetData(Lst: TList); virtual;
+    procedure Assign(AssignFrom: TSettingsStorage); overload;
+    procedure Assign(AssignFrom: TSettingsList); overload;
+    procedure GetData(Lst: TSettingsList); virtual;
     function DeleteProfile: Boolean; virtual;
     
     procedure Write(Name: string; Value: string; Section: string = SETTINGS); overload; virtual; abstract;
@@ -87,7 +120,7 @@ type
   TSettingsInstalled = class(TSettingsStorage)
   private
     FRegPath: string;
-    procedure GetDataInternal(Path: string; Lst: TList; TruncLen: Integer);
+    procedure GetDataInternal(Path: string; Lst: TSettingsList; TruncLen: Integer);
   public
     constructor Create(AppName, AppPath: string); override;
 
@@ -95,7 +128,7 @@ type
     class function GetRegPath(AppName: string): string;
     class function GetDataDir(AppName: string): string;
 
-    procedure GetData(Lst: TList); overload; override;
+    procedure GetData(Lst: TSettingsList); overload; override;
     function DeleteProfile: Boolean; override;
 
     procedure Write(Name: string; Value: string; Section: string = SETTINGS); overload; override;
@@ -121,7 +154,7 @@ type
     class function Active(AppName: string): Boolean;
     class function GetDataDir: string;
 
-    procedure GetData(Lst: TList); override;
+    procedure GetData(Lst: TSettingsList); override;
     function DeleteProfile: Boolean; override;
 
     procedure Write(Name: string; Value: string; Section: string = SETTINGS); overload; override;
@@ -275,7 +308,7 @@ begin
   end;
 end;
 
-procedure TSettingsInstalled.GetDataInternal(Path: string; Lst: TList; TruncLen: Integer);
+procedure TSettingsInstalled.GetDataInternal(Path: string; Lst: TSettingsList; TruncLen: Integer);
 var
   Sections: TStringList;
   Values: TStringList;
@@ -344,7 +377,7 @@ begin
   end;
 end;
 
-procedure TSettingsInstalled.GetData(Lst: TList);
+procedure TSettingsInstalled.GetData(Lst: TSettingsList);
 begin
   Lst.Clear;
   GetDataInternal(FRegPath, Lst, Length(FRegPath));
@@ -588,7 +621,7 @@ begin
   end;
 end;
 
-procedure TSettingsPortable.GetData(Lst: TList);
+procedure TSettingsPortable.GetData(Lst: TSettingsList);
 var
   Sections: TStringList;
   Values: TStringList;
@@ -812,28 +845,14 @@ end;
 
 procedure TSettingsStorage.Assign(AssignFrom: TSettingsStorage);
 var
-  Lst: TList;
+  Lst: TSettingsList;
   Files: TStringList;
   i: Integer;
 begin
-  Lst := TList.Create;
+  Lst := TSettingsList.Create;
   try
     AssignFrom.GetData(Lst);
-    for i := 0 to Lst.Count - 1 do
-    begin
-      if TObject(Lst[i]) is TDataString then
-      begin
-        Write(TDataString(Lst[i]).Name, TDataString(Lst[i]).D, TDataString(Lst[i]).Section);
-      end;
-      if TObject(Lst[i]) is TDataInteger then
-      begin
-        Write(TDataInteger(Lst[i]).Name, TDataInteger(Lst[i]).D, TDataInteger(Lst[i]).Section);
-      end;
-      if TObject(Lst[i]) is TDataBoolean then
-      begin
-        Write(TDataBoolean(Lst[i]).Name, TDataBoolean(Lst[i]).D, TDataBoolean(Lst[i]).Section);
-      end;
-    end;
+    Assign(Lst);
 
     if AssignFrom.FDataDir <> '' then
     begin
@@ -860,6 +879,27 @@ begin
   end;
 end;
 
+procedure TSettingsStorage.Assign(AssignFrom: TSettingsList);
+var
+  i: Integer;
+begin
+  for i := 0 to AssignFrom.Count - 1 do
+  begin
+    if AssignFrom[i] is TDataString then
+    begin
+      Write(TDataString(AssignFrom[i]).Name, TDataString(AssignFrom[i]).Value, TDataString(AssignFrom[i]).Section);
+    end;
+    if AssignFrom[i] is TDataInteger then
+    begin
+      Write(TDataInteger(AssignFrom[i]).Name, TDataInteger(AssignFrom[i]).Value, TDataInteger(AssignFrom[i]).Section);
+    end;
+    if AssignFrom[i] is TDataBoolean then
+    begin
+      Write(TDataBoolean(AssignFrom[i]).Name, TDataBoolean(AssignFrom[i]).Value, TDataBoolean(AssignFrom[i]).Section);
+    end;
+  end;
+end;
+
 constructor TSettingsStorage.Create(AppName, AppPath: string);
 begin
   inherited Create;
@@ -877,7 +917,7 @@ begin
   Result := False;
 end;
 
-procedure TSettingsStorage.GetData(Lst: TList);
+procedure TSettingsStorage.GetData(Lst: TSettingsList);
 begin
 
 end;
@@ -965,31 +1005,128 @@ begin
 
 end;
 
+{ TDataEntry }
+
+class function TDataEntry.Load(Stream: TExtendedStream): TDataEntry;
+var
+  T: Byte;
+  Name, Section: string;
+begin
+  Stream.Read(T);
+  Stream.Read(Name);
+  Stream.Read(Section);
+
+  case T of
+    0:
+      begin
+        Result := TDataString.Create(Name, Section, '');
+        TDataString(Result).Load(Stream);
+      end;
+    1:
+      begin
+        Result := TDataInteger.Create(Name, Section, 0);
+        TDataInteger(Result).Load(Stream);
+      end;
+    2:
+      begin
+        Result := TDataBoolean.Create(Name, Section, False);
+        TDataBoolean(Result).Load(Stream);
+      end;
+  end;
+end;
+
+procedure TDataEntry.Save(Stream: TExtendedStream);
+begin
+  if Self is TDataString then
+    Stream.Write(Byte(0))
+  else if Self is TDataInteger then
+    Stream.Write(Byte(1))
+  else if Self is TDataBoolean then
+    Stream.Write(Byte(2));
+
+  Stream.Write(FName);
+  Stream.Write(FSection);
+end;
+
 { TDataString }
 
 constructor TDataString.Create(Name, Section: string; D: string);
 begin
-  Self.Name := Name;
-  Self.Section := Section;
-  Self.D := D;
+  Self.FName := Name;
+  Self.FSection := Section;
+  Self.FValue := D;
+end;
+
+procedure TDataString.Load(Stream: TExtendedStream);
+begin
+  Stream.Read(FValue);
+end;
+
+procedure TDataString.Save(Stream: TExtendedStream);
+begin
+  inherited;
+  Stream.Write(FValue);
 end;
 
 { TDataInteger }
 
 constructor TDataInteger.Create(Name, Section: string; D: Integer);
 begin
-  Self.Name := Name;
-  Self.Section := Section;
-  Self.D := D;
+  Self.FName := Name;
+  Self.FSection := Section;
+  Self.FValue := D;
+end;
+
+procedure TDataInteger.Load(Stream: TExtendedStream);
+begin
+  Stream.Read(FValue);
+end;
+
+procedure TDataInteger.Save(Stream: TExtendedStream);
+begin
+  inherited;
+  Stream.Write(FValue);
 end;
 
 { TDataBoolean }
 
 constructor TDataBoolean.Create(Name, Section: string; D: Boolean);
 begin
-  Self.Name := Name;
-  Self.Section := Section;
-  Self.D := D;
+  Self.FName := Name;
+  Self.FSection := Section;
+  Self.FValue := D;
+end;
+
+procedure TDataBoolean.Load(Stream: TExtendedStream);
+begin
+  Stream.Read(FValue);
+end;
+
+procedure TDataBoolean.Save(Stream: TExtendedStream);
+begin
+  inherited;
+  Stream.Write(FValue);
+end;
+
+{ TSettingsList }
+
+class function TSettingsList.Load(Stream: TExtendedStream): TSettingsList;
+var
+  i, C: Integer;
+begin
+  Result := TSettingsList.Create;
+  Stream.Read(C);
+  for i := 0 to C - 1 do
+    Result.Add(TDataEntry.Load(Stream));
+end;
+
+procedure TSettingsList.Save(Stream: TExtendedStream);
+var
+  i: Integer;
+begin
+  Stream.Write(Count);
+  for i := 0 to Count - 1 do
+    Items[i].Save(Stream);
 end;
 
 end.
