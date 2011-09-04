@@ -361,8 +361,12 @@ begin
   FFileMapping := 0;
   if FOnlyOne then
   begin
-    while (FMutexHandle = 0) and (ParamStr(1) = '/profileupdate') do
+    FMutexHandle := CreateMutex(nil, True, PChar(FAppName + 'Mutex'));
+    while (GetLastError = ERROR_ALREADY_EXISTS) and (ReadHandle > 0) and (ParamStr(1) = '/profileupdate') do
+    begin
+      Sleep(500);
       FMutexHandle := CreateMutex(nil, True, PChar(FAppName + 'Mutex'));
+    end;
 
     if GetLastError = ERROR_ALREADY_EXISTS then
     begin
@@ -383,6 +387,7 @@ var
   pSD: TSecurityDescriptor;
   Mem: PCardinal;
 begin
+  Result := 0;
   if not InitializeSecurityDescriptor(@pSD, SECURITY_DESCRIPTOR_REVISION) then
     Exit;
   if not SetSecurityDescriptorDacl(@pSD, True, nil, False) then
