@@ -361,7 +361,9 @@ begin
   FFileMapping := 0;
   if FOnlyOne then
   begin
-    FMutexHandle := CreateMutex(nil, True, PChar(FAppName + 'Mutex'));
+    while (FMutexHandle = 0) and (ParamStr(1) = '/profileupdate') do
+      FMutexHandle := CreateMutex(nil, True, PChar(FAppName + 'Mutex'));
+
     if GetLastError = ERROR_ALREADY_EXISTS then
     begin
       Handle := ReadHandle;

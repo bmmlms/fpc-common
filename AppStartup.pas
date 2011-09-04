@@ -60,12 +60,6 @@ begin
 
   SetErrorMode(SEM_FAILCRITICALERRORS);
 
-  if ParamStr(1) = '/profileupdate' then
-  begin
-    MsgBox(0, 'LOL', 'LOL', 0);
-    Sleep(2000);
-  end;
-
   Ver.dwOSVersionInfoSize := SizeOf(ver);
   if GetVersionEx(Ver) then
   begin
