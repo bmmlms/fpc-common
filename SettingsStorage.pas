@@ -36,7 +36,7 @@ type
     FName, FSection: string;
   public
     procedure Save(Stream: TExtendedStream); virtual;
-    class function Load(Stream: TExtendedStream): TDataEntry; virtual;
+    class function Load(Stream: TExtendedStream): TDataEntry;
 
     property Name: string read FName;
     property Section: string read FSection;
@@ -50,7 +50,6 @@ type
 
     procedure Save(Stream: TExtendedStream); override;
     procedure Load(Stream: TExtendedStream);
-
     property Value: string read FValue;
   end;
 
@@ -80,6 +79,8 @@ type
 
   TSettingsList = class(TList<TDataEntry>)
   public
+    destructor Destroy; override;
+
     procedure Save(Stream: TExtendedStream);
     class function Load(Stream: TExtendedStream): TSettingsList;
   end;
@@ -873,8 +874,6 @@ begin
       end;
     end;
   finally
-    for i := 0 to Lst.Count - 1 do
-      TObject(Lst[i]).Free;
     Lst.Free;
   end;
 end;
@@ -1032,6 +1031,8 @@ begin
         Result := TDataBoolean.Create(Name, Section, False);
         TDataBoolean(Result).Load(Stream);
       end;
+    else
+      raise Exception.Create('Unknown TDataEntry Type');
   end;
 end;
 
@@ -1109,6 +1110,15 @@ begin
 end;
 
 { TSettingsList }
+
+destructor TSettingsList.Destroy;
+var
+  i: Integer;
+begin
+  for i := 0 to Count - 1 do
+    Items[i].Free;
+  inherited;
+end;
 
 class function TSettingsList.Load(Stream: TExtendedStream): TSettingsList;
 var
