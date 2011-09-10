@@ -23,7 +23,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, SyncObjs, Winsock, ExtendedStream,
-  Generics.Collections;
+  Generics.Collections, Logging;
 
 type
   TSocketThread = class;
