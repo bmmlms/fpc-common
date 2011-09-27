@@ -371,7 +371,12 @@ begin
     if GetLastError = ERROR_ALREADY_EXISTS then
     begin
       Handle := ReadHandle;
-      PostMessage(Handle, WM_USER + 1234, 0, 0);
+
+      if Handle = 0 then
+        MsgBox(0, _('You have tried to start streamWriter but a previous instance is closing at the moment. Please try again in some seconds.'), _('Info'), MB_ICONINFORMATION)
+      else
+        PostMessage(Handle, WM_USER + 1234, 0, 0);
+
       Halt;
     end else
     begin

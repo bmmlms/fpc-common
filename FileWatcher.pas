@@ -131,7 +131,8 @@ end;
 
 procedure TFileWatcher.TriggerEvent;
 begin
-  FOnEvent(Self, FAction, FFilename, FFilenameNew);
+  if Assigned(FOnEvent) then
+    FOnEvent(Self, FAction, FFilename, FFilenameNew);
 end;
 
 destructor TFileWatcher.Destroy;

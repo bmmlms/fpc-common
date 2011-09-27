@@ -23,7 +23,8 @@ interface
 
 uses
   Windows, SysUtils, StrUtils, Classes, AppData, AppDataBase,
-  HTTPThread, Functions, ShellApi, LanguageObjects, Sockets;
+  HTTPThread, Functions, ShellApi, LanguageObjects, Sockets,
+  Forms;
 
 type
   TUpdateAction = (uaVersion, uaUpdate);
@@ -207,8 +208,11 @@ begin
   if FThread <> nil then
   begin
     try
-      TerminateThread(FThread.Handle, 1);
-      FThread.Free;
+      //TerminateThread(FThread.Handle, 1);
+      FThread.Terminate;
+      while FThread <> nil do
+        Application.ProcessMessages;
+      //FThread.Free;
     except
     end;
     FThread := nil;

@@ -24,7 +24,7 @@ interface
 uses
   Windows, SysUtils, WinSock, Forms, AppData, UpdateClient, Update, Wizard,
   ProfileSettings, Functions, SettingsStorage, LanguageObjects,
-  AppDataBase, About, Menus, UpdatedInfo, Logging;
+  AppDataBase, About, Menus, UpdatedInfo, Logging, MsgDlg;
 
 type
   TPatch = packed record
@@ -66,8 +66,8 @@ begin
     VerRec := ParseVersion(Ver.dwMajorVersion, Ver.dwMinorVersion, 0, 0);
     if not IsVersionNewer(ParseVersion('5.0.0.0'), VerRec) then
     begin
-      MsgBox(0, Format(_('%s requires at least Windows XP, earlier versions are not supported.'), [AppGlobals.AppName]), _('Error'), MB_ICONERROR);
-      Halt;
+      TfrmMsgDlg.ShowMsg(nil, Format(_('%s requires at least Windows XP, earlier versions of windows are not supported.'#13#10 +
+                                       'If you continue running %s using a not supported operating system I am not responsible for any problems that might occur.'), [AppGlobals.AppName, AppGlobals.AppName]), 12, btOK);
     end;
   end;
 
