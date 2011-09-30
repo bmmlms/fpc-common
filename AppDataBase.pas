@@ -373,7 +373,7 @@ begin
       Handle := ReadHandle;
 
       if Handle = 0 then
-        MsgBox(0, _('You have tried to start streamWriter but a previous instance is closing at the moment. Please try again in some seconds.'), _('Info'), MB_ICONINFORMATION)
+        MsgBox(0, Format(_('You have tried to start %s but a previous instance is closing at the moment. Please try again in some seconds.'), [AppName]), _('Info'), MB_ICONINFORMATION)
       else
         PostMessage(Handle, WM_USER + 1234, 0, 0);
 
