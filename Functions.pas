@@ -709,8 +709,6 @@ var
   i, n, j: Integer;
   Replace: string;
   TokenIndices: array of Integer;
-const
-  Chars = ['s', 'a', 't', 'n'];
 begin
   Result := s;
 
