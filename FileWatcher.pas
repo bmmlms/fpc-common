@@ -49,7 +49,7 @@ implementation
 constructor TFileWatcher.Create(const Path: string; Filter: DWORD);
 begin
   inherited Create(True);
-  FPath := Path;
+  FPath := IncludeTrailingBackslash(Path);
   FFilter := Filter;
   FreeOnTerminate := True;
 end;
@@ -99,13 +99,23 @@ begin
                 FAction := Info.Action;
                 NameLen := Info.FilenameLength;
 
-                if FAction <> FILE_ACTION_RENAMED_NEW_NAME then
-                  FFilename := WideCharLenToString(@Info.FileName, NameLen div 2)
-                else
-                  FFilenameNew := WideCharLenToString(@Info.Filename, NameLen div 2);
+                // Wenn man im Explorer die File-Properties anzeigt und ID3-Tags ändert,
+                // löscht der die Datei und stellt sie dann wieder her. Das Sleep() ist doof,
+                // aber mir fällt auf die Schnelle nichts besseres ein...
+                if FAction = FILE_ACTION_REMOVED then
+                  Sleep(100);
 
-                if Assigned(FOnEvent) then
-                  Synchronize(TriggerEvent);
+                if ((FAction = FILE_ACTION_REMOVED) and (not FileExists(FPath + WideCharLenToString(@Info.FileName, NameLen div 2)))) or
+                    (FAction <> FILE_ACTION_REMOVED) then
+                begin
+                  if FAction <> FILE_ACTION_RENAMED_NEW_NAME then
+                    FFilename := WideCharLenToString(@Info.FileName, NameLen div 2)
+                  else
+                    FFilenameNew := WideCharLenToString(@Info.Filename, NameLen div 2);
+
+                  if Assigned(FOnEvent) then
+                    Synchronize(TriggerEvent);
+                end;
 
                 Info := Pointer(Int64(Info) + NextOffset);
               until NextOffset = 0;
