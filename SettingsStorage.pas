@@ -99,13 +99,18 @@ type
     procedure Assign(AssignFrom: TSettingsList); overload;
     procedure GetData(Lst: TSettingsList); virtual;
     function DeleteProfile: Boolean; virtual;
-    
+
     procedure Write(Name: string; Value: string; Section: string = SETTINGS); overload; virtual; abstract;
     procedure Write(Name: string; Value: Integer; Section: string = SETTINGS); overload; virtual; abstract;
     procedure Write(Name: string; Value: Boolean; Section: string = SETTINGS); overload; virtual; abstract;
     procedure Read(Name: string; var Value: string; Default: string; Section: string = SETTINGS); overload; virtual; abstract;
     procedure Read(Name: string; var Value: Integer; Default: Integer; Section: string = SETTINGS); overload; virtual; abstract;
+
+    // REMARK: Das hier ist dumm. Weil es immer an den Integer-Aufruf weitergeleitet wird.
+    //         Ändern ist aber nicht so einfach, weil Werte, die das hier benutzen,
+    //         auch in TStreamSettings vorhanden sind, was wiederum in der Datei gespeichert wird.
     procedure Read(Name: string; var Value: Cardinal; Default: Cardinal; Section: string = SETTINGS); overload; virtual; abstract;
+
     procedure Read(Name: string; var Value: Boolean; Default: Boolean; Section: string = SETTINGS); overload; virtual; abstract;
     function Delete(Name: string; Section: string = SETTINGS): Boolean; virtual; abstract;
     function DeleteKey(Section: string): Boolean; virtual; abstract;

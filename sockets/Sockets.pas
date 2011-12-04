@@ -88,6 +88,7 @@ type
     FSendStream: TExtendedStream;
     FSendLock: TCriticalSection;
     FDataTimeout: Cardinal;
+    FLastTimeReceived, FLastTimeSent: Cardinal;
 
     FReceived: UInt64;
     FError: Boolean;
@@ -304,7 +305,6 @@ var
   Hostx: Integer;
   NonBlock: Integer;
   Ticks, StartTime: Cardinal;
-  LastTimeReceived, LastTimeSent: Cardinal;
 begin
   try
     try
@@ -362,8 +362,8 @@ begin
 
       DoConnected;
 
-      LastTimeReceived := GetTickCount;
-      LastTimeSent := GetTickCount;
+      FLastTimeReceived := GetTickCount;
+      FLastTimeSent := GetTickCount;
 
       while True do
       begin
@@ -394,8 +394,8 @@ begin
           raise Exception.Create('select() socket error');
 
         if FDataTimeout > 0 then
-          if (LastTimeReceived < GetTickCount - FDataTimeout) and
-             (LastTimeSent < GetTickCount - FDataTimeout) then
+          if (FLastTimeReceived < GetTickCount - FDataTimeout) and
+             (FLastTimeSent < GetTickCount - FDataTimeout) then
           begin
             raise Exception.Create(Format('No data received/sent for more than %d seconds', [FDataTimeout div 1000]));
           end;
@@ -417,7 +417,7 @@ begin
           begin
             // Alles cremig
             FReceived := FReceived + RecvRes;
-            LastTimeReceived := GetTickCount;
+            FLastTimeReceived := GetTickCount;
             FRecvStream.Seek(0, soFromEnd);
             FRecvStream.WriteBuffer(Buf, RecvRes);
             FRecvStream.Process(RecvRes);
@@ -437,7 +437,7 @@ begin
               raise Exception.Create(Format('send() socket error: %d', [WSAGetLastError]));
             if SendRes > 0 then
             begin
-              LastTimeSent := GetTickCount;
+              FLastTimeSent := GetTickCount;
               FSendStream.RemoveRange(0, SendRes);
             end;
             if WSAGetLastError <> 0 then
