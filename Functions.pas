@@ -1081,6 +1081,8 @@ begin
   begin
     while (Length(Parts[i]) > 0) and ((Parts[i][Length(Parts[i])] = '.') or (Parts[i][Length(Parts[i])] = ' ')) do
       SetLength(Parts[i], Length(Parts[i]) - 1);
+
+    { Punkte sind am Anfang zugelassen, also das hier nicht machen.
     while (Length(Parts[i]) > 0) and ((Parts[i][1] = '.') or (Parts[i][1] = ' ')) do
     begin
       if Length(Parts[i]) > 1 then
@@ -1088,6 +1090,8 @@ begin
       else
         Parts[i] := '';
     end;
+    }
+    Parts[i] := Trim(Parts[i]);
   end;
 
   // Den Pfad aus den Parts zusammenbauen
