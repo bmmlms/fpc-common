@@ -75,6 +75,7 @@ function BuildPattern(const s: string; var Hash: Cardinal; var NumChars: Integer
 function CryptStr(const s: string): string;
 function TryRelativePath(const s: string; IsFile: Boolean): string;
 function TryUnRelativePath(const s: string; IsFile: Boolean): string;
+function FixPathName(Path: string): string;
 
 function VerSetConditionMask(dwlConditionMask: LONGLONG; TypeBitMask: DWORD; ConditionMask: Byte): LONGLONG; stdcall;
   external 'kernel32.dll';
@@ -1025,6 +1026,84 @@ begin
   begin
     Result := IncludeTrailingBackslash(ExtractFilePath(ParamStr(0))) + Result;
   end;
+end;
+
+function FixPathName(Path: string): string;
+var
+  i, LastI: Integer;
+  Drive: string;
+  Parts: array of string;
+
+  procedure AddPart(S: string);
+  begin
+    SetLength(Parts, Length(Parts) + 1);
+    Parts[High(Parts)] := Trim(S);
+  end;
+begin
+  Result := '';
+  Drive := '';
+  SetLength(Parts, 0);
+
+  // Laufwerk/Share-Anfang ermitteln
+  if (Length(Path) >= 3) and (Copy(Path, 2, 2) = ':\') then
+  begin
+    Drive := Copy(Path, 1, 3);
+    if Length(Path) >= 4 then
+      Path := Copy(Path, 4, Length(Path) - 3)
+    else
+      Path := '';
+  end else if (Length(Path) >= 2) and (Copy(Path, 1, 2) = '\\') then
+  begin
+    Drive := Copy(Path, 1, 2);
+    if Length(Path) >= 3 then
+      Path := Copy(Path, 3, Length(Path) - 2)
+    else
+      Path := '';
+  end;
+
+  // In Parts aufsplitten
+  LastI := 1;
+  for i := 1 to Length(Path) do
+    if Path[i] = '\' then
+    begin
+      AddPart(Copy(Path, LastI, i - LastI));
+      LastI := i + 1;
+    end;
+
+  // Wenn am Ende noch Rest ist, ist das auch ein Part
+  if Length(Path) > LastI then
+  begin
+    AddPart(Copy(Path, LastI, Length(Path) - LastI + 1));
+  end;
+
+  // '.' und ' ' am Anfang und am Ende entfernen
+  for i := 0 to High(Parts) do
+  begin
+    while (Length(Parts[i]) > 0) and ((Parts[i][Length(Parts[i])] = '.') or (Parts[i][Length(Parts[i])] = ' ')) do
+      SetLength(Parts[i], Length(Parts[i]) - 1);
+    while (Length(Parts[i]) > 0) and ((Parts[i][1] = '.') or (Parts[i][1] = ' ')) do
+    begin
+      if Length(Parts[i]) > 1 then
+        Parts[i] := Copy(Parts[i], 2, Length(Parts[i]) - 1)
+      else
+        Parts[i] := '';
+    end;
+  end;
+
+  // Den Pfad aus den Parts zusammenbauen
+  Result := Result + Drive;
+  for i := 0 to High(Parts) do
+    if Parts[i] <> '' then
+    begin
+      if (Length(Result) > 1) and (Result[Length(Result)] <> '\') then
+        Result := Result + '\' + Parts[i]
+      else
+        Result := Result + Parts[i]
+    end;
+
+  // Wenn in der Eingangsvariable am Ende ein '\' war, dann auch anhängen
+  if (Length(Path) >= 1) and (Path[Length(Path)] = '\') and (Result <> '') then
+    Result := Result + '\';
 end;
 
 end.

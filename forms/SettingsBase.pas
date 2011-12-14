@@ -282,6 +282,7 @@ begin
     Lst := TSettingsList.Create;
     try
       if Dlg.Execute then
+      begin
         if Dlg.FileName <> '' then
         begin
           S.Write(Cardinal(1));
@@ -290,13 +291,13 @@ begin
           GetExportData(S);
           S.SaveToFile(Dlg.FileName);
         end;
+        MsgBox(Handle, _('The profile was exported successfully.'), _('Info'), MB_ICONINFORMATION);
+      end;
     finally
       Lst.Free;
       S.Free;
       Dlg.Free;
     end;
-
-    MsgBox(Handle, _('The profile was exported successfully.'), _('Info'), MB_ICONINFORMATION);
   except
     MsgBox(Handle, _('An error occured while exporting the profile.'), _('Error'), MB_ICONERROR);
   end;
