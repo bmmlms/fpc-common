@@ -33,6 +33,15 @@ type
   TSocketEvent = procedure(Sender: TSocketThread) of object;
   TSocketServerEvent = procedure(Sender: TSocketServerThread) of object;
 
+  ENoDataReceivedSentException = class(Exception)
+  private
+    FTimeout: Integer;
+  public
+    constructor Create(Timeout: Integer);
+
+    property Timeout: Integer read FTimeout;
+  end;
+
   TSocketStream = class(TExtendedStream)
   private
     FDebugMsg, FDebugData: string;
@@ -397,7 +406,7 @@ begin
           if (FLastTimeReceived < GetTickCount - FDataTimeout) and
              (FLastTimeSent < GetTickCount - FDataTimeout) then
           begin
-            raise Exception.Create(Format('No data received/sent for more than %d seconds', [FDataTimeout div 1000]));
+            raise ENoDataReceivedSentException.Create(FDataTimeout div 1000);
           end;
 
         if FD_ISSET(FSocketHandle, readfds) then
@@ -696,6 +705,14 @@ end;
 function TSocketStream.FGetRecvDataStream: TExtendedStream;
 begin
   Result := Self;
+end;
+
+{ ENoDataReceivedSentException }
+
+constructor ENoDataReceivedSentException.Create(Timeout: Integer);
+begin
+  inherited Create(Format('No data received/sent for more than %d seconds', [Timeout]));
+  FTimeout := Timeout;
 end;
 
 initialization
