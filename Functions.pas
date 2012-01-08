@@ -76,6 +76,7 @@ function CryptStr(const s: string): string;
 function TryRelativePath(const s: string; IsFile: Boolean): string;
 function TryUnRelativePath(const s: string; IsFile: Boolean): string;
 function FixPathName(Path: string): string;
+function GetFileVersion(Filename: string): TAppVersion;
 
 function VerSetConditionMask(dwlConditionMask: LONGLONG; TypeBitMask: DWORD; ConditionMask: Byte): LONGLONG; stdcall;
   external 'kernel32.dll';
@@ -1108,6 +1109,51 @@ begin
   // Wenn in der Eingangsvariable am Ende ein '\' war, dann auch anhängen
   if (Length(Path) >= 1) and (Path[Length(Path)] = '\') and (Result <> '') then
     Result := Result + '\';
+end;
+
+function GetFileVersion(Filename: string): TAppVersion;
+var
+  VerInfoSize: Integer;
+  VerValueSize: DWord;
+  Dummy: DWord;
+  VerInfo: Pointer;
+  VerValue: PVSFixedFileInfo;
+begin
+  VerInfoSize := GetFileVersionInfoSize(PChar(Filename), Dummy);
+  Result.Major := 0;
+  Result.Minor := 0;
+  Result.Revision := 0;
+  Result.Build := 0;
+  Result.AsString := '0.0.0.0';
+  if VerInfoSize <> 0 then
+  begin
+    GetMem(VerInfo, VerInfoSize);
+    try
+      if GetFileVersionInfo(PChar(ParamStr(0)), 0, VerInfoSize, VerInfo) then
+      begin
+        if VerQueryValue(VerInfo, '\', Pointer(VerValue), VerValueSize) then
+        begin
+          with VerValue^ do
+          begin
+            Result.Major := dwFileVersionMS shr 16;
+            Result.Minor := dwFileVersionMS and $FFFF;
+            Result.Revision := dwFileVersionLS shr 16;
+            Result.Build := dwFileVersionLS and $FFFF;
+          end;
+          Result.AsString := AnsiString(Format('%d.%d.%d.%d', [Result.Major,
+            Result.Minor, Result.Revision, Result.Build]));
+        end;
+      end;
+    finally
+      FreeMem(VerInfo,VerInfoSize);
+    end;
+  end;
+
+  if (Result.Major = 0) and (Result.Minor = 0) and
+     (Result.Revision = 0) and (Result.Build = 0) then
+  begin
+    raise Exception.Create('');
+  end;
 end;
 
 end.

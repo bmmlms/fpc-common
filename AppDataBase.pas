@@ -582,35 +582,15 @@ var
   VerInfo: Pointer;
   VerValue: PVSFixedFileInfo;
 begin
-  VerInfoSize := GetFileVersionInfoSize(PChar(ParamStr(0)), Dummy);
-  FAppVersion.Major := 0;
-  FAppVersion.Minor := 0;
-  FAppVersion.Revision := 0;
-  FAppVersion.Build := 0;
-  FAppVersion.AsString := '';
-  if VerInfoSize <> 0 then
-  begin
-    GetMem(VerInfo, VerInfoSize);
-    try
-      if GetFileVersionInfo(PChar(ParamStr(0)), 0, VerInfoSize, VerInfo) then
-      begin
-        if VerQueryValue(VerInfo, '\', Pointer(VerValue), VerValueSize) then
-        begin
-          with VerValue^ do
-          begin
-            FAppVersion.Major := dwFileVersionMS shr 16;
-            FAppVersion.Minor := dwFileVersionMS and $FFFF;
-            FAppVersion.Revision := dwFileVersionLS shr 16;
-            FAppVersion.Build := dwFileVersionLS and $FFFF;
-          end;
-          FAppVersion.AsString := AnsiString(Format('%d.%d.%d.%d', [FAppVersion.Major,
-            FAppVersion.Minor, FAppVersion.Revision, FAppVersion.Build]));
-        end;
-      end;
-    finally
-      FreeMem(VerInfo,VerInfoSize);
-    end;
+  try
+    FAppVersion := GetFileVersion(ParamStr(0));
+  except
+    FAppVersion.Major := 0;
+    FAppVersion.Minor := 0;
+    FAppVersion.Revision := 0;
+    FAppVersion.Build := 0;
   end;
+
   if (FAppVersion.Major = 0) and (FAppVersion.Minor = 0) and
      (FAppVersion.Revision = 0) and (FAppVersion.Build = 0) then
   begin
