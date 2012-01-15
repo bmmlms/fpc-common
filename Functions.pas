@@ -36,6 +36,8 @@ type
     AsString: AnsiString;
   end;
 
+  TReadCallback = procedure(Data: AnsiString) of object;
+
 function MsgBox(Handle: HWND; Text, Title: string; uType: Cardinal): Integer;
 function ValidURL(URL: string): Boolean;
 function StripURL(URL: string): string;
@@ -53,7 +55,7 @@ function MakeSize(Size: UInt64): string;
 function DiskSpaceOkay(Path: string; MinSpaceGB: Int64): Boolean;
 procedure FindFiles(PathPattern: string; Files: TStringList);
 function RunProcess(Filename, WorkingDir: string; Timeout: Cardinal; var Output: AnsiString;
-  var ExitCode: DWORD; TerminateFlag: PBoolean): Integer; overload;
+  var ExitCode: DWORD; TerminateFlag: PBoolean; ReadCallback: TReadCallback = nil): Integer; overload;
 function RunProcess(Filename: string; var Handle: Cardinal; Hide: Boolean = False): Boolean; overload;
 function RunProcess(Filename: string; Hide: Boolean = False): Boolean; overload;
 function GetCPUCount: DWord;
@@ -438,7 +440,7 @@ begin
 end;
 
 function RunProcess(Filename, WorkingDir: string; Timeout: Cardinal; var Output: AnsiString;
-  var ExitCode: DWORD; TerminateFlag: PBoolean): Integer; overload;
+  var ExitCode: DWORD; TerminateFlag: PBoolean; ReadCallback: TReadCallback = nil): Integer; overload;
 var
   OK: Boolean;
   Handle: Cardinal;
@@ -512,6 +514,10 @@ begin
         begin
           SetLength(Tmp, Avail);
           ReadFile(ReadPipeOut, Tmp[1], Avail, ReadCount, nil);
+
+          if Assigned(ReadCallback) then
+            ReadCallback(Tmp);
+
           Output := Output + Tmp;
 
           Started := GetTickCount;
