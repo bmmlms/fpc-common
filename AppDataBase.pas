@@ -357,6 +357,8 @@ end;
 procedure TAppDataBase.InitOnlyOne;
 var
   Handle: Cardinal;
+  CDS: TCOPYDATASTRUCT;
+  s: string;
 begin
   FFileMapping := 0;
   if FOnlyOne then
@@ -375,7 +377,15 @@ begin
       if Handle = 0 then
         MsgBox(0, Format(_('You have tried to start %s but a previous instance is closing at the moment. Please try again in some seconds.'), [AppName]), _('Info'), MB_ICONINFORMATION)
       else
+      begin
         PostMessage(Handle, WM_USER + 1234, 0, 0);
+
+        s := GetCommandLineW;
+        CDS.dwData := 0;
+        CDS.cbData := (Length(s) * SizeOf(Char)) + 2;
+        CDS.lpData := PChar(s);
+        SendMessage(Handle, WM_COPYDATA, 0, LongInt(@CDS));
+      end;
 
       Halt;
     end else
