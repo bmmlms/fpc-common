@@ -46,7 +46,7 @@ type
     FLocked: Boolean;
 
     procedure AlignButtons;
-    procedure RemoveTab(Tab: TTabSheet);
+    procedure RemoveTab(Tab: TMTabSheet); virtual;
     procedure FSetMaxTabWidth(Value: Integer);
 
     procedure FSetActivePage(Value: TTabSheet);
@@ -87,6 +87,8 @@ type
   public
     constructor Create(AOwner: TComponent); reintroduce; virtual;
     destructor Destroy; override;
+
+    function CanClose: Boolean; virtual;
 
     property Caption: string read FGetCaption write FSetCaption;
     property MaxWidth: Integer read FMaxWidth write FSetMaxWidth;
@@ -235,10 +237,13 @@ begin
   inherited ActivePage := Value;
 end;
 
-procedure TMPageControl.RemoveTab(Tab: TTabSheet);
+procedure TMPageControl.RemoveTab(Tab: TMTabSheet);
 var
   Idx: Integer;
 begin
+  if not Tab.CanClose then
+    Exit;
+
   LockWindowUpdate(Handle);
   //FLocked := True;
   try
@@ -295,15 +300,15 @@ begin
     case Message.WParam of
       0: // Aktives schlieﬂen
         begin
-          RemoveTab(Pages[Message.LParam]);
+          RemoveTab(TMTabSheet(Pages[Message.LParam]));
         end;
       1: // Alle schlieﬂen
         for i := PageCount - 1 downto 0 do
-          RemoveTab(Pages[i]);
+          RemoveTab(TMTabSheet(Pages[i]));
       2: // Alle auﬂer aktivem schlieﬂen
         for i := PageCount - 1 downto 0 do
           if Pages[i] <> ActivePage then
-            RemoveTab(Pages[i]);
+            RemoveTab(TMTabSheet(Pages[i]));
     end;
     AlignButtons;
   end;
@@ -336,6 +341,11 @@ begin
       Button.Top := (((PageControl.TabRect(TabIndex).Top + PageControl.TabRect(TabIndex).Bottom) div 2) - FButtonWidth div 2) + PageControl.TabRect(TabIndex).Top - 2;
     end;
   end;
+end;
+
+function TMTabSheet.CanClose: Boolean;
+begin
+  Result := True;
 end;
 
 constructor TMTabSheet.Create(AOwner: TComponent);
