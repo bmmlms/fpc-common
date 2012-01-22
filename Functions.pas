@@ -53,7 +53,7 @@ function Like(AString, APattern: string): Boolean;
 function DownCase(ch: Char): Char;
 function MakeSize(Size: UInt64): string;
 function DiskSpaceOkay(Path: string; MinSpaceGB: Int64): Boolean;
-procedure FindFiles(PathPattern: string; Files: TStringList);
+procedure FindFiles(PathPattern: string; Files: TStringList; SubDirs: Boolean = False);
 function RunProcess(Filename, WorkingDir: string; Timeout: Cardinal; var Output: AnsiString;
   var ExitCode: DWORD; TerminateFlag: PBoolean; ReadCallback: TReadCallback = nil): Integer; overload;
 function RunProcess(Filename: string; var Handle: Cardinal; Hide: Boolean = False): Boolean; overload;
@@ -62,7 +62,6 @@ function GetCPUCount: DWord;
 function BeautifyFilePath(const s: string; MaxPathChars: Integer): string;
 function HashString(Value: string): Cardinal;
 function IsAnsi(const s: string): Boolean;
-//function ChangeFSRedirection(Disable: Boolean; var OldVal: LongBool): Boolean;
 function OccurenceCount(C: Char; Str: string): Integer;
 function PatternReplace(S: string; ReplaceList: TPatternReplaceArray): string;
 function IsAdmin: LongBool;
@@ -424,18 +423,45 @@ begin
   end;
 end;
 
-procedure FindFiles(PathPattern: string; Files: TStringList);
+procedure FindFiles(PathPattern: string; Files: TStringList; SubDirs: Boolean = False);
 var
   SR: TSearchRec;
+  Dir, Pattern: string;
+  Dirs: TStringList;
 begin
   Files.Clear;
-  if FindFirst(PathPattern, faAnyFile and not faDirectory, SR) = 0 then
-  begin
+
+  Dir := IncludeTrailingBackslash(ExtractFilePath(PathPattern));
+  Pattern := ExtractFileName(PathPattern);
+  Dirs := TStringList.Create;
+  try
     repeat
-      if (SR.Name <> '.') and (SR.Name <> '..') then
-        Files.Add(SR.Name);
-    until FindNext(SR) <> 0;
-    FindClose(SR);
+      if FindFirst(Dir + Pattern, faAnyFile, SR) = 0 then
+      begin
+        repeat
+          if (SR.Name <> '.') and (SR.Name <> '..') then
+          begin
+            if not (SR.Attr and faDirectory = faDirectory) then
+            begin
+              if SubDirs then
+                Files.Add(Dir + SR.Name)
+              else
+                Files.Add(SR.Name);
+            end else if SubDirs then
+              Dirs.Add(Dir + SR.Name + '\');
+          end;
+        until FindNext(SR) <> 0;
+        FindClose(SR);
+      end;
+
+      if Dirs.Count > 0 then
+      begin
+        Dir := Dirs[0];
+        Dirs.Delete(0);
+      end;
+    until Dirs.Count = 0;
+  finally
+    Dirs.Free;
   end;
 end;
 
@@ -668,38 +694,6 @@ begin
     Inc(i, 2);
   end;
 end;
-
-{
-
-  BÖSE BÖSE BÖSE. Macht z.B. Drag&Drop Kaputt. Nicht benutzen!
-
-function ChangeFSRedirection(Disable: Boolean; var OldVal: LongBool): Boolean;
-type
-  TWow64DisableWow64FsRedirection = function(var Wow64FsEnableRedirection: LongBool): LongBool; stdcall;
-  TWow64RevertWow64FsRedirection = function(var Wow64FsEnableRedirection: LongBool): LongBool; stdcall;
-var
-  Handle: THandle;
-  Wow64DisableWow64FsRedirection: TWow64DisableWow64FsRedirection;
-  Wow64RevertWow64FsRedirection: TWow64RevertWow64FsRedirection;
-begin
-  Result := False;
-  try
-    Handle := GetModuleHandle('kernel32.dll');
-    @Wow64DisableWow64FsRedirection := GetProcAddress(Handle, 'Wow64DisableWow64FsRedirection');
-    @Wow64RevertWow64FsRedirection := GetProcAddress(Handle, 'Wow64RevertWow64FsRedirection');
-
-    if ((Handle <> 0) and (@Wow64DisableWow64FsRedirection <> nil) and (@Wow64RevertWow64FsRedirection <> nil)) then
-    begin
-      if Disable then
-        Result := Wow64DisableWow64FsRedirection(OldVal)
-      else
-        Result := Wow64RevertWow64FsRedirection(OldVal);
-    end;
-  except
-    Result := false;
-  end;
-end;
-}
 
 function OccurenceCount(C: Char; Str: string): Integer;
 var
@@ -1003,25 +997,22 @@ var
   TmpDir, AppDir: string;
 begin
   Result := s;
-  //if (Length(s) <= 2) or ((Length(s) >= 3) and not (Copy(s, 1, 2) = '\\')) then
-  begin
-    TmpDir := IncludeTrailingBackslash(ExtractFilePath(s));
-    AppDir := IncludeTrailingBackslash(ExtractFilePath(ParamStr(0)));
-    if Length(TmpDir) >= Length(AppDir) then
-      if Copy(LowerCase(TmpDir), 1, Length(AppDir)) = LowerCase(AppDir) then
-      begin
-        if IsFile then
-          TmpDir := Copy(IncludeTrailingBackslash(ExtractFilePath(s)), Length(AppDir), Length(IncludeTrailingBackslash(ExtractFilePath(s))) - Length(AppDir))
-        else
-          TmpDir := Copy(IncludeTrailingBackslash(s), Length(AppDir), Length(IncludeTrailingBackslash(s)) - Length(AppDir));
-        TmpDir := IncludeTrailingBackslash(TmpDir);
-        if IsFile then
-          TmpDir := TmpDir + ExtractFileName(s);
-        if (Length(TmpDir) > 0) and (Copy(TmpDir, 1, 1) = '\') then
-          TmpDir := Copy(TmpDir, 2, Length(TmpDir) - 1);
-        Result := TmpDir;
-      end;
-  end;
+  TmpDir := IncludeTrailingBackslash(ExtractFilePath(s));
+  AppDir := IncludeTrailingBackslash(ExtractFilePath(ParamStr(0)));
+  if Length(TmpDir) >= Length(AppDir) then
+    if Copy(LowerCase(TmpDir), 1, Length(AppDir)) = LowerCase(AppDir) then
+    begin
+      if IsFile then
+        TmpDir := Copy(IncludeTrailingBackslash(ExtractFilePath(s)), Length(AppDir), Length(IncludeTrailingBackslash(ExtractFilePath(s))) - Length(AppDir))
+      else
+        TmpDir := Copy(IncludeTrailingBackslash(s), Length(AppDir), Length(IncludeTrailingBackslash(s)) - Length(AppDir));
+      TmpDir := IncludeTrailingBackslash(TmpDir);
+      if IsFile then
+        TmpDir := TmpDir + ExtractFileName(s);
+      if (Length(TmpDir) > 0) and (Copy(TmpDir, 1, 1) = '\') then
+        TmpDir := Copy(TmpDir, 2, Length(TmpDir) - 1);
+      Result := TmpDir;
+    end;
 end;
 
 function TryUnRelativePath(const s: string; IsFile: Boolean): string;
