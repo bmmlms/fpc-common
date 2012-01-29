@@ -53,7 +53,7 @@ function Like(AString, APattern: string): Boolean;
 function DownCase(ch: Char): Char;
 function MakeSize(Size: UInt64): string;
 function DiskSpaceOkay(Path: string; MinSpaceGB: Int64): Boolean;
-procedure FindFiles(PathPattern: string; Files: TStringList; SubDirs: Boolean = False);
+procedure FindFiles(PathPattern: string; Files: TStringList; SubDirs: Boolean = False; TerminateFlag: PBoolean = nil);
 function RunProcess(Filename, WorkingDir: string; Timeout: Cardinal; var Output: AnsiString;
   var ExitCode: DWORD; TerminateFlag: PBoolean; ReadCallback: TReadCallback = nil): Integer; overload;
 function RunProcess(Filename: string; var Handle: Cardinal; Hide: Boolean = False): Boolean; overload;
@@ -423,7 +423,8 @@ begin
   end;
 end;
 
-procedure FindFiles(PathPattern: string; Files: TStringList; SubDirs: Boolean = False);
+procedure FindFiles(PathPattern: string; Files: TStringList; SubDirs: Boolean = False;
+  TerminateFlag: PBoolean = nil);
 var
   SR: TSearchRec;
   Dir, Pattern: string;
@@ -439,6 +440,11 @@ begin
       if FindFirst(Dir + Pattern, faAnyFile, SR) = 0 then
       begin
         repeat
+          if (TerminateFlag <> nil) and TerminateFlag^ then
+          begin
+            Exit;
+          end;
+
           if (SR.Name <> '.') and (SR.Name <> '..') then
           begin
             if not (SR.Attr and faDirectory = faDirectory) then
