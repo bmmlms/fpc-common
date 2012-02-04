@@ -536,6 +536,7 @@ begin
         try
           if (TerminateFlag <> nil) and TerminateFlag^ then
           begin
+            TerminateProcess(Handle, 0);
             Result := 2;
             Exit;
           end;
