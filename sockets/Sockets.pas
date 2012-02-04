@@ -33,13 +33,15 @@ type
   TSocketEvent = procedure(Sender: TSocketThread) of object;
   TSocketServerEvent = procedure(Sender: TSocketServerThread) of object;
 
-  ENoDataReceivedSentException = class(Exception)
-  private
-    FTimeout: Integer;
-  public
-    constructor Create(Timeout: Integer);
+  TVarRecArray = array of TVarRec;
 
-    property Timeout: Integer read FTimeout;
+  EExceptionParams = class(Exception)
+  private
+    FArgs: TVarRecArray;
+  public
+    constructor CreateFmt(const Msg: string; const Args: array of const);
+
+    property Args: TVarRecArray read FArgs;
   end;
 
   TSocketStream = class(TExtendedStream)
@@ -209,7 +211,7 @@ begin
     FHost := inet_ntoa(Addr.sin_addr);
     FPort := ntohs(Addr.sin_port);
   end else
-    raise Exception.Create('getpeername() Fehler');
+    raise Exception.Create('getpeername() error');
 end;
 
 constructor TSocketThread.Create(Host: string; Port: Integer;
@@ -397,7 +399,7 @@ begin
         Res := select(0, @readfds, @writefds, @exceptfds, @timeout);
 
         if Res = SOCKET_ERROR then
-          raise Exception.Create(Format('select() error: %d', [Res]));
+          raise EExceptionParams.CreateFmt('select() error: %d', [Res]);
 
         if (Res > 0) and (FD_ISSET(FSocketHandle, exceptfds)) then
           raise Exception.Create('select() socket error');
@@ -406,7 +408,7 @@ begin
           if (FLastTimeReceived < GetTickCount - FDataTimeout) and
              (FLastTimeSent < GetTickCount - FDataTimeout) then
           begin
-            raise ENoDataReceivedSentException.Create(FDataTimeout div 1000);
+            raise EExceptionParams.CreateFmt('No data received/sent for more than %d seconds', [FDataTimeout div 1000]);
           end;
 
         if FD_ISSET(FSocketHandle, readfds) then
@@ -421,7 +423,7 @@ begin
           end else if RecvRes = SOCKET_ERROR then
           begin
             // Fehler
-            raise Exception.Create(Format('recv() error: %d', [WSAGetLastError]));
+            raise EExceptionParams.CreateFmt('recv() error: %d', [WSAGetLastError]);
           end else if RecvRes > 0 then
           begin
             // Alles cremig
@@ -443,7 +445,7 @@ begin
           try
             SendRes := send(FSocketHandle, FSendStream.Memory^, FSendStream.Size, 0);
             if SendRes = SOCKET_ERROR then
-              raise Exception.Create(Format('send() socket error: %d', [WSAGetLastError]));
+              raise EExceptionParams.CreateFmt('send() socket error: %d', [WSAGetLastError]);
             if SendRes > 0 then
             begin
               FLastTimeSent := GetTickCount;
@@ -451,7 +453,7 @@ begin
             end;
             if WSAGetLastError <> 0 then
             begin
-              raise Exception.Create(Format('send() error: %d', [WSAGetLastError]));
+              raise EExceptionParams.CreateFmt('send() error: %d', [WSAGetLastError]);
             end;
           finally
             FSendLock.Leave;
@@ -504,7 +506,7 @@ begin
       Result := T^^.S_addr;
   end;
   if Result = 0 then
-    raise Exception.Create(Format('Host "%s" could not be resolved', [Host]));
+    raise EExceptionParams.CreateFmt('Host "%s" could not be resolved', [Host]);
 end;
 
 procedure TSocketThread.Sync(Proc: TSocketEvent);
@@ -590,16 +592,17 @@ var
   timeout: TimeVal;
   readfds, exceptfds: TFdSet;
   Res: Integer;
+  E: Exception;
 begin
   FAcceptHandle := socket(AF_INET, SOCK_STREAM, 0);
   if FAcceptHandle = SOCKET_ERROR then
-    raise Exception.Create('socket() Fehler');
+    raise Exception.Create('socket() error');
 
   try
     try
       NonBlock := 1;
       if ioctlsocket(FAcceptHandle, FIONBIO, NonBlock) = SOCKET_ERROR then
-        raise Exception.Create('ioctlsocket() Error');
+        raise Exception.Create('ioctlsocket() error');
 
       Addr.sin_family := AF_INET;
       Addr.sin_Port := htons(FPort);
@@ -624,13 +627,13 @@ begin
         Res := select(0, @readfds, nil, @exceptfds, @timeout);
 
         if Res = SOCKET_ERROR then
-          raise Exception.Create('select() error: ' + IntToStr(Res));
+          raise EExceptionParams.CreateFmt('select() error: %d', [Res]);
 
         if Terminated then
           Exit;
 
         if (Res > 0) and (FD_ISSET(FAcceptHandle, exceptfds)) then
-          raise Exception.Create('select() Socket error');
+          raise Exception.Create('select() socket error');
 
         if (Res <> SOCKET_ERROR) and (FD_ISSET(FAcceptHandle, readfds)) then
         begin
@@ -707,12 +710,17 @@ begin
   Result := Self;
 end;
 
-{ ENoDataReceivedSentException }
+{ EExceptionParams }
 
-constructor ENoDataReceivedSentException.Create(Timeout: Integer);
+constructor EExceptionParams.CreateFmt(const Msg: string; const Args: array of const);
+var
+  i: Integer;
 begin
-  inherited Create(Format('No data received/sent for more than %d seconds', [Timeout]));
-  FTimeout := Timeout;
+  inherited Create(Msg);
+
+  SetLength(FArgs, Length(Args));
+  for i := 0 to High(Args) do
+    FArgs[i] := Args[i];
 end;
 
 initialization
