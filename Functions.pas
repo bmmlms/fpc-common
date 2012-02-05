@@ -974,7 +974,11 @@ var
 begin
   P := 1;
   if not AlwaysAlter then
+  begin
     P := Pos('*', s);
+    if P = 0 then
+      P := Pos('?', s);
+  end;
 
   Result := Trim(LowerCase(s));
   Result := AnsiLowerCase(Result);
