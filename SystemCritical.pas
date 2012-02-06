@@ -78,6 +78,7 @@ end;
 
 procedure TSystemCritical.FSetCritical(Value: Boolean);
 begin
+  Exit; // TODO: Wieder reinmachen!
   if Assigned(@FFunc) then
   begin
     if Value then
