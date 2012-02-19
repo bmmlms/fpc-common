@@ -592,7 +592,6 @@ var
   timeout: TimeVal;
   readfds, exceptfds: TFdSet;
   Res: Integer;
-  E: Exception;
 begin
   FAcceptHandle := socket(AF_INET, SOCK_STREAM, 0);
   if FAcceptHandle = SOCKET_ERROR then

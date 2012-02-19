@@ -22,7 +22,8 @@ unit GUIFunctions;
 interface
 
 uses
-  Windows, SysUtils, Classes, Controls, Graphics, ShellAPI, ShlObj, ActiveX;
+  Windows, SysUtils, Classes, Controls, Graphics, ShellAPI, ShlObj, ActiveX,
+  Types;
 
 type
   TAccessCanvas = class(TCanvas);

@@ -585,12 +585,6 @@ begin
 end;
 
 procedure TAppDataBase.GetVersionInfo;
-var
-  VerInfoSize: Integer;
-  VerValueSize: DWord;
-  Dummy: DWord;
-  VerInfo: Pointer;
-  VerValue: PVSFixedFileInfo;
 begin
   try
     FAppVersion := GetFileVersion(ParamStr(0));

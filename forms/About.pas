@@ -51,9 +51,6 @@ type
     tabAbout: TTabSheet;
     lblAbout: TLabel;
     imgLogo: TImage;
-    lblForumLink: TLabel;
-    lblProjectLink: TLabel;
-    lblHelpLink: TLabel;
     tabLicense: TTabSheet;
     txtAbout: TMemo;
     pnlNav: TPanel;
@@ -66,12 +63,9 @@ type
     tabThanks: TTabSheet;
     btnDonateDe: TImage;
     btnDonateEn: TImage;
-    procedure lblProjectLinkClick(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure lblGPLClick(Sender: TObject);
-    procedure lblHelpLinkClick(Sender: TObject);
-    procedure lblForumLinkClick(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);
     procedure lblHomepageClick(Sender: TObject);
     procedure btnDonateClick(Sender: TObject);
@@ -132,6 +126,8 @@ begin
                             'along with this program.  If not, see <http://www.gnu.org/licenses/>.'), [AppGlobals.AppName]);;
 
   lblHomepage.Caption := AppGlobals.ProjectHomepageLink;
+
+  {
   lblHelpLink.Caption := _('Help');
   lblProjectLink.Caption := _('Information, changelog and updates');
   lblForumLink.Caption := _('Report problems or request new features');
@@ -141,6 +137,7 @@ begin
     lblHelpLink.Top := lblProjectLink.Top;
     lblProjectLink.Visible := False;
   end;
+  }
 
   Icon := TIcon.Create;
   try
@@ -197,27 +194,12 @@ begin
   ShellExecute(0, 'open', 'http://www.gnu.org/licenses/gpl-3.0.html', '', '', 1);
 end;
 
-procedure TfrmAbout.lblProjectLinkClick(Sender: TObject);
-begin
-  ShellExecute(0, 'open', PChar(AppGlobals.ProjectLink), '', '', 1);
-end;
-
 procedure TfrmAbout.pagAboutChange(Sender: TObject);
 begin
   if pagAbout.ActivePage = tabThanks then
   begin
     FScrollText.Start;
   end;
-end;
-
-procedure TfrmAbout.lblHelpLinkClick(Sender: TObject);
-begin
-  ShellExecute(0, 'open', PChar(AppGlobals.ProjectHelpLink), '', '', 1);
-end;
-
-procedure TfrmAbout.lblForumLinkClick(Sender: TObject);
-begin
-  ShellExecute(0, 'open', PChar(AppGlobals.ProjectForumLink), '', '', 1);
 end;
 
 { TScrollText }
@@ -244,27 +226,26 @@ begin
   begin
     try
       ResStream := TResourceStream.Create(HInstance, 'THANKSIMAGE' + IntToStr(i), RT_RCDATA);
+      try
+        Image := TJPEGImage.Create;
+        try
+          Image.LoadFromStream(ResStream);
+
+          Bmp := TBitmap.Create;
+          Bmp.Width := Image.Width;
+          Bmp.Height := Image.Height;
+          Bmp.Canvas.Draw(0, 0, Image);
+
+          SetLength(FBmps, Length(FBmps) + 1);
+          FBmps[Length(FBmps) - 1] := Bmp;
+        finally
+          Image.Free;
+        end;
+      finally
+        ResStream.Free;
+      end;
     except
       Break;
-    end;
-
-    try
-      Image := TJPEGImage.Create;
-      try
-        Image.LoadFromStream(ResStream);
-
-        Bmp := TBitmap.Create;
-        Bmp.Width := Image.Width;
-        Bmp.Height := Image.Height;
-        Bmp.Canvas.Draw(0, 0, Image);
-
-        SetLength(FBmps, Length(FBmps) + 1);
-        FBmps[Length(FBmps) - 1] := Bmp;
-      finally
-        Image.Free;
-      end;
-    finally
-      ResStream.Free;
     end;
     Inc(i);
   end;

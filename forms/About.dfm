@@ -4,7 +4,7 @@ object frmAbout: TfrmAbout
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'About'
-  ClientHeight = 301
+  ClientHeight = 274
   ClientWidth = 421
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -56,23 +56,25 @@ object frmAbout: TfrmAbout
   OnResize = FormResize
   DesignSize = (
     421
-    301)
+    274)
   PixelsPerInch = 96
   TextHeight = 13
   object pagAbout: TPageControl
     Left = 4
     Top = 4
     Width = 413
-    Height = 245
+    Height = 218
     ActivePage = tabAbout
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 0
     OnChange = pagAboutChange
+    ExplicitHeight = 245
     object tabAbout: TTabSheet
       Caption = 'About'
+      ExplicitHeight = 217
       DesignSize = (
         405
-        217)
+        190)
       object lblAbout: TLabel
         Left = 4
         Top = 2
@@ -93,63 +95,6 @@ object frmAbout: TfrmAbout
         Height = 32
         Anchors = [akTop, akRight]
         AutoSize = True
-      end
-      object lblForumLink: TLabel
-        Left = 4
-        Top = 200
-        Width = 4
-        Height = 13
-        Cursor = crHandPoint
-        Anchors = [akLeft, akBottom]
-        Caption = '-'
-        Color = clBtnFace
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlue
-        Font.Height = -11
-        Font.Name = 'Tahoma'
-        Font.Style = [fsUnderline]
-        ParentColor = False
-        ParentFont = False
-        OnClick = lblForumLinkClick
-        ExplicitTop = 218
-      end
-      object lblProjectLink: TLabel
-        Left = 4
-        Top = 180
-        Width = 4
-        Height = 13
-        Cursor = crHandPoint
-        Anchors = [akLeft, akBottom]
-        Caption = '-'
-        Color = clBtnFace
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlue
-        Font.Height = -11
-        Font.Name = 'Tahoma'
-        Font.Style = [fsUnderline]
-        ParentColor = False
-        ParentFont = False
-        OnClick = lblProjectLinkClick
-        ExplicitTop = 148
-      end
-      object lblHelpLink: TLabel
-        Left = 4
-        Top = 160
-        Width = 4
-        Height = 13
-        Cursor = crHandPoint
-        Anchors = [akLeft, akBottom]
-        Caption = '-'
-        Color = clBtnFace
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlue
-        Font.Height = -11
-        Font.Name = 'Tahoma'
-        Font.Style = [fsUnderline]
-        ParentColor = False
-        ParentFont = False
-        OnClick = lblHelpLinkClick
-        ExplicitTop = 178
       end
       object lblVersion: TLabel
         Left = 3
@@ -187,8 +132,8 @@ object frmAbout: TfrmAbout
         OnClick = lblHomepageClick
       end
       object btnDonateDe: TImage
-        Left = 116
-        Top = 104
+        Left = 4
+        Top = 120
         Width = 283
         Height = 40
         Cursor = crHandPoint
@@ -565,8 +510,8 @@ object frmAbout: TfrmAbout
         OnClick = btnDonateClick
       end
       object btnDonateEn: TImage
-        Left = 116
-        Top = 104
+        Left = 4
+        Top = 120
         Width = 283
         Height = 40
         Cursor = crHandPoint
@@ -938,13 +883,10 @@ object frmAbout: TfrmAbout
     object tabLicense: TTabSheet
       Caption = 'License'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 185
+      ExplicitHeight = 217
       DesignSize = (
         405
-        217)
+        190)
       object lblGPL: TLabel
         Left = 4
         Top = 4
@@ -964,7 +906,7 @@ object frmAbout: TfrmAbout
         Left = 4
         Top = 24
         Width = 397
-        Height = 189
+        Height = 162
         Anchors = [akLeft, akTop, akRight, akBottom]
         Color = clBtnFace
         ReadOnly = True
@@ -985,7 +927,7 @@ object frmAbout: TfrmAbout
   end
   object pnlNav: TPanel
     Left = 0
-    Top = 252
+    Top = 225
     Width = 421
     Height = 49
     Align = alBottom
@@ -995,6 +937,7 @@ object frmAbout: TfrmAbout
     Padding.Right = 4
     Padding.Bottom = 4
     TabOrder = 1
+    ExplicitTop = 252
     object Bevel2: TBevel
       Left = 4
       Top = 4
