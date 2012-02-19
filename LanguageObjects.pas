@@ -1,7 +1,10 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2012 Alexander Nottelmann
+    Copyright (c) 2010 Alexander Nottelmann
+
+    Fixed/Enhanced by:
+    Thomas Benz
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -837,16 +840,23 @@ end;
 { TLanguageList }
 
 var
-  Locales: TList;
+  //Locales: TList;
+  // T.Benz 10.02.2012
+  Locales: TStrings;
 
 function LocalesEnumProc(szLoc: LPSTR): Integer; stdcall;
+{
 var
   P: Pointer;
+}
 begin
-  GetMem(P, StrLen(szLoc) + 1);
+  // T.Benz 10.02.2012
+  // Die Verwaltung des Speichers überlasse ich der Stringliste
+{  GetMem(P, StrLen(szLoc) + 1);
   ZeroMemory(P, StrLen(szLoc) + 1);
   StrCopy(P, szLoc);
-  Locales.Add(P);
+  Locales.Add(P);}
+  Locales.Add(szLoc);
   Result := 1;
 end;
 
@@ -860,16 +870,27 @@ begin
   FPopulated := Populate;
   if Populate then
   begin
-    Locales := TList.Create;
+    // T.Benz 10.02.2012
+    //Locales := TList.Create;
+    Locales := TStringList.Create;
     try
       try
         EnumSystemLocalesA(@LocalesEnumProc, LCID_INSTALLED);
         for i := 0 to Locales.Count - 1 do
         begin
+          // T.Benz 10.02.2012
+          // ich überlasse die Verwaltung des Speichers der Stringliste
+          // das FreeMem verursachte in einigen anderen Programmteilen
+          // Schutzverletzungen
+          {
           s := string(StrPas(PAnsiChar(Locales[i])));
           L := TLanguage.Create(StrToInt('$' + Copy(s, 5, 4)));
           Add(L);
           FreeMem(Locales[i]);
+          }
+          s := Locales[i];
+          L := TLanguage.Create(StrToInt('$' + Copy(s, 5, 4)));
+          Add(L);
         end;
         for i := 0 to Count - 1 do
         begin
@@ -901,7 +922,6 @@ begin
         Locales.Free;
       end;
     except
-
     end;
   end;
 end;
@@ -1509,6 +1529,7 @@ begin
   if FComponent <> '' then
     Result := Result + ':' + FComponent;
 end;
+
 
 initialization
   LanguageList := TLanguageList.Create(True);
