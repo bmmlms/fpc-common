@@ -1137,7 +1137,7 @@ begin
   begin
     GetMem(VerInfo, VerInfoSize);
     try
-      if GetFileVersionInfo(PChar(ParamStr(0)), 0, VerInfoSize, VerInfo) then
+      if GetFileVersionInfo(PChar(Filename), 0, VerInfoSize, VerInfo) then
       begin
         if VerQueryValue(VerInfo, '\', Pointer(VerValue), VerValueSize) then
         begin
