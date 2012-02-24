@@ -23,7 +23,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Registry, SyncObjs, ShlObj, ActiveX,
-  LanguageObjects, SettingsStorage, Functions, GUIFunctions;
+  LanguageObjects, SettingsStorage, Functions, GUIFunctions, Forms, Types;
 
 type
   TArrayElement = string;
@@ -291,6 +291,9 @@ end;
 
 procedure TAppDataBase.Load;
 var
+  F: Boolean;
+  i: Integer;
+  R, R2: TRect;
   LastUsedVersion: string;
 begin
   FStorage.Read('MainMaximized', FMainMaximized, False);
@@ -298,6 +301,24 @@ begin
   FStorage.Read('MainHeight', FMainHeight, FMainHeightDefault);
   FStorage.Read('MainLeft', FMainLeft, -1);
   FStorage.Read('MainTop', FMainTop, -1);
+
+  // Wenn Fenster nicht auf Bildschirmen, Position zurücksetzen
+  F := False;
+  R := Rect(FMainLeft + 20, FMainTop + 20, FMainLeft + FMainWidth - 40, FMainTop + FMainHeight - 40);
+  for i := 0 to Screen.MonitorCount - 1 do
+    if IntersectRect(R2, R, Screen.Monitors[i].WorkareaRect) then
+    begin
+      F := True;
+      Break;
+    end;
+  if not F then
+  begin
+    FMainMaximized := False;
+    FMainWidth := FMainWidthDefault;
+    FMainHeight := FMainHeightDefault;
+    FMainLeft := -1;
+    FMainTop := -1;
+  end;
 
   FStorage.Read('ProxyEnabled', FProxyEnabled, False);
   FStorage.Read('ProxyHost', FProxyHost, '');
