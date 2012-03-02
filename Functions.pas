@@ -36,6 +36,8 @@ type
     AsString: AnsiString;
   end;
 
+  TRunProcessResults = (rpWin, rpFail, rpTerminated, rpTimeout);
+
   TReadCallback = procedure(Data: AnsiString) of object;
 
 function MsgBox(Handle: HWND; Text, Title: string; uType: Cardinal): Integer;
@@ -55,7 +57,7 @@ function MakeSize(Size: UInt64): string;
 function DiskSpaceOkay(Path: string; MinSpaceGB: Int64): Boolean;
 procedure FindFiles(PathPattern: string; Files: TStringList; SubDirs: Boolean = False; TerminateFlag: PBoolean = nil);
 function RunProcess(Filename, WorkingDir: string; Timeout: Cardinal; var Output: AnsiString;
-  var ExitCode: DWORD; TerminateFlag: PBoolean; ReadCallback: TReadCallback = nil): Integer; overload;
+  var ExitCode: DWORD; TerminateFlag: PBoolean; KillOnTimeout: Boolean; ReadCallback: TReadCallback = nil): TRunProcessResults; overload;
 function RunProcess(Filename: string; var Handle: Cardinal; Hide: Boolean = False): Boolean; overload;
 function RunProcess(Filename: string; Hide: Boolean = False): Boolean; overload;
 function GetCPUCount: DWord;
@@ -472,7 +474,7 @@ begin
 end;
 
 function RunProcess(Filename, WorkingDir: string; Timeout: Cardinal; var Output: AnsiString;
-  var ExitCode: DWORD; TerminateFlag: PBoolean; ReadCallback: TReadCallback = nil): Integer; overload;
+  var ExitCode: DWORD; TerminateFlag: PBoolean; KillOnTimeout: Boolean; ReadCallback: TReadCallback = nil): TRunProcessResults; overload;
 var
   OK: Boolean;
   Handle: Cardinal;
@@ -488,7 +490,7 @@ var
   Tmp: AnsiString;
   Started: Cardinal;
 begin
-  Result := 1;
+  Result := rpFail;
   Output := '';
   if Filename = '' then
     Exit;
@@ -528,7 +530,7 @@ begin
     begin
       Handle := PI.hProcess;
 
-      Result := 0;
+      Result := rpWin;
 
       Started := GetTickCount;
       while WaitForSingleObject(Handle, 100) = WAIT_TIMEOUT do
@@ -537,7 +539,8 @@ begin
           if (TerminateFlag <> nil) and TerminateFlag^ then
           begin
             TerminateProcess(Handle, 0);
-            Result := 2;
+            Sleep(500); // Wichtig - manchmal sind nach TerminateProcess() scheinbar noch Handles offen
+            Result := rpTerminated;
             Exit;
           end;
         except end;
@@ -558,7 +561,13 @@ begin
 
         if Started + Timeout < GetTickCount then
         begin
-          Result := 2;
+          if KillOnTimeout then
+          begin
+            TerminateProcess(Handle, 0);
+            Sleep(500); // Wichtig - manchmal sind nach TerminateProcess() scheinbar noch Handles offen
+          end;
+
+          Result := rpTimeout;
           Exit;
         end;
       end;
@@ -570,22 +579,6 @@ begin
         ReadFile(ReadPipeOut, Tmp[1], Avail, ReadCount, nil);
         Output := Output + Tmp;
       end;
-
-      {
-      if WaitForSingleObject(Handle, Timeout) = WAIT_OBJECT_0 then
-        Result := 0
-      else
-        Result := 2;
-
-      PeekNamedPipe(ReadPipeOut, nil, 0, nil, @Avail, nil);
-      if Avail > 0 then
-      begin
-        SetLength(Tmp, Avail);
-        ReadFile(ReadPipeOut, Tmp[1], Avail, ReadCount, nil);
-        Output := Output + Tmp;
-      end;
-      Result := 0;
-      }
 
       GetExitCodeProcess(PI.hProcess, ExitCode);
     end;
