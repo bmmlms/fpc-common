@@ -78,7 +78,7 @@ end;
 
 procedure TSystemCritical.FSetCritical(Value: Boolean);
 begin
-  Exit; // TODO: Wieder rausmachen!
+  // TODO: Testen ob das mit dem Critical funktioniert, so dass er nicht bei aufnahme in standby geht!!!
   if Assigned(@FFunc) then
   begin
     if Value then
