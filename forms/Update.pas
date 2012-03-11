@@ -73,7 +73,7 @@ begin
     0:
     begin
       lblState.Caption := _('Searching for new version...');
-      Updater.Start(uaVersion);
+      Updater.Start(uaVersion, True);
     end;
     1:
     begin
@@ -83,7 +83,7 @@ begin
         ProgressBar1.Tag := -1;
         ProgressBar1.Position := 0;
         ProgressBar1.State := pbsNormal;
-        Updater.Start(uaUpdate);
+        Updater.Start(uaUpdate, True);
       end else
       begin
         ShellExecute(0, 'open', PChar(AppGlobals.ProjectLink), '', '', 1);
@@ -117,7 +117,7 @@ begin
     UpdaterUpdateFound(nil);
     cmdOK.Click;
   end else
-    Updater.Start(uaVersion);
+    Updater.Start(uaVersion, True);
 end;
 
 procedure TfrmUpdate.FormClose(Sender: TObject; var Action: TCloseAction);

@@ -369,7 +369,7 @@ begin
 
   RegisterPages;
 
-  pnlLeft.Width := 160;
+  pnlLeft.Width := 180;
 
   FTreeView := TPageTree.Create(pnlLeft, FPageList);
   FTreeView.Parent := pnlLeft;

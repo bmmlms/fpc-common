@@ -88,7 +88,7 @@ type
   protected
     FStorage: TSettingsStorage;
 
-    FProjectUpdateLink: string;
+    FProjectUpdateLinks: TStringDynArray;
     FProjectHomepageLink: string;
     FProjectLink: string;
     FProjectHelpLink: string;
@@ -123,7 +123,7 @@ type
     property AppVersion: TAppVersion read FAppVersion;
     property BuildNumber: Integer read FBuildNumber;
     property TempDir: string read FTempDir;
-    property ProjectUpdateLink: string read FProjectUpdateLink;
+    property ProjectUpdateLinks: TStringDynArray read FProjectUpdateLinks;
     property ProjectHomepageLink: string read FProjectHomepageLink;
     property ProjectLink: string read FProjectLink;
     property ProjectHelpLink: string read FProjectHelpLink;
@@ -168,12 +168,16 @@ begin
   FOnlyOne := OnlyOne;
   FStorage := nil;
 
-  if FProjectUpdateLink = '' then
+  if Length(FProjectUpdateLinks) = 0 then
+  begin
+    SetLength(FProjectUpdateLinks, 1);
     {$IFDEF DEBUG}
-    FProjectUpdateLink := 'http://mistake.gaia/';
+    FProjectUpdateLinks[0] := 'http://mistake.gaia/';
     {$ELSE}
-    FProjectUpdateLink := 'http://mistake.ws/';
+    FProjectUpdateLinks[0] := 'http://mistake.ws/';
     {$ENDIF}
+  end;
+
   if FProjectHomepageLink = '' then
     FProjectHomepageLink := 'http://mistake.ws/';
   if FProjectLink = '' then

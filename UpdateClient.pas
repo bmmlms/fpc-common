@@ -52,6 +52,8 @@ type
   private
     FThread: TUpdateThread;
 
+    FError: Boolean;
+    FURLIndex: Integer;
     FAction: TUpdateAction;
     FUpdateLength: Integer;
     FPercent: Integer;
@@ -77,7 +79,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure Start(Action: TUpdateAction);
+    procedure Start(Action: TUpdateAction; StartOver: Boolean);
     procedure RunUpdate(Handle: Cardinal = 0);
     procedure Kill;
 
@@ -139,6 +141,7 @@ var
   CL: AnsiString;
 begin
   inherited;
+
   if FTypedStream.ResponseCode = 200 then
   begin
     case FUpdateAction of
@@ -263,19 +266,22 @@ begin
   end;
 end;
 
-procedure TUpdateClient.Start(Action: TUpdateAction);
+procedure TUpdateClient.Start(Action: TUpdateAction; StartOver: Boolean);
 var
   URL: string;
 begin
+  if StartOver then
+    FURLIndex := 0;
+
   if FThread <> nil then
     FThread.Terminate;
   FAction := Action;
   if Action = uaVersion then
   begin
     if FLanguage <> '' then
-      URL := AppGlobals.ProjectUpdateLink + Trim(FLanguage) + '/projekte/update/' + LowerCase(AppGlobals.AppName) + '/'
+      URL := AppGlobals.ProjectUpdateLinks[FURLIndex] + Trim(FLanguage) + '/projekte/update/' + LowerCase(AppGlobals.AppName) + '/'
     else
-      URL := AppGlobals.ProjectUpdateLink + 'en/projekte/update/' + LowerCase(AppGlobals.AppName) + '/';
+      URL := AppGlobals.ProjectUpdateLinks[FURLIndex] + 'en/projekte/update/' + LowerCase(AppGlobals.AppName) + '/';
 
     FThread := TUpdateThread.Create(Action, URL)
   end else
@@ -286,6 +292,7 @@ begin
     FThread.ProxyHost := AppGlobals.ProxyHost;
     FThread.ProxyPort := AppGlobals.ProxyPort;
   end;
+  FThread.UseSynchronize := True;
   FThread.FUpdateURL := FUpdateURL;
   FThread.FOnVersionFound := ThreadVersionFound;
   FThread.OnDownloadPercentProgress := ThreadDownloadPercentProgress;
@@ -315,6 +322,13 @@ end;
 procedure TUpdateClient.ThreadEnded(Sender: TSocketThread);
 begin
   FThread := nil;
+
+  if FError and (FURLIndex < High(AppGlobals.ProjectUpdateLinks)) then
+  begin
+    FError := False;
+    Inc(FURLIndex);
+    Start(FAction, False);
+  end;
 end;
 
 procedure TUpdateClient.ThreadDownloadPercentProgress(Sender: TSocketThread);
@@ -343,8 +357,13 @@ end;
 
 procedure TUpdateClient.ThreadError(Sender: TSocketThread);
 begin
-  if Assigned(FOnError) then
-    FOnError(Self);
+  FError := True;
+
+  if FURLIndex = High(AppGlobals.ProjectUpdateLinks) then
+  begin
+    if Assigned(FOnError) then
+      FOnError(Self);
+  end;
 end;
 
 end.
