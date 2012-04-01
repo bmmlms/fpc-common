@@ -24,7 +24,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Buttons, ExtCtrls, LanguageObjects, AppData,
-  Functions, ComCtrls, AppDataBase, SettingsStorage, ListActns;
+  Functions, ComCtrls, AppDataBase, SettingsStorage, ListActns, PngBitBtn;
 
 type
   TStep = class
@@ -51,8 +51,6 @@ type
   TfrmWizardBase = class(TForm)
     pnlLanguage: TPanel;
     pnlNav: TPanel;
-    btnBack: TBitBtn;
-    btnNext: TBitBtn;
     Bevel2: TBevel;
     pnlStorage: TPanel;
     pnlUpdates: TPanel;
@@ -68,6 +66,8 @@ type
     lblPortable: TLabel;
     pnlDesc: TPanel;
     lblDesc: TLabel;
+    btnNext: TPngBitBtn;
+    btnBack: TPngBitBtn;
     procedure FormDestroy(Sender: TObject);
     procedure btnBackClick(Sender: TObject);
     procedure btnNextClick(Sender: TObject);
