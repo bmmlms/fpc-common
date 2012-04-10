@@ -439,27 +439,35 @@ begin
   Dirs := TStringList.Create;
   try
     repeat
+      if (TerminateFlag <> nil) and TerminateFlag^ then
+      begin
+        Exit;
+      end;
+
       if FindFirst(Dir + Pattern, faAnyFile, SR) = 0 then
       begin
         repeat
-          if (TerminateFlag <> nil) and TerminateFlag^ then
+          if (SR.Name <> '.') and (SR.Name <> '..') and (not (SR.Attr and faDirectory = faDirectory)) then
           begin
-            Exit;
-          end;
-
-          if (SR.Name <> '.') and (SR.Name <> '..') then
-          begin
-            if not (SR.Attr and faDirectory = faDirectory) then
-            begin
-              if SubDirs then
-                Files.Add(Dir + SR.Name)
-              else
-                Files.Add(SR.Name);
-            end else if SubDirs then
-              Dirs.Add(Dir + SR.Name + '\');
+            if SubDirs then
+              Files.Add(Dir + SR.Name)
+            else
+              Files.Add(SR.Name);
           end;
         until FindNext(SR) <> 0;
         FindClose(SR);
+      end;
+
+      if SubDirs then
+      begin
+        if FindFirst(Dir + '*', faDirectory, SR) = 0 then
+        begin
+          repeat
+            if (SR.Name <> '.') and (SR.Name <> '..') and (SR.Attr and faDirectory = faDirectory) then
+              Dirs.Add(Dir + SR.Name + '\')
+          until FindNext(SR) <> 0;
+          FindClose(SR);
+        end;
       end;
 
       if Dirs.Count > 0 then
