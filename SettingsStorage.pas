@@ -225,25 +225,6 @@ begin
 
   FRegPath := GetRegPath(AppName);
   FDataDir := GetDataDir(AppName);
-
-  {
-  Lst := TStringList.Create;
-  try
-    // ISSUE: Irgendwann entfernen. Wenn Files von alter Version sind, wird diesen
-    // ein AppName+_+Filename angehängt, um mit neuen Versionen kompatibel zu sein.
-    if FDataDir <> '' then
-    begin
-      FindFiles(FDataDir + '*', Lst);
-      for i := 0 to Lst.Count - 1 do
-      begin
-        if LowerCase(Copy(Lst[i], 1, Length(AppName) + 1)) <> LowerCase(AppName + '_') then
-          CopyFile(PChar(FDataDir + Lst[i]), PChar(FDataDir + LowerCase(AppName) + '_' + Lst[i]), True);
-      end;
-    end;
-  finally
-    Lst.Free;
-  end;
-  }
 end;
 
 function TSettingsInstalled.Delete(Name, Section: string): Boolean;
