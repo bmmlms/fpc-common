@@ -474,8 +474,9 @@ begin
       begin
         Dir := Dirs[0];
         Dirs.Delete(0);
-      end;
-    until Dirs.Count = 0;
+      end else
+        Dir := '';
+    until Dir = '';
   finally
     Dirs.Free;
   end;
