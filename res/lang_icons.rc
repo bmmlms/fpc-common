@@ -1,4 +1,5 @@
 ir ICON ".\lang_icons\ir.ico"
+en ICON ".\lang_icons\en.ico"
 es ICON ".\lang_icons\es.ico"
 lu ICON ".\lang_icons\lu.ico"
 io ICON ".\lang_icons\io.ico"
