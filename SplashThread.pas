@@ -40,6 +40,7 @@ type
 
 const
   FADE_TIME = 1000;
+  FADE_WAIT_TIME = 1000;
 
 var
   SplashWndHandle: LongWord;
@@ -48,28 +49,71 @@ var
   SplashBitmapPos: TPoint;
   BlendFunction: TBlendFunction;
   State: TStates;
-  WindowClasses: array of string;
   WaitingStarted: Cardinal;
   StartPosLeft, StartPosTop, StartPosWidth, StartPosHeight: Integer;
   Monitors: array of TRect;
   Killed: Boolean;
   AnimationStart: Cardinal;
+  HideEvent, WaitHideEvent: Cardinal;
+  EnumFoundWindow: Cardinal;
+  FadeOutWaitStart: Cardinal;
+  FocusWasSet: Boolean;
+
+procedure FadeOutSplash(Wait: Boolean);
 
 implementation
 
-// TODO: screen darf nicht immer angezeigt werden. das prüfen und drüber nachdenken.
-
-function GetRelevantWindow: Cardinal;
-var
-  i: Integer;
+procedure FadeOutSplash(Wait: Boolean);
 begin
-  Result := 0;
-  for i := 0 to High(WindowClasses) do
-    if FindWindow(PChar(WindowClasses[i]), nil) > 0 then
+  // TODO: Das hier brauch ich nicht mehr. besser wäre:
+  //        - fadeout wenn irgendein fenster mit Getwindow() gefunden wurde
+  //        - wenn das fenster das main-fenster ist (festlegen über variable) dann langsam faden, sonst schnell
+  if not Wait then
+    SetEvent(WaitHideEvent);
+  SetEvent(HideEvent);
+end;
+
+function EnumWindowsProc(hHwnd: HWND; lParam : integer): boolean; stdcall;
+var
+  pPid: DWORD;
+  title, ClassName: string;
+begin
+  if (hHwnd = 0) then
+  begin
+    Result := False;
+  end
+  else
+  begin
+    Result := True;
+
+    if hHwnd = SplashWndHandle then
+      Exit;
+
+    //SetLength(ClassName, 255);
+    GetWindowThreadProcessId(hHwnd, pPid);
+    if (pPid = GetCurrentProcessId) and (IsWindowVisible(hHwnd)) then
     begin
-      Result := FindWindow(PChar(WindowClasses[i]), nil);
-      Break;
+      //GetClassName(hHwnd, @ClassName[1], 255);
+      EnumFoundWindow := hHwnd;
+      result := false;
     end;
+  end;
+end;
+
+function GetWindow: Boolean;
+begin
+  EnumWindows(@EnumWindowsProc, 0);
+  Result := EnumFoundWindow > 0;
+end;
+
+procedure FocusFoundWindow;
+begin
+  GetWindow;
+  if EnumFoundWindow > 0 then
+  begin
+    FocusWasSet := True;
+    SetForegroundWindow(EnumFoundWindow);
+  end;
 end;
 
 function WindowProc(hwn, msg, wpr, lpr: Longint): Longint; stdcall;
@@ -89,11 +133,13 @@ begin
   case msg of
     WM_TIMER:
       begin
+        if not FocusWasSet then
+          FocusFoundWindow;
+
         TC := GetTickCount;
         if AnimationStart = 0 then
           AnimationStart := GetTickCount;
 
-        H := GetRelevantWindow;
         case State of
           stFadeIn:
             begin
@@ -111,10 +157,22 @@ begin
             end;
           stWaiting:
             begin
-              if ((H > 0) and IsWindowVisible(H)) or ((TC - AnimationStart) > 2000) then
+              if ((HideEvent > 0) and (WaitForSingleObject(HideEvent, 1) = WAIT_OBJECT_0)) then
+              begin
+                HideEvent := 0;
+                FadeOutWaitStart := TC;
+              end;
+
+              if (FadeOutWaitStart <> High(Cardinal)) and (WaitForSingleObject(WaitHideEvent, 1) = WAIT_OBJECT_0) then
               begin
                 State := stFadeOut;
-                AnimationStart := 0;
+                AnimationStart := TC;
+              end;
+
+              if (FadeOutWaitStart <> High(Cardinal)) and (TC - FadeOutWaitStart > FADE_WAIT_TIME) then
+              begin
+                State := stFadeOut;
+                AnimationStart := TC;
               end;
             end;
           stFadeOut:
@@ -130,8 +188,6 @@ begin
                 SplashBitmap.Free;
                 KillTimer(SplashWndHandle, 0);
                 Killed := True;
-                if H > 0 then
-                  SetForegroundWindow(H);
               end;
             end;
         end;
@@ -163,11 +219,6 @@ begin
 
   FResourceName := ResourceName;
 
-  SetLength(WindowClasses, 3);
-  WindowClasses[0] := WindowClass;
-  WindowClasses[1] := 'TfrmWizard';
-  WindowClasses[2] := 'TfrmAbout';
-
   StartPosLeft := MainLeft;
   StartPosTop := MainTop;
   StartPosWidth := MainWidth;
@@ -183,9 +234,12 @@ var
   WndClass: TWndClassEx;
   ResStream: TResourceStream;
   Monitor: Integer;
+  DummyRect: TRect;
 begin
   inherited;
 
+  FocusWasSet := False;
+  FadeOutWaitStart := High(Cardinal);
   SetLength(Monitors, 0);
   EnumDisplayMonitors(0, nil, @MonitorEnumProc, 0);
 
@@ -196,6 +250,14 @@ begin
       Monitor := i;
       Break;
     end;
+
+  if Monitor = -1 then
+    for i := 0 to High(Monitors) do
+      if IntersectRect(DummyRect, Monitors[i], Rect(StartPosLeft, StartPosTop, StartPosWidth + StartPosLeft, StartPosHeight + StartPosTop)) then
+      begin
+        Monitor := i;
+        Break;
+      end;
 
   if Monitor = -1 then
     Exit;
@@ -219,8 +281,6 @@ begin
   PngImage := TPngImage.Create;
   ResStream := TResourceStream.Create(HInstance, FResourceName, RT_RCDATA);
   try
-    State := stFadeIn;
-
     PngImage.LoadFromStream(ResStream);
     SplashBitmap.Assign(PngImage);
 
@@ -285,6 +345,14 @@ begin
     end;
   end;
 end;
+
+initialization
+  HideEvent := CreateEvent(nil, True, False, 'SPLASHEVENT');
+  WaitHideEvent := CreateEvent(nil, True, False, 'SPLASHEVENT2');
+
+finalization
+  CloseHandle(HideEvent);
+  CloseHandle(WaitHideEvent);
 
 end.
 
