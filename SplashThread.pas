@@ -40,7 +40,7 @@ type
 
 const
   FADE_TIME = 1000;
-  FADE_WAIT_TIME = 1000;
+  FADE_WAIT_TIME = 600;
 
 var
   SplashWndHandle: LongWord;
@@ -58,6 +58,7 @@ var
   EnumFoundWindow: Cardinal;
   FadeOutWaitStart: Cardinal;
   FocusWasSet: Boolean;
+  //EnumFoundWindowClass: string;
 
 procedure FadeOutSplash(Wait: Boolean);
 
@@ -65,9 +66,6 @@ implementation
 
 procedure FadeOutSplash(Wait: Boolean);
 begin
-  // TODO: Das hier brauch ich nicht mehr. besser wäre:
-  //        - fadeout wenn irgendein fenster mit Getwindow() gefunden wurde
-  //        - wenn das fenster das main-fenster ist (festlegen über variable) dann langsam faden, sonst schnell
   if not Wait then
     SetEvent(WaitHideEvent);
   SetEvent(HideEvent);
@@ -76,7 +74,8 @@ end;
 function EnumWindowsProc(hHwnd: HWND; lParam : integer): boolean; stdcall;
 var
   pPid: DWORD;
-  title, ClassName: string;
+  title: string; //, ClassName: string;
+  Len: Integer;
 begin
   if (hHwnd = 0) then
   begin
@@ -93,9 +92,14 @@ begin
     GetWindowThreadProcessId(hHwnd, pPid);
     if (pPid = GetCurrentProcessId) and (IsWindowVisible(hHwnd)) then
     begin
-      //GetClassName(hHwnd, @ClassName[1], 255);
+      //Len := GetClassName(hHwnd, @ClassName[1], 255);
+      //if Len > 0 then
+      //begin
+        //SetLength(ClassName, Len);
       EnumFoundWindow := hHwnd;
-      result := false;
+        //EnumFoundWindowClass := ClassName;
+      Result := False;
+      //end;
     end;
   end;
 end;
