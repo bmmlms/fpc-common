@@ -524,9 +524,7 @@ procedure TAppDataBase.GetPortableAllowed;
 var
   Dir, Filename: string;
   S: TMemoryStream;
-  //RmDirectory: Boolean;
 begin
-  //RmDirectory := False;
   FPortableAllowed := True;
 
   if FRunningFromInstalledLocation then
@@ -539,13 +537,6 @@ begin
   try
     try
       Dir := IncludeTrailingBackslash(ExtractFilePath(AppPath));
-      {
-      if not DirectoryExists(Dir) then
-      begin
-        if ForceDirectories(Dir) then
-          RmDirectory := True;
-      end;
-      }
       Filename := GetRandomFile(Dir);
       S.SaveToFile(Filename);
       DeleteFile(Filename);
@@ -553,8 +544,6 @@ begin
       FPortableAllowed := False;
     end;
   finally
-    //if RmDirectory then
-    //  RmDir(Dir);
     S.Free;
   end;
 end;

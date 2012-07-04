@@ -22,7 +22,7 @@ unit Functions;
 interface
 
 uses
-  Windows, SysUtils, Classes, StrUtils, Graphics;
+  Windows, ShLwApi, SysUtils, Classes, StrUtils, Graphics;
 
 type
   TPatternReplace = record
@@ -77,9 +77,10 @@ procedure GetBitmap(const Resname: string; const NumGlyphs: Integer; Bmp: TBitma
 function BuildPattern(const s: string; var Hash: Cardinal; var NumChars: Integer; AlwaysAlter: Boolean): string;
 function CryptStr(const s: string): string;
 function TryRelativePath(const s: string; IsFile: Boolean): string;
-function TryUnRelativePath(const s: string; IsFile: Boolean): string;
+function TryUnRelativePath(const s: string): string;
 function FixPathName(Path: string): string;
 function GetFileVersion(Filename: string): TAppVersion;
+function ShortenString(Str: string; Len: Integer): string;
 
 function VerSetConditionMask(dwlConditionMask: LONGLONG; TypeBitMask: DWORD; ConditionMask: Byte): LONGLONG; stdcall;
   external 'kernel32.dll';
@@ -1007,36 +1008,39 @@ end;
 
 function TryRelativePath(const s: string; IsFile: Boolean): string;
 var
-  TmpDir, AppDir: string;
+  From: string;
+  T: Integer;
+  OutData: array[0..MAX_PATH - 1] of Char;
 begin
-  Result := s;
-  TmpDir := IncludeTrailingBackslash(ExtractFilePath(s));
-  AppDir := IncludeTrailingBackslash(ExtractFilePath(ParamStr(0)));
-  if Length(TmpDir) >= Length(AppDir) then
-    if Copy(LowerCase(TmpDir), 1, Length(AppDir)) = LowerCase(AppDir) then
-    begin
-      if IsFile then
-        TmpDir := Copy(IncludeTrailingBackslash(ExtractFilePath(s)), Length(AppDir), Length(IncludeTrailingBackslash(ExtractFilePath(s))) - Length(AppDir))
-      else
-        TmpDir := Copy(IncludeTrailingBackslash(s), Length(AppDir), Length(IncludeTrailingBackslash(s)) - Length(AppDir));
-      TmpDir := IncludeTrailingBackslash(TmpDir);
-      if IsFile then
-        TmpDir := TmpDir + ExtractFileName(s);
-      if (Length(TmpDir) > 0) and (Copy(TmpDir, 1, 1) = '\') then
-        TmpDir := Copy(TmpDir, 2, Length(TmpDir) - 1);
-      Result := TmpDir;
-    end;
+  if IsFile then
+    T := FILE_ATTRIBUTE_NORMAL
+  else
+    T := FILE_ATTRIBUTE_DIRECTORY;
+
+  From := IncludeTrailingBackslash(ExtractFilePath(ParamStr(0)));
+
+  if PathRelativePathTo(@OutData[0], PChar(From), T, PChar(s), 0) then
+    Result := OutData
+  else
+    Result := s;
 end;
 
-function TryUnRelativePath(const s: string; IsFile: Boolean): string;
+function TryUnRelativePath(const s: string): string;
+var
+  From: string;
+  OutData: array[0..MAX_PATH - 1] of Char;
 begin
-  Result := s;
-  if Result = '' then
-    Exit;
-  if (Length(Result) <= 2) or not ((Length(Result) >= 3) and ((Copy(Result, 1, 2) = '\\') or (Copy(Result, 2, 2) = ':\'))) then
+  if (((Length(s) >= 2) and (s[1] = '.') and (s[2] = '\')) or
+      ((Length(s) >= 3) and (s[1] = '.') and (s[2] = '.') and (s[3] = '\'))) then
   begin
-    Result := IncludeTrailingBackslash(ExtractFilePath(ParamStr(0))) + Result;
-  end;
+    From := IncludeTrailingBackslash(ExtractFilePath(ParamStr(0)));
+
+    if PathCanonicalize(@OutData[0], PChar(From + s)) then
+      Result := OutData
+    else
+      Result := s;
+  end else
+    Result := s;
 end;
 
 function FixPathName(Path: string): string;
@@ -1163,6 +1167,15 @@ begin
      (Result.Revision = 0) and (Result.Build = 0) then
   begin
     raise Exception.Create('');
+  end;
+end;
+
+function ShortenString(Str: string; Len: Integer): string;
+begin
+  Result := Trim(Str);
+  if Length(Result) > Len then
+  begin
+    Result := Trim(Copy(Result, 1, Len - 3)) + '...';
   end;
 end;
 
