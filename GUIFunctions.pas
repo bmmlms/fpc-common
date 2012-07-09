@@ -35,6 +35,7 @@ procedure PropertiesDialog(Filename: string);
 function GetShellFolder(CSIDL: Integer): string;
 function Recycle(Handle: Cardinal; Filename: string): Boolean; overload;
 function GetUserDir: string;
+function ResizeBitmap(Bitmap: TBitmap; MaxSize: Integer): TBitmap;
 
 implementation
 
@@ -193,6 +194,28 @@ begin
   begin
     Result := IncludeTrailingPathDelimiter(Result);
   end;
+end;
+
+function ResizeBitmap(Bitmap: TBitmap; MaxSize: Integer): TBitmap;
+var
+  MinSize, FW, FH: Integer;
+  Res: TBitmap;
+begin
+  if Bitmap.Width >= Bitmap.Height then
+  begin
+    FW := MaxSize;
+    FH := Trunc((Bitmap.Height / Bitmap.Width) * MaxSize);
+  end else
+  begin
+    FH := MaxSize;
+    FW := Trunc((Bitmap.Width / Bitmap.Height) * MaxSize);
+  end;
+
+  Res := TBitmap.Create;
+  Res.Width := FW;
+  Res.Height := FH;
+  Res.Canvas.StretchDraw(Rect(0, 0, FW, FH), Bitmap);
+  Result := Res;
 end;
 
 end.
