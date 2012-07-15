@@ -81,6 +81,7 @@ function TryUnRelativePath(const s: string): string;
 function FixPathName(Path: string): string;
 function GetFileVersion(Filename: string): TAppVersion;
 function ShortenString(Str: string; Len: Integer): string;
+procedure ParseCommandLine(Data: string; SL: TStringList);
 
 function VerSetConditionMask(dwlConditionMask: LONGLONG; TypeBitMask: DWORD; ConditionMask: Byte): LONGLONG; stdcall;
   external 'kernel32.dll';
@@ -1176,6 +1177,54 @@ begin
   if Length(Result) > Len then
   begin
     Result := Trim(Copy(Result, 1, Len - 3)) + '...';
+  end;
+end;
+
+procedure ParseCommandLine(Data: string; SL: TStringList);
+var
+  i, ParsedCount: Integer;
+  InDingens: Boolean;
+  Arg: string;
+begin
+  ParsedCount := 0;
+  Arg := '';
+
+  InDingens := False;
+  for i := 1 to Length(Data) do
+  begin
+    if Data[i] = '"' then
+    begin
+      if InDingens then
+      begin
+        if ParsedCount > 0 then
+        begin
+          SL.Add(Arg);
+        end;
+        Inc(ParsedCount);
+        Arg := '';
+      end;
+      InDingens := not InDingens;
+    end else if Data[i] = ' ' then
+    begin
+      if (not InDingens) and (Arg <> '') then
+      begin
+        if ParsedCount > 0 then
+        begin
+          SL.Add(Arg);
+        end;
+        Inc(ParsedCount);
+        Arg := '';
+      end else if Arg <> '' then
+        Arg := Arg + Data[i];
+    end else
+    begin
+      Arg := Arg + Data[i];
+    end;
+  end;
+
+  if Arg <> '' then
+  begin
+    SL.Add(Arg);
   end;
 end;
 

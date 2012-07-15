@@ -66,7 +66,6 @@ begin
     VerRec := ParseVersion(Ver.dwMajorVersion, Ver.dwMinorVersion, 0, 0);
     if not IsVersionNewer(ParseVersion('5.0.0.0'), VerRec) then
     begin
-      FadeOutSplash(False);
       TfrmMsgDlg.ShowMsg(nil, Format(_('%s requires at least Windows XP, earlier versions of windows are not supported.'#13#10 +
                                        'If you continue running %s using a not supported operating system I am not responsible for any problems that might occur.'), [AppGlobals.AppName, AppGlobals.AppName]), 12, btOK);
     end;
@@ -103,7 +102,6 @@ begin
 
   if AppGlobals.InstallUpdateOnStart then
   begin
-    FadeOutSplash(False);
     Res := MsgBox(0, _('The update downloaded last time can now be installed.'#13#10'Do you want to install the new version now?'), _('Question'), MB_ICONQUESTION or MB_YESNO);
     try
       if Res = IDYES then
@@ -138,7 +136,6 @@ begin
 
   if not AppGlobals.FirstStartShown then
   begin
-    FadeOutSplash(False);
     About := TfrmAbout.Create(nil, _('Application information'));
     try
       About.ShowModal;
@@ -149,7 +146,6 @@ begin
 
   if not AppGlobals.WasSetup then
   begin
-    FadeOutSplash(False);
     Wizard := TfrmWizard.Create(nil);
     try
       Wizard.ShowModal;

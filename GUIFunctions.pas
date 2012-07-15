@@ -198,7 +198,7 @@ end;
 
 function ResizeBitmap(Bitmap: TBitmap; MaxSize: Integer): TBitmap;
 var
-  MinSize, FW, FH: Integer;
+  FW, FH: Integer;
   Res: TBitmap;
 begin
   if Bitmap.Width >= Bitmap.Height then

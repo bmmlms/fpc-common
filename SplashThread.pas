@@ -54,27 +54,18 @@ var
   Monitors: array of TRect;
   Killed: Boolean;
   AnimationStart: Cardinal;
-  HideEvent, WaitHideEvent: Cardinal;
   EnumFoundWindow: Cardinal;
   FadeOutWaitStart: Cardinal;
   FocusWasSet: Boolean;
-  //EnumFoundWindowClass: string;
-
-procedure FadeOutSplash(Wait: Boolean);
+  MainWindowClass: string;
+  FadeoutWait: Boolean;
 
 implementation
 
-procedure FadeOutSplash(Wait: Boolean);
-begin
-  if not Wait then
-    SetEvent(WaitHideEvent);
-  SetEvent(HideEvent);
-end;
-
 function EnumWindowsProc(hHwnd: HWND; lParam : integer): boolean; stdcall;
 var
-  pPid: DWORD;
-  title: string; //, ClassName: string;
+  Pid: DWORD;
+  ClassName: string;
   Len: Integer;
 begin
   if (hHwnd = 0) then
@@ -88,18 +79,22 @@ begin
     if hHwnd = SplashWndHandle then
       Exit;
 
-    //SetLength(ClassName, 255);
-    GetWindowThreadProcessId(hHwnd, pPid);
-    if (pPid = GetCurrentProcessId) and (IsWindowVisible(hHwnd)) then
+    SetLength(ClassName, 255);
+    GetWindowThreadProcessId(hHwnd, Pid);
+    if (Pid = GetCurrentProcessId) and (IsWindowVisible(hHwnd)) then
     begin
-      //Len := GetClassName(hHwnd, @ClassName[1], 255);
-      //if Len > 0 then
-      //begin
-        //SetLength(ClassName, Len);
-      EnumFoundWindow := hHwnd;
-        //EnumFoundWindowClass := ClassName;
-      Result := False;
-      //end;
+      Len := GetClassName(hHwnd, @ClassName[1], 255);
+      if Len > 0 then
+      begin
+        SetLength(ClassName, Len);
+        if ClassName = 'TApplication' then
+          Exit;
+        if ClassName = MainWindowClass then
+          FadeoutWait := True;
+
+        EnumFoundWindow := hHwnd;
+        Result := False;
+      end;
     end;
   end;
 end;
@@ -122,11 +117,8 @@ end;
 
 function WindowProc(hwn, msg, wpr, lpr: Longint): Longint; stdcall;
 var
-  H: HWND;
   Val: Cardinal;
   TC: Cardinal;
-  Msg2: TMsg;
-  P: TPoint;
 begin
   if Killed then
   begin
@@ -161,22 +153,23 @@ begin
             end;
           stWaiting:
             begin
-              if ((HideEvent > 0) and (WaitForSingleObject(HideEvent, 1) = WAIT_OBJECT_0)) then
+              if FocusWasSet then
               begin
-                HideEvent := 0;
-                FadeOutWaitStart := TC;
-              end;
+                if FadeOutWaitStart = High(Cardinal) then
+                  if FadeoutWait then
+                  begin
+                    FadeOutWaitStart := TC;
+                  end else
+                  begin
+                    State := stFadeOut;
+                    AnimationStart := TC;
+                  end;
 
-              if (FadeOutWaitStart <> High(Cardinal)) and (WaitForSingleObject(WaitHideEvent, 1) = WAIT_OBJECT_0) then
-              begin
-                State := stFadeOut;
-                AnimationStart := TC;
-              end;
-
-              if (FadeOutWaitStart <> High(Cardinal)) and (TC - FadeOutWaitStart > FADE_WAIT_TIME) then
-              begin
-                State := stFadeOut;
-                AnimationStart := TC;
+                if (FadeOutWaitStart <> High(Cardinal)) and (TC - FadeOutWaitStart > FADE_WAIT_TIME) then
+                begin
+                  State := stFadeOut;
+                  AnimationStart := TC;
+                end;
               end;
             end;
           stFadeOut:
@@ -221,6 +214,10 @@ begin
 
   FreeOnTerminate := True;
 
+  FadeoutWait := False;
+
+  MainWindowClass := WindowClass;
+
   FResourceName := ResourceName;
 
   StartPosLeft := MainLeft;
@@ -241,6 +238,11 @@ var
   DummyRect: TRect;
 begin
   inherited;
+
+  // Falls direkt was passiert, keinen Splash zeigen.
+  Sleep(100);
+  if GetWindow then
+    Exit;
 
   FocusWasSet := False;
   FadeOutWaitStart := High(Cardinal);
@@ -349,14 +351,6 @@ begin
     end;
   end;
 end;
-
-initialization
-  HideEvent := CreateEvent(nil, True, False, 'SPLASHEVENT');
-  WaitHideEvent := CreateEvent(nil, True, False, 'SPLASHEVENT2');
-
-finalization
-  CloseHandle(HideEvent);
-  CloseHandle(WaitHideEvent);
 
 end.
 
