@@ -23,7 +23,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Registry, IniFiles, GUIFunctions, ShlObj,
-  Functions, Generics.Collections, ExtendedStream;
+  Functions, Generics.Collections, ExtendedStream, CommandLine;
 
 const
   SETTINGS = 'Settings';
@@ -92,8 +92,12 @@ type
     FAppPath: string;
 
     FDataDir: string;
+
+    FDataDirOverridden: Boolean;
+
+    FCommandLine: TCommandLine;
   public
-    constructor Create(AppName, AppPath: string); virtual;
+    constructor Create(AppName, AppPath: string; CommandLine: TCommandLine); virtual;
 
     procedure Assign(AssignFrom: TSettingsStorage); overload;
     procedure Assign(AssignFrom: TSettingsList); overload;
@@ -121,6 +125,7 @@ type
     function PrepareSave: Boolean; virtual; abstract;
 
     property DataDir: string read FDataDir;
+    property DataDirOverridden: Boolean read FDataDirOverridden;
   end;
 
   TSettingsInstalled = class(TSettingsStorage)
@@ -128,7 +133,7 @@ type
     FRegPath: string;
     procedure GetDataInternal(Path: string; Lst: TSettingsList; TruncLen: Integer);
   public
-    constructor Create(AppName, AppPath: string); override;
+    constructor Create(AppName, AppPath: string; CommandLine: TCommandLine); override;
 
     class function Active(AppName: string): Boolean;
     class function GetRegPath(AppName: string): string;
@@ -155,7 +160,7 @@ type
   private
     FIniFile: string;
   public
-    constructor Create(AppName, AppPath: string); override;
+    constructor Create(AppName, AppPath: string; CommandLine: TCommandLine); override;
 
     class function Active(AppName: string): Boolean;
     class function GetDataDir: string;
@@ -179,7 +184,7 @@ type
 
   TSettingsDummy = class(TSettingsStorage)
   public
-    constructor Create(AppName, AppPath: string); override;
+    constructor Create(AppName, AppPath: string; CommandLine: TCommandLine); override;
 
     procedure Write(Name: string; Value: string; Section: string = SETTINGS); overload; override;
     procedure Write(Name: string; Value: Integer; Section: string = SETTINGS); overload; override;
@@ -197,7 +202,6 @@ type
   end;
 
 implementation
-
 
 { TSettingsInstalled }
 
@@ -219,12 +223,22 @@ begin
   end;
 end;
 
-constructor TSettingsInstalled.Create(AppName, AppPath: string);
+constructor TSettingsInstalled.Create(AppName, AppPath: string; CommandLine: TCommandLine);
+var
+  Param: TCommandLineRecord;
 begin
   inherited;
 
   FRegPath := GetRegPath(AppName);
-  FDataDir := GetDataDir(AppName);
+
+  Param := CommandLine.GetParam('-datadir');
+
+  if (Param <> nil) and (Param.Values.Count = 1) and (DirectoryExists(Param.Values[0])) then
+  begin
+    FDataDirOverridden := True;
+    FDataDir := IncludeTrailingBackslash(Param.Values[0])
+  end else
+    FDataDir := GetDataDir(AppName);
 end;
 
 function TSettingsInstalled.Delete(Name, Section: string): Boolean;
@@ -543,11 +557,21 @@ begin
   Result := FileExists(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + LowerCase(AppName) + '_settings.ini');
 end;
 
-constructor TSettingsPortable.Create(AppName, AppPath: string);
+constructor TSettingsPortable.Create(AppName, AppPath: string; CommandLine: TCommandLine);
+var
+  Param: TCommandLineRecord;
 begin
   inherited;
 
-  FDataDir := GetDataDir;
+  Param := CommandLine.GetParam('-datadir');
+
+  if (Param <> nil) and (Param.Values.Count = 1) and (DirectoryExists(Param.Values[0])) then
+  begin
+    FDataDirOverridden := True;
+    FDataDir := IncludeTrailingBackslash(Param.Values[0])
+  end else
+    FDataDir := GetDataDir;
+
   FIniFile := FDataDir + LowerCase(AppName) + '_settings.ini';
 end;
 
@@ -885,11 +909,12 @@ begin
   end;
 end;
 
-constructor TSettingsStorage.Create(AppName, AppPath: string);
+constructor TSettingsStorage.Create(AppName, AppPath: string; CommandLine: TCommandLine);
 begin
   inherited Create;
   FAppName := AppName;
   FAppPath := AppPath;
+  FCommandLine := CommandLine;
 end;
 
 function TSettingsStorage.CreatePath: Boolean;
@@ -920,7 +945,9 @@ end;
 
 { TSettingsDummy }
 
-constructor TSettingsDummy.Create(AppName, AppPath: string);
+// TODO: wegen dem commandline-konstruktor hier auch neue installs testen, sowohl installed als auch portabel!!!
+
+constructor TSettingsDummy.Create(AppName, AppPath: string; CommandLine: TCommandLine);
 begin
   inherited;
   FDataDir := '';

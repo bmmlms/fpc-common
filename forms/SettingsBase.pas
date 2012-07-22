@@ -229,9 +229,11 @@ begin
       Exit;
     end;
 
+  // TODO: profil kopieren und löschen muss AUS in settings, wenn DataDir per CmdLineArg überschrieben!!!
+
   try
-    S := TSettingsInstalled.Create(AppGlobals.AppName, AppGlobals.AppPath);
-    S2 := TSettingsPortable.Create(AppGlobals.AppName, AppGlobals.AppPath);
+    S := TSettingsInstalled.Create(AppGlobals.AppName, AppGlobals.AppPath, AppGlobals.CommandLine);
+    S2 := TSettingsPortable.Create(AppGlobals.AppName, AppGlobals.AppPath, AppGlobals.CommandLine);
     try
       if AppGlobals.Portable = poYes then
         S.Assign(S2)
@@ -393,6 +395,11 @@ begin
       Res.Free;
     end;
   end;
+
+  btnCopyProfile.Enabled := not AppGlobals.Storage.DataDirOverridden;
+  btnDeleteProfile.Enabled := not AppGlobals.Storage.DataDirOverridden;
+  btnExportProfile.Enabled := not AppGlobals.Storage.DataDirOverridden;
+  btnImportProfile.Enabled := not AppGlobals.Storage.DataDirOverridden;
 
   Language.Translate(Self, PreTranslate, PostTranslate);
 end;

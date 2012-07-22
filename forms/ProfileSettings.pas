@@ -52,8 +52,8 @@ begin
     end;
 
   try
-    S := TSettingsInstalled.Create(AppGlobals.AppName, AppGlobals.AppPath);
-    S2 := TSettingsPortable.Create(AppGlobals.AppName, AppGlobals.AppPath);
+    S := TSettingsInstalled.Create(AppGlobals.AppName, AppGlobals.AppPath, AppGlobals.CommandLine);
+    S2 := TSettingsPortable.Create(AppGlobals.AppName, AppGlobals.AppPath, AppGlobals.CommandLine);
     try
       if Sender = btnCopy then
         S2.Assign(S)
@@ -97,9 +97,9 @@ begin
                       'Are you sure you want to delete this profile?'), _('Question'), MB_ICONQUESTION or MB_YESNO or MB_DEFBUTTON2) = IDYES then
   begin
     if Sender = btnDelete then
-      S := TSettingsInstalled.Create(AppGlobals.AppName, AppGlobals.AppPath)
+      S := TSettingsInstalled.Create(AppGlobals.AppName, AppGlobals.AppPath, AppGlobals.CommandLine)
     else
-      S := TSettingsPortable.Create(AppGlobals.AppName, AppGlobals.AppPath);
+      S := TSettingsPortable.Create(AppGlobals.AppName, AppGlobals.AppPath, AppGlobals.CommandLine);
     try
       if not S.DeleteProfile then
       begin
@@ -137,6 +137,12 @@ begin
                            'If you do not want to see this dialog again, please delete one profile.'#13#10 +
                            'Which profile do you want to use?');
   rbPortable.Enabled := AppGlobals.PortableAllowed;
+
+  // TODO: macht das hier sinn? prüfen.
+  btnDelete.Enabled := not AppGlobals.Storage.DataDirOverridden;
+  btnDelete2.Enabled := not AppGlobals.Storage.DataDirOverridden;
+  btnCopy.Enabled := not AppGlobals.Storage.DataDirOverridden;
+  btnCopy2.Enabled := not AppGlobals.Storage.DataDirOverridden;
 end;
 
 end.

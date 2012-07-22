@@ -23,7 +23,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Registry, SyncObjs, ShlObj, ActiveX,
-  LanguageObjects, SettingsStorage, Functions, GUIFunctions, Forms, Types;
+  LanguageObjects, SettingsStorage, Functions, GUIFunctions, Forms, Types,
+  CommandLine;
 
 type
   TArrayElement = string;
@@ -68,6 +69,7 @@ type
     FPortableAllowed: Boolean;
     FPortable: TPortable;
     FRunningFromInstalledLocation: Boolean;
+    FCommandLine: TCommandLine;
 
     FSkipSave: Boolean;
 
@@ -133,6 +135,7 @@ type
     property PortableAllowed: Boolean read FPortableAllowed;
     property Portable: TPortable read FPortable write FSetPortable;
     property RunningFromInstalledLocation: Boolean read FRunningFromInstalledLocation;
+    property CommandLine: TCommandLine read FCommandLine;
 
     property WasSetup: Boolean read FWasSetup write FWasSetup;
     property AutoUpdate: Boolean read FAutoUpdate write FAutoUpdate;
@@ -191,6 +194,8 @@ begin
   if FProjectThanksText = '' then
     FProjectThanksText := '';
 
+  FCommandLine := TCommandLine.Create(GetCommandLineW);
+
   InitOnlyOne;
 
   FWindowHandle := 0;
@@ -212,6 +217,7 @@ begin
     CloseHandle(FMutexHandle);
   if FStorage <> nil then
     FStorage.Free;
+  FCommandLine.Free;
   RemoveDir(FTempDir);
   inherited Destroy;
 end;
@@ -267,21 +273,21 @@ begin
       begin
         if FStorage <> nil then
           FStorage.Free;
-        FStorage := TSettingsPortable.Create(FAppName, FAppPath);
+        FStorage := TSettingsPortable.Create(FAppName, FAppPath, FCommandLine);
         Load;
       end;
     poNo:
       begin
         if FStorage <> nil then
           FStorage.Free;
-        FStorage := TSettingsInstalled.Create(FAppName, FAppPath);
+        FStorage := TSettingsInstalled.Create(FAppName, FAppPath, FCommandLine);
         Load;
       end;
     poUndefined:
       begin
         if FStorage <> nil then
           FStorage.Free;
-        FStorage := TSettingsDummy.Create(FAppName, FAppPath);
+        FStorage := TSettingsDummy.Create(FAppName, FAppPath, FCommandLine);
         Load;
         FWasSetup := False;
       end;
@@ -585,14 +591,26 @@ begin
 end;
 
 procedure TAppDataBase.GetTempDir;
+var
+  Rec: TCommandLineRecord;
 begin
-  FTempDir := Functions.GetTempDir + FAppName + '\';
+  Rec := FCommandLine.GetParam('-tempdir');
+
+  if (Rec <> nil) and (Rec.Values.Count > 0) then
+    FTempDir := Rec.Values[0]
+  else
+    FTempDir := Functions.GetTempDir + FAppName;
+
+  FTempDir := IncludeTrailingBackslash(FTempDir);
+
   if FTempDir <> '' then
   begin
     if ForceDirectories(FTempDir) then
       if DirectoryExists(FTempDir) then
         FTempDir := FTempDir;
-  end else
+  end;
+
+  if not DirectoryExists(FTempDir) then  
     raise Exception.Create(Format(_('The folder for temporary files could not be determined.'#13#10 +
                                     'Please ask for support at %s.'#13#10 +
                                     'The application will be terminated.'), [FProjectForumLink]));
