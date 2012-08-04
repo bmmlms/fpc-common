@@ -24,7 +24,7 @@ interface
 uses
   Windows, SysUtils, Classes, Messages, ComCtrls, ActiveX, Controls, Buttons,
   StdCtrls, Menus, VirtualTrees, DragDrop, DragDropFile, ShellApi,
-  Themes, ImgList, GUIFunctions, LanguageObjects;
+  Themes, ImgList, GUIFunctions, LanguageObjects, Graphics;
 
 type
   TMTabSheet = class;
@@ -116,6 +116,24 @@ type
     procedure DrawPanel(Panel: TStatusPanel; const Rect: TRect); override;
   public
     constructor Create(AOwner: TComponent); reintroduce;
+  end;
+
+  TMShowHidePanel = class(TCustomControl)
+  private
+    FShowCaption: string;
+    FHideCaption: string;
+
+    FBuffer: TBitmap;
+  protected
+    procedure Paint; override;
+    procedure Resize; override;
+    procedure Click; override;
+  public
+    constructor Create(AOwner: TComponent); reintroduce;
+    destructor Destroy; override;
+  published
+    property ShowCaption: string read FShowCaption write FShowCaption;
+    property HideCaption: string read FHideCaption write FHideCaption;
   end;
 
 implementation
@@ -523,6 +541,58 @@ end;
 procedure TMVirtualStringTree.NodeSelected(Node: PVirtualNode);
 begin
 
+end;
+
+{ TMShowHidePanel }
+
+procedure TMShowHidePanel.Click;
+begin
+  inherited;
+
+end;
+
+constructor TMShowHidePanel.Create(AOwner: TComponent);
+begin
+  inherited;
+
+end;
+
+destructor TMShowHidePanel.Destroy;
+begin
+  FBuffer.Free;
+
+  inherited;
+end;
+
+procedure TMShowHidePanel.Paint;
+begin
+  inherited;
+
+  if FBuffer = nil then
+    Exit;
+
+  FBuffer.Canvas.Brush.Color := clRed;
+  FBuffer.Canvas.FillRect(Rect(0, 0, 10, 10));
+
+  SetBkMode(FBuffer.Canvas.Handle, TRANSPARENT);
+  FBuffer.Canvas.TextOut(20, 0, 'Show filters...');
+
+  FBuffer.Canvas.PenPos := Point(30, 8);
+  FBuffer.Canvas.LineTo(100, 8);
+
+  Canvas.Draw(0, 0, FBuffer);
+end;
+
+procedure TMShowHidePanel.Resize;
+begin
+  inherited;
+
+  if FBuffer <> nil then
+    FBuffer.Free;
+
+  FBuffer := TBitmap.Create;
+  FBuffer.Width := ClientWidth;
+  FBuffer.Height := ClientHeight;
 end;
 
 end.
