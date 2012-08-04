@@ -229,8 +229,6 @@ begin
       Exit;
     end;
 
-  // TODO: profil kopieren und löschen muss AUS in settings, wenn DataDir per CmdLineArg überschrieben!!!
-
   try
     S := TSettingsInstalled.Create(AppGlobals.AppName, AppGlobals.AppPath, AppGlobals.CommandLine);
     S2 := TSettingsPortable.Create(AppGlobals.AppName, AppGlobals.AppPath, AppGlobals.CommandLine);

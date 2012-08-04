@@ -945,8 +945,6 @@ end;
 
 { TSettingsDummy }
 
-// TODO: wegen dem commandline-konstruktor hier auch neue installs testen, sowohl installed als auch portabel!!!
-
 constructor TSettingsDummy.Create(AppName, AppPath: string; CommandLine: TCommandLine);
 begin
   inherited;

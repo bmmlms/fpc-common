@@ -160,7 +160,7 @@ begin
   {$IFDEF DEBUG}
   FDataTimeout := 100000;
   {$ELSE}
-  FDataTimeout := 10000;
+  FDataTimeout := 20000;
   {$ENDIF}
 
   SetSendParams;

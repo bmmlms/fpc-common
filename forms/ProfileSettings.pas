@@ -138,7 +138,6 @@ begin
                            'Which profile do you want to use?');
   rbPortable.Enabled := AppGlobals.PortableAllowed;
 
-  // TODO: macht das hier sinn? prüfen.
   btnDelete.Enabled := not AppGlobals.Storage.DataDirOverridden;
   btnDelete2.Enabled := not AppGlobals.Storage.DataDirOverridden;
   btnCopy.Enabled := not AppGlobals.Storage.DataDirOverridden;
