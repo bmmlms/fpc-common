@@ -22,7 +22,7 @@ unit PowerManagement;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Generics.Collections;
+  Windows, Messages, SysUtils, Classes, Generics.Collections, DateUtils;
 
 type
   TSetThreadExecutionState = function(ESFlags: DWORD): DWORD; stdcall;
@@ -147,12 +147,21 @@ begin
   if not SystemTimeToFileTime(ST, FT) then
   begin
     CloseHandle(FHandle);
+    FHandle := 0;
     raise Exception.Create('Error SystemTimeToFileTime()');
+  end;
+
+  if not LocalFileTimeToFileTime(FT, FT) then
+  begin
+    CloseHandle(FHandle);
+    FHandle := 0;
+    raise Exception.Create('Error LocalFileTimeToFileTime()');
   end;
 
   if not SetWaitableTimer(FHandle, Int64(FT), 0, nil, nil, True) then
   begin
     CloseHandle(FHandle);
+    FHandle := 0;
     raise Exception.Create('Error SystemTimeToFileTime()');
   end;
 end;

@@ -3,7 +3,7 @@ unit FileWatcher;
 interface
 
 uses
-  Windows, SysUtils, Classes, SyncObjs, ShellApi, ComCtrls;
+  Windows, SysUtils, Classes, SyncObjs, ShellApi, ComCtrls, Logging;
 
 type
   TFileWatchEvent = procedure(Sender: TObject; Action: DWORD; OldName, NewName: string) of object;
@@ -105,8 +105,11 @@ begin
                 if FAction = FILE_ACTION_REMOVED then
                   Sleep(100);
 
-                if ((FAction = FILE_ACTION_REMOVED) and (not FileExists(FPath + WideCharLenToString(@Info.FileName, NameLen div 2)))) or
-                    (FAction <> FILE_ACTION_REMOVED) then
+                // Die letzte Bedingung ist für MusicBee. Da wird die Datei umbenannt und dann neu angelegt,
+                // das ignorieren wir dann.
+                if (((FAction = FILE_ACTION_REMOVED) and (not FileExists(FPath + WideCharLenToString(@Info.FileName, NameLen div 2)))) or
+                     (FAction <> FILE_ACTION_REMOVED) and
+                    not ((FAction = FILE_ACTION_ADDED) and (FPath + WideCharLenToString(@Info.FileName, NameLen div 2) = FFilename)))  then
                 begin
                   if FAction <> FILE_ACTION_RENAMED_NEW_NAME then
                     FFilename := WideCharLenToString(@Info.FileName, NameLen div 2)
