@@ -203,7 +203,7 @@ object frmSettingsBase: TfrmSettingsBase
     object btnCopyProfile: TButton
       Left = 4
       Top = 248
-      Width = 105
+      Width = 129
       Height = 29
       Caption = '&Copy profile'
       TabOrder = 2
@@ -233,7 +233,7 @@ object frmSettingsBase: TfrmSettingsBase
     object chkProxy: TCheckBox
       Left = 4
       Top = 80
-      Width = 213
+      Width = 245
       Height = 21
       Anchors = [akLeft, akTop, akRight]
       Caption = 'Use HTTP proxy'
@@ -243,25 +243,25 @@ object frmSettingsBase: TfrmSettingsBase
     object btnDeleteProfile: TButton
       Left = 4
       Top = 280
-      Width = 105
+      Width = 129
       Height = 29
       Caption = '&Delete profile'
       TabOrder = 6
       OnClick = btnDeleteProfileClick
     end
     object btnExportProfile: TButton
-      Left = 128
+      Left = 148
       Top = 248
-      Width = 105
+      Width = 129
       Height = 29
       Caption = '&Export profile'
       TabOrder = 7
       OnClick = btnExportProfileClick
     end
     object btnImportProfile: TButton
-      Left = 128
+      Left = 148
       Top = 280
-      Width = 105
+      Width = 129
       Height = 29
       Caption = '&Import profile'
       TabOrder = 8
