@@ -278,7 +278,7 @@ begin
   FAction := Action;
   if Action = uaVersion then
   begin
-    if FLanguage <> '' then
+    if (FLanguage <> '') and (AppGlobals.WebLanguages.IndexOf(LowerCase(FLanguage)) > -1) then
       URL := AppGlobals.ProjectUpdateLinks[FURLIndex] + Trim(FLanguage) + '/projekte/update/' + LowerCase(AppGlobals.AppName) + '/'
     else
       URL := AppGlobals.ProjectUpdateLinks[FURLIndex] + 'en/projekte/update/' + LowerCase(AppGlobals.AppName) + '/';

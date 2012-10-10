@@ -72,6 +72,7 @@ type
     procedure pagAboutChange(Sender: TObject);
     procedure btnDonateEnClick(Sender: TObject);
     procedure FormResize(Sender: TObject);
+    procedure pnlNavClick(Sender: TObject);
   private
     FScrollText: TScrollText;
   public
@@ -200,6 +201,11 @@ begin
   begin
     FScrollText.Start;
   end;
+end;
+
+procedure TfrmAbout.pnlNavClick(Sender: TObject);
+begin
+
 end;
 
 { TScrollText }

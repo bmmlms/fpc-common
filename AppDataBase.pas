@@ -70,6 +70,7 @@ type
     FPortable: TPortable;
     FRunningFromInstalledLocation: Boolean;
     FCommandLine: TCommandLine;
+    FWebLanguages: TStringList;
 
     FSkipSave: Boolean;
 
@@ -136,6 +137,7 @@ type
     property Portable: TPortable read FPortable write FSetPortable;
     property RunningFromInstalledLocation: Boolean read FRunningFromInstalledLocation;
     property CommandLine: TCommandLine read FCommandLine;
+    property WebLanguages: TStringList read FWebLanguages;
 
     property WasSetup: Boolean read FWasSetup write FWasSetup;
     property AutoUpdate: Boolean read FAutoUpdate write FAutoUpdate;
@@ -195,6 +197,10 @@ begin
     FProjectThanksText := '';
 
   FCommandLine := TCommandLine.Create(GetCommandLineW);
+
+  FWebLanguages := TStringList.Create;
+  FWebLanguages.Add('de');
+  FWebLanguages.Add('en');
 
   InitOnlyOne;
 
