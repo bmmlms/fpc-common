@@ -225,6 +225,7 @@ begin
     FStorage.Free;
   FCommandLine.Free;
   RemoveDir(FTempDir);
+  FWebLanguages.Free;
   inherited Destroy;
 end;
 

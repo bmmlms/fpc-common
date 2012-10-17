@@ -118,6 +118,9 @@ type
     FShowGeneral: Boolean;
     FTreeView: TPageTree;
     FImportFilename: string;
+
+    FOnSaveForExport: TNotifyEvent;
+
     procedure TreeViewChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
   protected
     FPageList: TPageList;
@@ -136,6 +139,8 @@ type
 
     property SaveSettings: Boolean read FSaveSettings;
     property ImportFilename: string read FImportFilename;
+
+    property OnSaveForExport: TNotifyEvent read FOnSaveForExport write FOnSaveForExport;
   end;
 
 implementation
@@ -285,6 +290,9 @@ begin
       begin
         if Dlg.FileName <> '' then
         begin
+          if Assigned(FOnSaveForExport) then
+            FOnSaveForExport(Self);
+
           S.Write(Cardinal(1));
           AppGlobals.Storage.GetData(Lst);
           Lst.Save(S);

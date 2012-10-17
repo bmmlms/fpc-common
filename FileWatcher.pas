@@ -150,14 +150,13 @@ end;
 
 destructor TFileWatcher.Destroy;
 begin
-  try
-    if FWatchHandle <> INVALID_HANDLE_VALUE then
-      CloseHandle(FWatchHandle);
-  except end;
-  try
-    CloseHandle(FFileEvent);
-    FTermEvent.Free;
-  except end;
+  if FWatchHandle <> INVALID_HANDLE_VALUE then
+    CloseHandle(FWatchHandle);
+
+  CloseHandle(FFileEvent);
+  FTermEvent.Free;
+
+  inherited;
 end;
 
 end.

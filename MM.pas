@@ -21,11 +21,22 @@ unit MM;
 
 interface
 
-{$IFDEF DEBUG}
 uses
-  FastMM4;
-{$ENDIF}
+  {$IFDEF DEBUG}FastMM4,{$ENDIF} SysUtils, GUIFunctions, ShlObj;
 
 implementation
 
+function GetDesktopDir: string;
+begin
+  Result := GetShellFolder(CSIDL_DESKTOP);
+  if (Trim(Result) <> '') then
+  begin
+    Result := IncludeTrailingPathDelimiter(Result);
+  end;
+end;
+
+begin
+  {$ifdef FullDebugMode}
+  SetMMLogFileName(PAnsiChar(AnsiString(GetDesktopDir + 'streamwriter_fastmm.txt')));
+  {$endif}
 end.
