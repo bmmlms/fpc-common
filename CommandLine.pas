@@ -54,10 +54,9 @@ end;
 
 constructor TCommandLine.Create(Data: string);
 var
-  i, n, ParsedCount: Integer;
+  i, ParsedCount: Integer;
   InDingens: Boolean;
   Arg: string;
-  ParamExists: Boolean;
   SL: TStringList;
   FoundRecord: TCommandLineRecord;
   LastParam: string;
