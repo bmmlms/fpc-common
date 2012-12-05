@@ -27,62 +27,79 @@ uses
 
 type
   TTransferDirection = (tdReceive, tdSend);
-  TPacketReadRes = (rrOk, rrBadPacket, rrMoreBytesNeeded);
 
   TPacketManager = class;
 
   TPacket = class
   private
     FID: Cardinal;
-    FCommandLen: Cardinal;
-    //FPacketLen: Cardinal;
-    FData: TBytes;
+    FPacketLen: Cardinal;
+    FStream: TExtendedStream;
   public
     constructor Create; overload;
-    constructor Create(ID, CommandLen: Cardinal; Data: Pointer; Len: Cardinal); overload;
+    constructor Create(ID: Cardinal; Stream: TExtendedStream; DataLen: Cardinal); overload;
+    destructor Destroy; override;
 
-    class function Read(Stream: TSocketStream; var Packet: TPacket): TPacketReadRes;
+    class function Read(Stream: TSocketStream; var Packet: TPacket): TReadRes;
     procedure Write(Stream: TExtendedStream);
 
     property ID: Cardinal read FID write FID;
-    property CommandLen: Cardinal read FCommandLen write FCommandLen;
-    //property PacketLen: Cardinal read FPacketLen;
+    property PacketLen: Cardinal read FPacketLen;
   end;
 
   TCommandStream = class
   private
     FID: Cardinal;
-    FCommandLen: Cardinal;
-    FCommandBytesTransferred: Cardinal;
+    FCommandHeader: TCommandHeader;
+    FTransferred: Cardinal;
     FCommand: TCommand;
     FCommandStream: TExtendedStream;
     FInputStream: TExtendedStream;
   public
-    constructor Create(ID, CommandLen: Cardinal);
+    constructor Create(ID: Cardinal; CommandHeader: TCommandHeader);
     destructor Destroy; override;
 
     property ID: Cardinal read FID;
-    property Size: Cardinal read FCommandLen;
-    property Transferred: Cardinal read FCommandBytesTransferred;
+    property CommandHeader: TCommandHeader read FCommandHeader;
+    property Transferred: Cardinal read FTransferred write FTransferred;
   end;
 
-  TTransferProgressEvent = procedure(Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal; Size, Transferred: UInt64) of object;
+  TTransferProgressEvent = procedure(Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal;
+    CommandHeader: TCommandHeader; Transferred: UInt64) of object;
 
-  TCommandStreamList = TList<TCommandStream>;
-  TCommandList = TList<TCommand>;
+  TCommandStreamList = class(TList<TCommandStream>)
+  public
+    function GetID(ID: Cardinal): TCommandStream;
+  end;
+
+  TReceivedCommand = class
+  private
+    FID: Cardinal;
+    FCommandHeader: TCommandHeader;
+    FCommand: TCommand;
+  public
+    constructor Create(ID: Cardinal; CommandHeader: TCommandHeader; Command: TCommand);
+    destructor Destroy; override;
+
+    property ID: Cardinal read FID;
+    property CommandHeader: TCommandHeader read FCommandHeader;
+    property Command: TCommand read FCommand;
+  end;
+
+  TReceivedCommandList = TList<TReceivedCommand>;
 
   TPacketManager = class
   private
     FLock: RTL_CRITICAL_SECTION;
 
-    FLastID: Cardinal;
-    FSender: Cardinal;
+    FLastPacketStreamID: Cardinal;
+    FSender: Cardinal;       // TODO: was ist das? was tut es?
     FSendCache: TCommandStreamList;
     FRecvCache: TCommandStreamList;
 
     FOnDebug: TDebugEvent;
     FOnBytesTransferred: TTransferProgressEvent;
-    FReceivedCommands: TCommandList;
+    FReceivedCommands: TReceivedCommandList;
 
     procedure WriteDebug(Data: string);
   public
@@ -98,7 +115,7 @@ type
 
     property SendCache: TCommandStreamList read FSendCache;
     property RecvCache: TCommandStreamList read FRecvCache;
-    property ReceivedCommands: TCommandList read FReceivedCommands;
+    property ReceivedCommands: TReceivedCommandList read FReceivedCommands;
 
     property OnDebug: TDebugEvent read FOnDebug write FOnDebug;
     property OnBytesTransferred: TTransferProgressEvent read FOnBytesTransferred write FOnBytesTransferred;
@@ -125,11 +142,11 @@ type
     destructor Destroy; override;
 
     procedure Handle(Command: TCommand; Direction: TTransferDirection);
-    function FindCounterpart(Command: TCommand): TCommand;
+    //function FindCounterpart(Command: TCommand): TCommand;
   end;
 
 const
-  PACKET_HEADER_LEN = 12;
+  PACKET_HEADER_LEN = 8;
 
 implementation
 
@@ -151,18 +168,19 @@ begin
       FSender := 0;
 
     if FSendCache[FSender].FCommandStream.Size = 0 then
-      Exit;
+      raise Exception.Create('FSendCache[FSender].FCommandStream.Size = 0');
 
-    L := 1000000;
+    L := 16384;
     if FSendCache[FSender].FCommandStream.Size < L then
       L := FSendCache[FSender].FCommandStream.Size;
 
-    P := TPacket.Create(FSendCache[FSender].FID, FSendCache[FSender].FCommandLen, FSendCache[FSender].FCommandStream.Memory, L);
+    FSendCache[FSender].FCommandStream.Seek(0, soFromBeginning);
+    P := TPacket.Create(FSendCache[FSender].ID, FSendCache[FSender].FCommandStream, L);
     FSendCache[FSender].FCommandStream.RemoveRange(0, L);
 
-    FSendCache[FSender].FCommandBytesTransferred := FSendCache[FSender].FCommandBytesTransferred + L;
+    FSendCache[FSender].Transferred := FSendCache[FSender].Transferred + L;
 
-    if FSendCache[FSender].FCommandBytesTransferred = FSendCache[FSender].FCommandLen then
+    if FSendCache[FSender].Transferred = FSendCache[FSender].CommandHeader.CommandLength + COMMAND_HEADER_LEN then
     begin
       FSendCache[FSender].Free;
       FSendCache.Delete(FSender);
@@ -201,10 +219,9 @@ begin
 
   InitializeCriticalSection(FLock);
 
-  FLastID := 0;
   FSendCache := TCommandStreamList.Create;
   FRecvCache := TCommandStreamList.Create;
-  FReceivedCommands := TCommandList.Create;
+  FReceivedCommands := TReceivedCommandList.Create;
 end;
 
 destructor TPacketManager.Destroy;
@@ -236,44 +253,40 @@ begin
     FSendCache[i].FCommand.Process(FSendCache[i].FCommandStream);
 end;
 
-function TPacketManager.Send(Command: TCommand): Cardinal;
-var
-  B: TBytes;
-  CS: TCommandStream;
-  CmdID: Cardinal;
-begin
-  EnterCriticalSection(FLock);
-  try
-    if Command.ID = 0 then
-    begin
-      CmdID := FLastID;
-      Command.ID := CmdID;
-      Inc(FLastID);
-
-      if FLastID = High(Cardinal) then
-        FLastID := 0;
-    end else
-      CmdID := Command.ID;
-
-    Result := CmdID;
-
-    B := Command.Get;
-
-    CS := TCommandStream.Create(CmdID, Command.CmdLength);
-    CS.FCommandStream.Write(B[0], Length(B));
-
-    FSendCache.Add(CS);
-
-    CS.FCommand := Command;
-  finally
-    LeaveCriticalSection(FLock);
-  end;
-end;
-
 procedure TPacketManager.WriteDebug(Data: string);
 begin
   if Assigned(FOnDebug) then
     FOnDebug(nil, Data);
+end;
+
+function TPacketManager.Send(Command: TCommand): Cardinal;
+var
+  B: TBytes;
+  CS: TCommandStream;
+  PacketStreamID: Cardinal;
+  CommandHeader: TCommandHeader;
+begin
+  EnterCriticalSection(FLock);
+  try
+    PacketStreamID := FLastPacketStreamID;
+    Inc(FLastPacketStreamID);
+
+    Result := PacketStreamID;
+
+    B := Command.Get;
+
+
+    CommandHeader := TCommandHeader.Create(1, Length(B), Command.CommandType);
+    CS := TCommandStream.Create(PacketStreamID, CommandHeader);
+
+    CommandHeader.Write(CS.FCommandStream);
+    CS.FCommandStream.Write(B[0], Length(B));
+    CS.FCommand := Command;
+
+    FSendCache.Add(CS);
+  finally
+    LeaveCriticalSection(FLock);
+  end;
 end;
 
 procedure TPacketManager.Read(Stream: TSocketStream);
@@ -281,24 +294,40 @@ var
   i: Integer;
   CS: TCommandStream;
   P: TPacket;
-  Res: TPacketReadRes;
+  PRes, CHRes: TReadRes;
+  CommandHeader: TCommandHeader;
   Cmd: TCommand;
   PacketRead: Boolean;
-  BytesParsed: UInt64;
 begin
   CS := nil;
   PacketRead := False;
 
+  CommandHeader := nil;
+
   Stream.Seek(0, soFromBeginning);
-  BytesParsed := 0;
-  while Stream.Size > 0 + PACKET_HEADER_LEN do
+  while Stream.Size > PACKET_HEADER_LEN do
   begin
     Stream.Seek(0, soFromBeginning);
 
     P := nil;
-    Res := TPacket.Read(Stream, P);
-    case Res of
-      rrOk: ;
+    PRes := TPacket.Read(Stream, P);
+
+    case PRes of
+      rrOk:
+        begin
+          P.FStream.Seek(0, soFromBeginning);
+          if FRecvCache.GetID(P.ID) = nil then
+          begin
+            CHRes := TCommandHeader.Read(P.FStream, CommandHeader);
+            case CHRes of
+              rrOk:;
+              rrBadPacket:
+                raise Exception.Create('rrBadPacket');
+              rrMoreBytesNeeded:
+                raise Exception.Create('rrMoreBytesNeeded');
+            end;
+          end;
+        end;
       rrBadPacket:
         raise Exception.Create('rrBadPacket');
       rrMoreBytesNeeded:
@@ -309,43 +338,38 @@ begin
 
     PacketRead := True;
 
-    CS := nil;
-    for i := 0 to FRecvCache.Count - 1 do
-      if FRecvCache[i].FID = P.FID then
-      begin
-        CS := FRecvCache[i];
-        Break;
-      end;
+    CS := FRecvCache.GetID(P.ID);
 
     if CS = nil then
     begin
-      CS := TCommandStream.Create(P.FID, P.FCommandLen);
+      CS := TCommandStream.Create(P.FID, CommandHeader);
       FRecvCache.Add(CS);
     end;
 
-    BytesParsed := BytesParsed + Stream.Position;
-
-    CS.FCommandStream.Write(P.FData[0], Length(P.FData));
+    if P.FStream.Size - P.FStream.Position > 0 then
+      CS.FCommandStream.CopyFrom(P.FStream, P.FStream.Size - P.FStream.Position);
     Stream.RemoveRange(0, Stream.Position);
+
+    if PacketRead then
+    begin
+      CS.Transferred := CS.Transferred + CS.FCommandStream.Size;
+      if Assigned(FOnBytesTransferred) then
+        FOnBytesTransferred(Self, tdReceive, CS.ID, CS.CommandHeader, CS.Transferred);
+    end;
 
     if P <> nil then
       P.Free;
   end;
 
-  if (CS <> nil) and PacketRead then
-  begin
-    CS.FCommandBytesTransferred := CS.FCommandBytesTransferred + BytesParsed;
-  end;
-
   for i := FRecvCache.Count - 1 downto 0 do
-    if FRecvCache[i].FCommandLen = FRecvCache[i].FCommandStream.Size then
+    if FRecvCache[i].CommandHeader.CommandLength = FRecvCache[i].FCommandStream.Size then
     begin
       try
-        Cmd := TCommand.Read(FRecvCache[i].FCommandStream);
+        FRecvCache[i].FCommandStream.Seek(0, soFromBeginning);
+        Cmd := TCommand.Read(FRecvCache[i].CommandHeader, FRecvCache[i].FCommandStream);
         if Cmd <> nil then
         begin
-          Cmd.ID := FRecvCache[i].FID;
-          FReceivedCommands.Add(Cmd);
+          FReceivedCommands.Add(TReceivedCommand.Create(CS.ID, FRecvCache[i].CommandHeader.Copy, Cmd));
           FRecvCache[i].Free;
           FRecvCache.Delete(i);
         end else
@@ -360,20 +384,26 @@ end;
 
 { TPacket }
 
-constructor TPacket.Create(ID, CommandLen: Cardinal; Data: Pointer; Len: Cardinal);
+constructor TPacket.Create(ID: Cardinal; Stream: TExtendedStream; DataLen: Cardinal);
 begin
   inherited Create;
   FID := ID;
-  FCommandLen := CommandLen;
 
-  SetLength(FData, Len);
-  CopyMemory(@FData[0], Data, Len);
+  FStream := TExtendedStream.Create;
+  FStream.CopyFrom(Stream, DataLen)
+end;
+
+destructor TPacket.Destroy;
+begin
+  FStream.Free;
+
+  inherited;
 end;
 
 class function TPacket.Read(Stream: TSocketStream;
-  var Packet: TPacket): TPacketReadRes;
+  var Packet: TPacket): TReadRes;
 var
-  IDx, PacketLen, CommandLenx: Cardinal;
+  IDx, PacketLen: Cardinal;
 begin
   try
     Result := rrMoreBytesNeeded;
@@ -382,20 +412,20 @@ begin
 
     Stream.Read(PacketLen);
     Stream.Read(IDx);
-    Stream.Read(CommandLenx);
 
     if Stream.Size >= PacketLen then
     begin
       Packet := TPacket.Create;
       Packet.FID := IDx;
-      Packet.FCommandLen := CommandLenx;
-      SetLength(Packet.FData, PacketLen - PACKET_HEADER_LEN);
-      Stream.Read(Packet.FData[0], PacketLen - PACKET_HEADER_LEN);
+      Packet.FPacketLen := PacketLen;
+
+      Packet.FStream.CopyFrom(Stream, PacketLen - PACKET_HEADER_LEN);
+
       Result := rrOk;
     end else
     begin
       // Zurückspulen sonst epic fail
-      Stream.Seek((SizeOf(IDx) + SizeOf(PacketLen) + SizeOf(CommandLenx)) * -1, soFromCurrent);
+      Stream.Seek((SizeOf(IDx) + SizeOf(PacketLen)) * -1, soFromCurrent);
     end;
   except
     Result := rrBadPacket;
@@ -404,35 +434,39 @@ end;
 
 procedure TPacket.Write(Stream: TExtendedStream);
 begin
-  Stream.Write(Cardinal(Length(FData) + PACKET_HEADER_LEN));
+  FStream.Seek(0, soFromBeginning);
+  Stream.Write(Cardinal(FStream.Size + PACKET_HEADER_LEN));
   Stream.Write(FID);
-  Stream.Write(FCommandLen);
-  Stream.Write(FData[0], Length(FData));
+  Stream.CopyFrom(FStream, FStream.Size);
 end;
 
 constructor TPacket.Create;
 begin
   inherited;
+
+  FStream := TExtendedStream.Create;
 end;
 
 { TCommandStream }
 
-constructor TCommandStream.Create(ID, CommandLen: Cardinal);
+constructor TCommandStream.Create(ID: Cardinal; CommandHeader: TCommandHeader);
 begin
   inherited Create;
 
   FID := ID;
-  FCommandLen := CommandLen;
   FCommandStream := TExtendedStream.Create;
   FInputStream := TExtendedStream.Create;
+  FCommandHeader := CommandHeader;
 end;
 
 destructor TCommandStream.Destroy;
 begin
   FCommandStream.Free;
   FInputStream.Free;
-  if FCommand <> nil then // Gibt es nur bei "streamed-transfer"
-    FCommand.Free;
+
+  FCommand.Free; // Gibt es nur bei "streamed-transfer"
+
+  FCommandHeader.Free;
 
   inherited;
 end;
@@ -456,6 +490,7 @@ begin
   inherited;
 end;
 
+{
 function TProtocolManager.FindCounterpart(Command: TCommand): TCommand;
 var
   i: Integer;
@@ -475,6 +510,7 @@ begin
         Break;
       end;
 end;
+}
 
 procedure TProtocolManager.Handle(Command: TCommand; Direction: TTransferDirection);
 var
@@ -483,6 +519,7 @@ var
   E: TProtocolEntry;
 begin
   // Alle löschen, die schon benutzt worden müssen sind.
+  {
   for i := FEntries.Count - 1 downto 0 do
     if (FEntries[i].FSentCommand <> nil) and (FEntries[i].FReceivedCommand <> nil) then
     begin
@@ -521,6 +558,7 @@ begin
     end;
     FEntries.Add(E);
   end;
+  }
 end;
 
 { TProtocolEntry }
@@ -531,6 +569,38 @@ begin
     FSentCommand.Free;
   if FReceivedCommand <> nil then
     FReceivedCommand.Free;
+
+  inherited;
+end;
+
+{ TCommandStreamList }
+
+function TCommandStreamList.GetID(ID: Cardinal): TCommandStream;
+var
+  i: Integer;
+begin
+  Result := nil;
+  for i := 0 to Count - 1 do
+    if Items[i].ID = ID then
+      Exit(Items[i]);
+end;
+
+{ TReceivedCommand }
+
+constructor TReceivedCommand.Create(ID: Cardinal; CommandHeader: TCommandHeader;
+  Command: TCommand);
+begin
+  inherited Create;
+
+  FID := ID;
+  FCommandHeader := CommandHeader;
+  FCommand := Command;
+end;
+
+destructor TReceivedCommand.Destroy;
+begin
+  FCommandHeader.Free;
+  FCommand.Free;
 
   inherited;
 end;

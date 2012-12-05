@@ -52,24 +52,32 @@ type
     FOnBytesTransferred: TTransferProgressEvent;
 
     FDebugData: string;
+
+    // Für CommandReceived-Event
+    FID: Cardinal;
+    FCommandHeader: TCommandHeader;
     FCommand: TCommand;
+
     FTransferredCommandID: Cardinal;
-    FTransferredSize: UInt64;
+    FTransferredCommandHeader: TCommandHeader;
     FTransferredTransferred: UInt64;
     FTransferredDirection: TTransferDirection;
 
-    procedure SyncCommand(Proc: TCommandEvent; Command: TCommand);
+    procedure Initialize;
+
+    procedure SyncCommand(Proc: TCommandEvent; ID: Cardinal; CommandHeader: TCommandHeader; Command: TCommand);
     procedure SyncCommand2;
     procedure SyncDebug;
     procedure SyncTransferred;
 
     procedure PacketManagerDebug(Sender: TSocketThread; Data: string);
-    procedure PacketManagerBytesTransferred(Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal; Size, Transferred: UInt64);
+    procedure PacketManagerBytesTransferred(Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal;
+      CommandHeader: TCommandHeader; Transferred: UInt64);
   protected
     procedure DoStuff; override;
 
     procedure DoReceivedData(Buf: Pointer; Len: Integer); override;
-    procedure DoReceivedCommand(Command: TCommand); virtual;
+    procedure DoReceivedCommand(ID: Cardinal; CommandHeader: TCommandHeader; Command: TCommand); virtual;
     procedure DoException(E: Exception); override;
 
     procedure WriteDebug(Data: string);
@@ -113,7 +121,8 @@ type
     FThread: TCommandThreadBase;
     FHost: string;
 
-    procedure ThreadBytesTransferred(Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal; Size, Transferred: UInt64);
+    procedure ThreadBytesTransferred(Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal;
+      CommandHeader: TCommandHeader; Transferred: UInt64);
     procedure ThreadCommandReceived(Socket: TSocketThread; Command: TCommand);
   protected
     procedure ThreadConnected(Sender: TSocketThread); override;
@@ -129,7 +138,7 @@ type
   TCommandClientThread = class(TCommandThreadBase)
   protected
     procedure DoConnected; override;
-    procedure DoReceivedCommand(Command: TCommand); override;
+    procedure DoReceivedCommand(ID: Cardinal; CommandHeader: TCommandHeader; Command: TCommand); override;
   end;
 
   TClientStream = class(TCommandStream)
@@ -146,15 +155,7 @@ constructor TCommandThreadBase.Create(Handle: Cardinal;
 begin
   inherited;
 
-  FPacketSender := TPacketManager.Create;
-  FPacketSender.OnDebug := PacketManagerDebug;
-  FPacketSender.OnBytesTransferred := PacketManagerBytesTransferred;
-
-  FPacketReader := TPacketManager.Create;
-  FPacketReader.OnDebug := PacketManagerDebug;
-  FPacketReader.OnBytesTransferred := PacketManagerBytesTransferred;
-
-  FProtocolManager := TProtocolManager.Create;
+  Initialize;
 end;
 
 constructor TCommandThreadBase.Create(Host: string; Port: Integer;
@@ -162,13 +163,7 @@ constructor TCommandThreadBase.Create(Host: string; Port: Integer;
 begin
   inherited;
 
-  FPacketSender := TPacketManager.Create;
-  FPacketSender.OnDebug := PacketManagerDebug;
-
-  FPacketReader := TPacketManager.Create;
-  FPacketReader.OnDebug := PacketManagerDebug;
-
-  FProtocolManager := TProtocolManager.Create;
+  Initialize;
 end;
 
 destructor TCommandThreadBase.Destroy;
@@ -187,11 +182,11 @@ begin
   WriteDebug(E.Message);
 end;
 
-procedure TCommandThreadBase.DoReceivedCommand(Command: TCommand);
+procedure TCommandThreadBase.DoReceivedCommand(ID: Cardinal; CommandHeader: TCommandHeader; Command: TCommand);
 begin
   // Fertiges Command Bytes rübergeben
   if Assigned(FOnBytesTransferred) then
-    FOnBytesTransferred(Self, tdReceive, Command.ID, Command.CmdLength, Command.CmdLength);
+    FOnBytesTransferred(Self, tdReceive, ID, CommandHeader, CommandHeader.CommandLength);
 
   FProtocolManager.Handle(Command, tdReceive);
 end;
@@ -199,22 +194,22 @@ end;
 procedure TCommandThreadBase.DoReceivedData(Buf: Pointer; Len: Integer);
 var
   i: Integer;
-  Cmd: TCommand;
+  Cmd: TReceivedCommand;
 begin
   inherited;
 
   FPacketReader.Read(FRecvStream);
 
-  for i := FPacketReader.ReceivedCommands.Count - 1 downto 0 do
+  for i := 0 to FPacketReader.ReceivedCommands.Count - 1 do
   begin
     Cmd := FPacketReader.ReceivedCommands[i];
-    DoReceivedCommand(Cmd);
+    DoReceivedCommand(Cmd.ID, Cmd.CommandHeader, Cmd.Command);
 
-    SyncCommand(FOnCommandReceived, Cmd);
+    SyncCommand(FOnCommandReceived, Cmd.ID, Cmd.CommandHeader, Cmd.Command);
 
-    FPacketReader.ReceivedCommands.Remove(Cmd);
-    Cmd.Free;
+    FPacketReader.ReceivedCommands[i].Free;
   end;
+  FPacketReader.ReceivedCommands.Clear;
 end;
 
 procedure TCommandThreadBase.DoStuff;
@@ -224,6 +219,7 @@ var
 begin
   inherited;
 
+  // todo: im packetsender bleiben sachen drin hängen. fail. die müssen raus wenn voll gesendet. oder??
   FPacketSender.Process;
 
   FSendLock.Enter;
@@ -248,26 +244,39 @@ begin
       for i := 0 to FPacketSender.SendCache.Count - 1 do
       begin
         PacketManagerBytesTransferred(Self, tdSend, FPacketSender.SendCache[i].ID,
-          FPacketSender.SendCache[i].Size, FPacketSender.SendCache[i].Transferred);
+          FPacketSender.SendCache[i].CommandHeader, FPacketSender.SendCache[i].Transferred);
       end;
 
     if FPacketReader.RecvCache.Count > 0 then
       for i := 0 to FPacketReader.RecvCache.Count - 1 do
       begin
         PacketManagerBytesTransferred(Self, tdReceive, FPacketReader.RecvCache[i].ID,
-          FPacketReader.RecvCache[i].Size, FPacketReader.RecvCache[i].Transferred);
+          FPacketReader.RecvCache[i].CommandHeader, FPacketReader.RecvCache[i].Transferred);
       end;
 
     FLastSyncedTransfer := GetTickCount;
   end;
 end;
 
+procedure TCommandThreadBase.Initialize;
+begin
+  FPacketSender := TPacketManager.Create;
+  FPacketSender.OnDebug := PacketManagerDebug;
+  FPacketSender.OnBytesTransferred := PacketManagerBytesTransferred;
+
+  FPacketReader := TPacketManager.Create;
+  FPacketReader.OnDebug := PacketManagerDebug;
+  FPacketReader.OnBytesTransferred := PacketManagerBytesTransferred;
+
+  FProtocolManager := TProtocolManager.Create;
+end;
+
 procedure TCommandThreadBase.PacketManagerBytesTransferred(
   Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal;
-  Size, Transferred: UInt64);
+  CommandHeader: TCommandHeader; Transferred: UInt64);
 begin
   FTransferredCommandID := CommandID;
-  FTransferredSize := Size;
+  FTransferredCommandHeader := CommandHeader;
   FTransferredTransferred := Transferred;
   FTransferredDirection := Direction;
 
@@ -293,11 +302,13 @@ begin
 end;
 
 procedure TCommandThreadBase.SyncCommand(Proc: TCommandEvent;
-  Command: TCommand);
+  ID: Cardinal; CommandHeader: TCommandHeader; Command: TCommand);
 begin
   if Assigned(Proc) then
   begin
     FProc := Proc;
+    FID := ID;
+    FCommandHeader := CommandHeader;
     FCommand := Command;
     if UseSynchronize then
       Synchronize(SyncCommand2)
@@ -320,7 +331,8 @@ end;
 procedure TCommandThreadBase.SyncTransferred;
 begin
   if Assigned(FOnBytesTransferred) then
-    FOnBytesTransferred(Self, FTransferredDirection, FTransferredCommandID, FTransferredSize, FTransferredTransferred);
+    FOnBytesTransferred(Self, FTransferredDirection, FTransferredCommandID, FTransferredCommandHeader,
+      FTransferredTransferred);
 end;
 
 procedure TCommandThreadBase.WriteDebug(Data: string);
@@ -366,11 +378,11 @@ begin
 end;
 
 procedure TCommandClient.ThreadBytesTransferred(Sender: TObject;
-  Direction: TTransferDirection; CommandID: Cardinal; Size,
+  Direction: TTransferDirection; CommandID: Cardinal; CommandHeader: TCommandHeader;
   Transferred: UInt64);
 begin
   if Assigned(FOnBytesTransferred) then
-    FOnBytesTransferred(Sender, Direction, CommandID, Size, Transferred);
+    FOnBytesTransferred(Sender, Direction, CommandID, CommandHeader, Transferred);
 end;
 
 procedure TCommandClient.ThreadCommandReceived(Socket: TSocketThread;
@@ -409,23 +421,12 @@ var
 begin
   inherited;
 
-  Cmd := TCommandGetVersion.Create;
-  SendCommand(Cmd);
 end;
 
-procedure TCommandClientThread.DoReceivedCommand(Command: TCommand);
+procedure TCommandClientThread.DoReceivedCommand(ID: Cardinal; CommandHeader: TCommandHeader; Command: TCommand);
 begin
   inherited;
 
-  case Command.CommandType of
-    ctGetVersion: ;
-    ctGetVersionResponse: ;
-    ctGetArchiveResponse: ;
-    ctError:
-      begin
-
-      end;
-  end;
 end;
 
 end.
