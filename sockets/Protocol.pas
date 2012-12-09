@@ -93,7 +93,6 @@ type
     FLock: RTL_CRITICAL_SECTION;
 
     FLastPacketStreamID: Cardinal;
-    FSender: Cardinal;       // TODO: was ist das? was tut es?
     FSendCache: TCommandStreamList;
     FRecvCache: TCommandStreamList;
 
@@ -121,30 +120,6 @@ type
     property OnBytesTransferred: TTransferProgressEvent read FOnBytesTransferred write FOnBytesTransferred;
   end;
 
-  TProtocolEntry = class
-  private
-    FSentCommand: TCommand;
-    FReceivedCommand: TCommand;
-  public
-    destructor Destroy; override;
-
-    property SentCommand: TCommand read FSentCommand write FSentCommand;
-    property ReceivedCommand: TCommand read FReceivedCommand write FReceivedCommand;
-  end;
-
-  TProtocolEntryList = TList<TProtocolEntry>;
-
-  TProtocolManager = class
-  private
-    FEntries: TProtocolEntryList;
-  public
-    constructor Create;
-    destructor Destroy; override;
-
-    procedure Handle(Command: TCommand; Direction: TTransferDirection);
-    //function FindCounterpart(Command: TCommand): TCommand;
-  end;
-
 const
   PACKET_HEADER_LEN = 8;
 
@@ -164,29 +139,25 @@ begin
     if FSendCache.Count = 0 then
       Exit;
 
-    if Integer(FSender) > FSendCache.Count - 1 then
-      FSender := 0;
-
-    if FSendCache[FSender].FCommandStream.Size = 0 then
+    if FSendCache[0].FCommandStream.Size = 0 then
       raise Exception.Create('FSendCache[FSender].FCommandStream.Size = 0');
 
     L := 16384;
-    if FSendCache[FSender].FCommandStream.Size < L then
-      L := FSendCache[FSender].FCommandStream.Size;
+    if FSendCache[0].FCommandStream.Size < L then
+      L := FSendCache[0].FCommandStream.Size;
 
-    FSendCache[FSender].FCommandStream.Seek(0, soFromBeginning);
-    P := TPacket.Create(FSendCache[FSender].ID, FSendCache[FSender].FCommandStream, L);
-    FSendCache[FSender].FCommandStream.RemoveRange(0, L);
+    FSendCache[0].FCommandStream.Seek(0, soFromBeginning);
+    P := TPacket.Create(FSendCache[0].ID, FSendCache[0].FCommandStream, L);
+    FSendCache[0].FCommandStream.RemoveRange(0, L);
 
-    FSendCache[FSender].Transferred := FSendCache[FSender].Transferred + L;
+    FSendCache[0].Transferred := FSendCache[0].Transferred + L;
 
-    if FSendCache[FSender].Transferred = FSendCache[FSender].CommandHeader.CommandLength + COMMAND_HEADER_LEN then
+    if FSendCache[0].Transferred = FSendCache[0].CommandHeader.CommandLength + COMMAND_HEADER_LEN then
     begin
-      FSendCache[FSender].Free;
-      FSendCache.Delete(FSender);
+      FSendCache[0].Free;
+      FSendCache.Delete(0);
     end;
 
-    Inc(FSender);
     Result := P;
   finally
     LeaveCriticalSection(FLock);
@@ -297,10 +268,8 @@ var
   PRes, CHRes: TReadRes;
   CommandHeader: TCommandHeader;
   Cmd: TCommand;
-  PacketRead: Boolean;
 begin
   CS := nil;
-  PacketRead := False;
 
   CommandHeader := nil;
 
@@ -336,8 +305,6 @@ begin
         end;
     end;
 
-    PacketRead := True;
-
     CS := FRecvCache.GetID(P.ID);
 
     if CS = nil then
@@ -350,12 +317,9 @@ begin
       CS.FCommandStream.CopyFrom(P.FStream, P.FStream.Size - P.FStream.Position);
     Stream.RemoveRange(0, Stream.Position);
 
-    if PacketRead then
-    begin
-      CS.Transferred := CS.Transferred + CS.FCommandStream.Size;
-      if Assigned(FOnBytesTransferred) then
-        FOnBytesTransferred(Self, tdReceive, CS.ID, CS.CommandHeader, CS.Transferred);
-    end;
+    CS.Transferred := CS.Transferred + CS.FCommandStream.Size;
+    if Assigned(FOnBytesTransferred) then
+      FOnBytesTransferred(Self, tdReceive, CS.ID, CS.CommandHeader, CS.Transferred);
 
     if P <> nil then
       P.Free;
@@ -467,108 +431,6 @@ begin
   FCommand.Free; // Gibt es nur bei "streamed-transfer"
 
   FCommandHeader.Free;
-
-  inherited;
-end;
-
-{ TProtocolManager }
-
-constructor TProtocolManager.Create;
-begin
-  FEntries := TProtocolEntryList.Create;
-end;
-
-destructor TProtocolManager.Destroy;
-var
-  i: Integer;
-begin
-  for i := 0 to FEntries.Count - 1 do
-    FEntries[i].Free;
-
-  FEntries.Free;
-
-  inherited;
-end;
-
-{
-function TProtocolManager.FindCounterpart(Command: TCommand): TCommand;
-var
-  i: Integer;
-begin
-  Result := nil;
-  for i := 0 to FEntries.Count - 1 do
-    if FEntries[i].FSentCommand <> nil then
-      if FEntries[i].FSentCommand.ID = Command.ID then
-      begin
-        Result := FEntries[i].FSentCommand;
-        Break;
-      end
-    else if FEntries[i].FReceivedCommand <> nil then
-      if FEntries[i].FReceivedCommand.ID = Command.ID then
-      begin
-        Result := FEntries[i].FReceivedCommand;
-        Break;
-      end;
-end;
-}
-
-procedure TProtocolManager.Handle(Command: TCommand; Direction: TTransferDirection);
-var
-  Handeled: Boolean;
-  i: Integer;
-  E: TProtocolEntry;
-begin
-  // Alle löschen, die schon benutzt worden müssen sind.
-  {
-  for i := FEntries.Count - 1 downto 0 do
-    if (FEntries[i].FSentCommand <> nil) and (FEntries[i].FReceivedCommand <> nil) then
-    begin
-      FEntries[i].Free;
-      FEntries.Delete(i);
-    end;
-
-  Handeled := False;
-  case Direction of
-    tdReceive:
-      for i := 0 to FEntries.Count - 1 do
-        if FEntries[i].FSentCommand <> nil then
-          if FEntries[i].FSentCommand.ID = Command.ID then
-          begin
-            FEntries[i].FReceivedCommand := Command.Copy;
-            Handeled := True;
-          end;
-    tdSend:
-      for i := 0 to FEntries.Count - 1 do
-        if FEntries[i].FReceivedCommand <> nil then
-          if FEntries[i].FReceivedCommand.ID = Command.ID then
-          begin
-            FEntries[i].FSentCommand := Command.Copy;
-            Handeled := True;
-          end;
-  end;
-
-  if not Handeled then
-  begin
-    E := TProtocolEntry.Create;
-    case Direction of
-      tdReceive:
-        E.FReceivedCommand := Command.Copy;
-      tdSend:
-        E.FSentCommand := Command.Copy;
-    end;
-    FEntries.Add(E);
-  end;
-  }
-end;
-
-{ TProtocolEntry }
-
-destructor TProtocolEntry.Destroy;
-begin
-  if FSentCommand <> nil then
-    FSentCommand.Free;
-  if FReceivedCommand <> nil then
-    FReceivedCommand.Free;
 
   inherited;
 end;

@@ -41,8 +41,7 @@ type
   private
     FPacketSender: TPacketManager;
     FPacketReader: TPacketManager;
-    FProtocolManager: TProtocolManager;
-//    FFileTransfers: TList<TFileTransferInfo>;
+
     FLastSyncedTransfer: Cardinal;
 
     FProc: TCommandEvent;
@@ -87,8 +86,7 @@ type
     destructor Destroy; override;
 
     function SendCommand(Command: TCommand): Cardinal;
-//    property PacketSender: TPacketManager read FPacketSender;
-    property ProtocolManager: TProtocolManager read FProtocolManager;
+
     property OnBytesTransferred: TTransferProgressEvent read FOnBytesTransferred write FOnBytesTransferred;
     property OnCommandReceived: TCommandEvent read FOnCommandReceived write FOnCommandReceived;
     property OnDebug: TDebugEvent read FOnDebug write FOnDebug;
@@ -171,8 +169,6 @@ begin
   FPacketSender.Free;
   FPacketReader.Free;
 
-  FProtocolManager.Free;
-
   inherited;
 end;
 
@@ -187,8 +183,6 @@ begin
   // Fertiges Command Bytes rübergeben
   if Assigned(FOnBytesTransferred) then
     FOnBytesTransferred(Self, tdReceive, ID, CommandHeader, CommandHeader.CommandLength);
-
-  FProtocolManager.Handle(Command, tdReceive);
 end;
 
 procedure TCommandThreadBase.DoReceivedData(Buf: Pointer; Len: Integer);
@@ -219,7 +213,6 @@ var
 begin
   inherited;
 
-  // todo: im packetsender bleiben sachen drin hängen. fail. die müssen raus wenn voll gesendet. oder??
   FPacketSender.Process;
 
   FSendLock.Enter;
@@ -267,8 +260,6 @@ begin
   FPacketReader := TPacketManager.Create;
   FPacketReader.OnDebug := PacketManagerDebug;
   FPacketReader.OnBytesTransferred := PacketManagerBytesTransferred;
-
-  FProtocolManager := TProtocolManager.Create;
 end;
 
 procedure TCommandThreadBase.PacketManagerBytesTransferred(
@@ -296,9 +287,6 @@ end;
 function TCommandThreadBase.SendCommand(Command: TCommand): Cardinal;
 begin
   Result := FPacketSender.Send(Command);
-
-  // Muss unter .Send(), weil es erst hier eine ID hat.
-  FProtocolManager.Handle(Command, tdSend);
 end;
 
 procedure TCommandThreadBase.SyncCommand(Proc: TCommandEvent;
@@ -416,8 +404,6 @@ end;
 { TCommandClientThread }
 
 procedure TCommandClientThread.DoConnected;
-var
-  Cmd: TCommand;
 begin
   inherited;
 

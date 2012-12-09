@@ -473,7 +473,7 @@ begin
     end;
   finally
     try
-      DoBeforeEndedEvent; // TODO: Das ist doch sinnlos. warum gibt es das selbe zwei mal? das event kommt danach...
+      DoBeforeEndedEvent;
       DoEnded;
       DoEndedEvent;
     except

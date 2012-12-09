@@ -26,7 +26,6 @@ uses
   zlib;
 
 type
-  // TODO: gehört hier nicht hin...
   TCommandTypes = (ctHandshake, ctHandshakeResponse,
     ctLogIn, ctLogInResponse,
     ctLogOut, ctLogOutResponse,
@@ -34,9 +33,12 @@ type
     ctTitleChanged,
     ctNetworkTitleChangedResponse,
     ctServerInfoResponse,
-    ctErrorResponse,     // TODO: ErrorResponse evtl umbenennen zu MessageResponse oder so
+    ctMessageResponse,
     ctUpdateStats,
-    ctSetSettings);
+    ctSetSettings,
+    ctClientStats,
+    ctSubmitStream,
+    ctSetStreamData);
 
   TReadRes = (rrOk, rrBadPacket, rrMoreBytesNeeded);
   TBytes = array of Byte;
@@ -74,7 +76,7 @@ type
                                  // analog zum commandtype hier drüber sollte hier auch noch die version gemirrort werden.
     FStream: TStream;
 
-    function DoGet: TBytes; virtual;
+    procedure DoGet(S: TExtendedStream); virtual;
     function FGetCmdLength: Cardinal; virtual;
   public
     constructor Create;
@@ -83,9 +85,6 @@ type
     class procedure RegisterCommand(CommandType: TCommandTypes; CommandClass: TClass);
     class function Read(CommandHeader: TCommandHeader; Stream: TExtendedStream): TCommand;
     procedure Load(CommandHeader: TCommandHeader; Stream: TExtendedStream); virtual;
-
-    function Copy: TCommand; virtual; abstract;
-    procedure Assign(Source: TCommand); virtual; abstract;
 
     function Get: TBytes;
     function Process(ToStream: TExtendedStream): Boolean; virtual;
@@ -162,9 +161,9 @@ begin
   inherited;
 end;
 
-function TCommand.DoGet: TBytes;
+procedure TCommand.DoGet(S: TExtendedStream);
 begin
-  SetLength(Result, 0);
+
 end;
 
 function TCommand.FGetCmdLength: Cardinal;
@@ -175,18 +174,13 @@ end;
 function TCommand.Get: TBytes;
 var
   S: TExtendedStream;
-  B: TBytes;
-  L: Cardinal;
 begin
   S := TExtendedStream.Create;
   try
-    B := DoGet;
-
-    if Length(B) > 0 then
-      S.Write(B[0], Length(B));
+    DoGet(S);
 
     SetLength(Result, S.Size);
-    if Length(B) > 0 then
+    if S.Size > 0 then
       CopyMemory(@Result[0], S.Memory, S.Size);
   finally
     S.Free;
@@ -225,12 +219,9 @@ end;
 
 class function TCommand.Read(CommandHeader: TCommandHeader; Stream: TExtendedStream): TCommand;
 var
-  CommandVersion, CommandLen, CommandType: Cardinal;
-  CmdType: TCommandTypes;
   i: Integer;
   Cmd: TCommand;
 begin
-  Result := nil;
   for i := 0 to FCommands.Count - 1 do
     if FCommands[i].CommandType = CommandHeader.CommandType then
     begin
