@@ -237,6 +237,9 @@ var
   PacketStreamID: Cardinal;
   CommandHeader: TCommandHeader;
 begin
+  if Command.Stream <> nil then
+    Command.Stream.Position := 0;
+
   EnterCriticalSection(FLock);
   try
     PacketStreamID := FLastPacketStreamID;
@@ -246,8 +249,11 @@ begin
 
     B := Command.Get;
 
+    if Command.Stream = nil then
+      CommandHeader := TCommandHeader.Create(1, Length(B), Command.CommandType)
+    else
+      CommandHeader := TCommandHeader.Create(1, Length(B) + Command.Stream.Size, Command.CommandType);
 
-    CommandHeader := TCommandHeader.Create(1, Length(B), Command.CommandType);
     CS := TCommandStream.Create(PacketStreamID, CommandHeader);
 
     CommandHeader.Write(CS.FCommandStream);
