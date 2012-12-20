@@ -116,7 +116,7 @@ type
     procedure Sync(Proc: TSocketEvent);
     procedure Sync2;
 
-    procedure DoDebug(Text, Data: string; T, Level: Integer);
+    procedure DoDebug(Text, Data: string; T, Level: Integer); virtual;
     procedure DoStuff; virtual;
     procedure DoConnecting; virtual;
     procedure DoConnected; virtual;
