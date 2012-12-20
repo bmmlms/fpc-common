@@ -10,17 +10,14 @@ type
   private
     //class function GetDesktopDir: string;
   public
-    class procedure Init;
+    class procedure SetFilename(LogFile: string);
     class procedure Write(Data: string);
   end;
 
-//var
-//  LoggingFile: string;
+var
+  LoggingFile: string;
 
 implementation
-
-uses
-  AppData;
 
 var
   CS: _RTL_CRITICAL_SECTION;
@@ -38,9 +35,9 @@ begin
 end;
 }
 
-class procedure TLogger.Init;
+class procedure TLogger.SetFilename(LogFile: string);
 begin
-  //LoggingFile :=  GetDesktopDir + 'streamwriter_log.txt';
+  LoggingFile :=  LogFile; //GetDesktopDir + 'streamwriter_log.txt';
 end;
 
 class procedure TLogger.Write(Data: string);
@@ -53,18 +50,15 @@ begin
   //{$IFNDEF DEBUG}
   //Exit;
   //{$ENDIF}
-  if AppGlobals = nil then
-    Exit;
-
-  if AppGlobals.LogFile = '' then
+  if LoggingFile = '' then
     Exit;
 
   EnterCriticalSection(CS);
   try
-    H := CreateFile(PChar(AppGlobals.LogFile), FILE_APPEND_DATA, FILE_SHARE_READ or FILE_SHARE_WRITE, nil, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    H := CreateFile(PChar(LoggingFile), FILE_APPEND_DATA, FILE_SHARE_READ or FILE_SHARE_WRITE, nil, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     if H = INVALID_HANDLE_VALUE then
     begin
-      H := CreateFile(PChar(AppGlobals.LogFile), GENERIC_WRITE, FILE_SHARE_READ or FILE_SHARE_WRITE, nil, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+      H := CreateFile(PChar(LoggingFile), GENERIC_WRITE, FILE_SHARE_READ or FILE_SHARE_WRITE, nil, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
     end;
 
     if H <> INVALID_HANDLE_VALUE then
@@ -80,6 +74,7 @@ begin
 end;
 
 initialization
+  LoggingFile := '';
   InitializeCriticalSection(CS);
 
 end.
