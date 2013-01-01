@@ -115,7 +115,7 @@ begin
   lblGPL.Caption := _('Distributed under the terms of the GNU General Public License');
 
   txtAbout.Text := Format(_('%s'#13#10 +
-                            'Copyright (c) 2010-2012 Alexander Nottelmann'#13#10#13#10 +
+                            'Copyright (c) 2010-2013 Alexander Nottelmann'#13#10#13#10 +
                             'This program is free software: you can redistribute it and/or modify ' +
                             'it under the terms of the GNU General Public License as published by ' +
                             'the Free Software Foundation, either version 3 of the License, or ' +
