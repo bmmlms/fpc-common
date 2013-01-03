@@ -41,7 +41,7 @@ type
 
 const
   FADE_TIME = 1000;
-  FADE_WAIT_TIME = 600;
+  FADE_WAIT_TIME = 1700;
 
 var
   SplashWndHandle: LongWord;
@@ -241,7 +241,7 @@ begin
   inherited;
 
   // Falls direkt was passiert, keinen Splash zeigen.
-  Sleep(100);
+  Sleep(200);
   if GetWindow then
     Exit;
 
