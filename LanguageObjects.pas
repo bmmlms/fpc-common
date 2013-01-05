@@ -711,7 +711,7 @@ procedure TProject.Save(Stream: TMemoryStream; SaveMeta: Boolean);
     Result := StringReplace(Result, #10, '\n', [rfReplaceAll]);
   end;
 var
-  i, n, k: Integer;
+  i, n: Integer;
   F: TStringList;
 begin
   // Sauber machen - TODO: Irgendwann wieder entfernen. Ist quasi ein Bugfix.
