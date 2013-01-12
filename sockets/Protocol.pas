@@ -324,7 +324,7 @@ begin
       CS.FCommandStream.CopyFrom(P.FStream, P.FStream.Size - P.FStream.Position);
     Stream.RemoveRange(0, Stream.Position);
 
-    CS.Transferred := CS.Transferred + CS.FCommandStream.Size;
+    CS.Transferred := CS.FCommandStream.Size;
     if Assigned(FOnBytesTransferred) then
       FOnBytesTransferred(Self, tdReceive, CS.ID, CS.CommandHeader, CS.Transferred);
 

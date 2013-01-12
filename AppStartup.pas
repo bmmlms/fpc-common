@@ -61,7 +61,7 @@ begin
 
   SetErrorMode(SEM_FAILCRITICALERRORS);
 
-  Ver.dwOSVersionInfoSize := SizeOf(ver);
+  Ver.dwOSVersionInfoSize := SizeOf(Ver);
   if GetVersionEx(Ver) then
   begin
     VerRec := ParseVersion(Ver.dwMajorVersion, Ver.dwMinorVersion, 0, 0);

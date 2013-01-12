@@ -42,11 +42,13 @@ type
   private
     FID: string;
     FName: string;
+    FLCID: Cardinal;
     FAvailable: Boolean;
   public
     constructor Create(LCID: Cardinal); overload;
     property ID: string read FID;
     property Name: string read FName;
+    property LCID: Cardinal read FLCID;
     property Available: Boolean read FAvailable write FAvailable;
   end;
 
@@ -1048,6 +1050,7 @@ var
 begin
   LangID := '';
   LangName := '';
+  FLCID := LCID;
   FAvailable := False;
   ZeroMemory(@szLangCode[0], 3);
   if GetLocaleInfoA(LCID, LOCALE_SISO639LANGNAME, @szLangCode[0], 3) > 0 then
