@@ -26,7 +26,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Buttons, ComCtrls, LanguageObjects,
   AppData, AppDataBase, SettingsStorage, Functions, ListActns, pngimage,
-  PngImageList, ImgList, VirtualTrees, ExtendedStream;
+  PngImageList, ImgList, VirtualTrees, ExtendedStream, GUIFunctions;
 
 type
   TPage = class
@@ -378,7 +378,7 @@ begin
 
   RegisterPages;
 
-  pnlLeft.Width := 180;
+  pnlLeft.Width := MulDiv(190, Screen.PixelsPerInch, 96);
 
   FTreeView := TPageTree.Create(pnlLeft, FPageList);
   FTreeView.Parent := pnlLeft;
@@ -646,7 +646,7 @@ procedure TPageTree.DoMeasureItem(TargetCanvas: TCanvas;
 begin
   inherited;
 
-  NodeHeight := 27;
+  NodeHeight := GetTextSize('Wyg', Font).cy + 12;
 end;
 
 procedure TPageTree.Resize;

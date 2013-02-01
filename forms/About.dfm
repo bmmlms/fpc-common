@@ -4,7 +4,7 @@ object frmAbout: TfrmAbout
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'About'
-  ClientHeight = 274
+  ClientHeight = 255
   ClientWidth = 421
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -56,23 +56,27 @@ object frmAbout: TfrmAbout
   OnResize = FormResize
   DesignSize = (
     421
-    274)
+    255)
   PixelsPerInch = 96
   TextHeight = 13
   object pagAbout: TPageControl
     Left = 4
     Top = 4
     Width = 413
-    Height = 218
+    Height = 205
     ActivePage = tabAbout
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 0
     OnChange = pagAboutChange
     object tabAbout: TTabSheet
       Caption = 'About'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         405
-        190)
+        177)
       object lblAbout: TLabel
         Left = 4
         Top = 2
@@ -881,9 +885,13 @@ object frmAbout: TfrmAbout
     object tabLicense: TTabSheet
       Caption = 'License'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         405
-        190)
+        177)
       object lblGPL: TLabel
         Left = 4
         Top = 4
@@ -903,14 +911,13 @@ object frmAbout: TfrmAbout
         Left = 4
         Top = 24
         Width = 397
-        Height = 162
+        Height = 149
         Anchors = [akLeft, akTop, akRight, akBottom]
         Color = clBtnFace
         ReadOnly = True
         ScrollBars = ssVertical
         TabOrder = 0
-        ExplicitWidth = 445
-        ExplicitHeight = 157
+        ExplicitHeight = 153
       end
     end
     object tabThanks: TTabSheet
@@ -924,9 +931,9 @@ object frmAbout: TfrmAbout
   end
   object pnlNav: TPanel
     Left = 0
-    Top = 225
+    Top = 215
     Width = 421
-    Height = 49
+    Height = 40
     Align = alBottom
     BevelOuter = bvNone
     Padding.Left = 4
@@ -949,7 +956,7 @@ object frmAbout: TfrmAbout
       Left = 320
       Top = 9
       Width = 97
-      Height = 36
+      Height = 27
       Align = alRight
       Caption = '&Close'
       Default = True

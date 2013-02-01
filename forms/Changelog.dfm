@@ -3,13 +3,13 @@ object frmChangeLog: TfrmChangeLog
   Top = 0
   BorderIcons = [biSystemMenu]
   Caption = 'Changelog'
-  ClientHeight = 297
+  ClientHeight = 292
   ClientWidth = 449
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
-  Font.Name = 'Tahoma'
+  
   Font.Style = []
   Icon.Data = {
     0000010001001010000001002000680400001600000028000000100000002000
@@ -56,27 +56,57 @@ object frmChangeLog: TfrmChangeLog
   OnShow = FormShow
   DesignSize = (
     449
-    297)
+    292)
   PixelsPerInch = 96
   TextHeight = 13
-  object btnClose: TButton
-    Left = 348
-    Top = 264
-    Width = 97
-    Height = 29
-    Anchors = [akRight, akBottom]
-    Caption = '&Close'
-    TabOrder = 0
-    OnClick = btnCloseClick
-  end
   object txtChangeLog: TMemo
     Left = 4
     Top = 4
     Width = 441
-    Height = 253
+    Height = 241
     Anchors = [akLeft, akTop, akRight, akBottom]
     ReadOnly = True
     ScrollBars = ssVertical
+    TabOrder = 0
+  end
+  object pnlNav: TPanel
+    Left = 0
+    Top = 252
+    Width = 449
+    Height = 40
+    Align = alBottom
+    BevelOuter = bvNone
+    Padding.Left = 4
+    Padding.Top = 4
+    Padding.Right = 4
+    Padding.Bottom = 4
     TabOrder = 1
+    ExplicitTop = 256
+    object Bevel2: TBevel
+      Left = 4
+      Top = 4
+      Width = 441
+      Height = 5
+      Align = alTop
+      Shape = bsTopLine
+      ExplicitLeft = -7
+      ExplicitWidth = 396
+    end
+    object btnClose: TBitBtn
+      Left = 348
+      Top = 9
+      Width = 97
+      Height = 27
+      Align = alRight
+      Caption = '&Close'
+      Default = True
+      DoubleBuffered = True
+      Layout = blGlyphRight
+      ParentDoubleBuffered = False
+      TabOrder = 0
+      OnClick = btnCloseClick
+      ExplicitTop = 8
+      ExplicitHeight = 24
+    end
   end
 end

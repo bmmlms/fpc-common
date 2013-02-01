@@ -6,13 +6,13 @@ object frmMsgDlg: TfrmMsgDlg
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Info'
-  ClientHeight = 165
+  ClientHeight = 170
   ClientWidth = 381
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  
   Font.Style = []
   Icon.Data = {
     0000010001001010000001002000680400001600000028000000100000002000
@@ -60,61 +60,78 @@ object frmMsgDlg: TfrmMsgDlg
   OnKeyUp = FormKeyUp
   DesignSize = (
     381
-    165)
+    170)
   PixelsPerInch = 96
   TextHeight = 13
-  object Bevel1: TBevel
-    Left = -16
-    Top = 128
-    Width = 409
-    Height = 9
-    Anchors = [akLeft, akRight, akBottom]
-    Shape = bsTopLine
-    ExplicitTop = 96
-    ExplicitWidth = 349
-  end
   object chkNotShowAgain: TCheckBox
     Left = 4
-    Top = 104
+    Top = 105
     Width = 277
     Height = 21
     Anchors = [akLeft, akBottom]
     Caption = '&Don'#39't show this message again'
-    TabOrder = 2
-  end
-  object cmdOK: TButton
-    Left = 4
-    Top = 136
-    Width = 85
-    Height = 25
-    Anchors = [akLeft, akBottom]
-    Caption = '&OK'
-    Default = True
-    ModalResult = 1
     TabOrder = 0
-    OnClick = cmdOKClick
-  end
-  object cmdCancel: TButton
-    Left = 292
-    Top = 136
-    Width = 85
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Caption = '&Cancel'
-    ModalResult = 2
-    TabOrder = 1
-    OnClick = cmdCancelClick
   end
   object txtText: TMemo
     Left = 4
     Top = 4
     Width = 373
-    Height = 93
+    Height = 99
     Anchors = [akLeft, akTop, akRight, akBottom]
     BorderStyle = bsNone
     Color = clBtnFace
     ReadOnly = True
     ScrollBars = ssVertical
-    TabOrder = 3
+    TabOrder = 1
+    ExplicitHeight = 97
+  end
+  object pnlNav: TPanel
+    Left = 0
+    Top = 130
+    Width = 381
+    Height = 40
+    Align = alBottom
+    BevelOuter = bvNone
+    Padding.Left = 4
+    Padding.Top = 4
+    Padding.Right = 4
+    Padding.Bottom = 4
+    TabOrder = 2
+    ExplicitTop = 128
+    object Bevel2: TBevel
+      Left = 4
+      Top = 4
+      Width = 373
+      Height = 5
+      Align = alTop
+      Shape = bsTopLine
+      ExplicitLeft = -7
+      ExplicitWidth = 396
+    end
+    object cmdCancel: TButton
+      Left = 280
+      Top = 9
+      Width = 97
+      Height = 27
+      Align = alRight
+      Caption = '&Cancel'
+      ModalResult = 2
+      TabOrder = 0
+      OnClick = cmdCancelClick
+      ExplicitHeight = 25
+    end
+    object cmdOK: TButton
+      Left = 4
+      Top = 9
+      Width = 97
+      Height = 27
+      Align = alLeft
+      Caption = '&OK'
+      Default = True
+      ModalResult = 1
+      TabOrder = 1
+      OnClick = cmdOKClick
+      ExplicitHeight = 25
+    end
   end
 end

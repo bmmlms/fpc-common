@@ -5,13 +5,13 @@ object frmProfileSettings: TfrmProfileSettings
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Manage profiles'
-  ClientHeight = 311
+  ClientHeight = 290
   ClientWidth = 329
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
-  Font.Name = 'Tahoma'
+  
   Font.Style = []
   Icon.Data = {
     0000010001001010000001002000680400001600000028000000100000002000
@@ -56,25 +56,24 @@ object frmProfileSettings: TfrmProfileSettings
   OnCreate = FormCreate
   DesignSize = (
     329
-    311)
+    290)
   PixelsPerInch = 96
   TextHeight = 13
   object lblProfiles: TLabel
     Left = 4
-    Top = 48
+    Top = 40
     Width = 321
     Height = 85
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
     Caption = '-'
     WordWrap = True
-    ExplicitWidth = 301
   end
   object pnlNav: TPanel
     Left = 0
-    Top = 262
+    Top = 250
     Width = 329
-    Height = 49
+    Height = 40
     Align = alBottom
     BevelOuter = bvNone
     Padding.Left = 4
@@ -96,7 +95,7 @@ object frmProfileSettings: TfrmProfileSettings
       Left = 228
       Top = 9
       Width = 97
-      Height = 36
+      Height = 27
       Align = alRight
       Caption = '&OK'
       Default = True
@@ -146,32 +145,32 @@ object frmProfileSettings: TfrmProfileSettings
     Left = 0
     Top = 0
     Width = 329
-    Height = 41
+    Height = 33
     Align = alTop
     BevelOuter = bvNone
-    Padding.Left = 4
-    Padding.Top = 4
-    Padding.Right = 4
-    Padding.Bottom = 4
+    Padding.Left = 2
+    Padding.Top = 2
+    Padding.Right = 2
+    Padding.Bottom = 2
     TabOrder = 1
     object Shape1: TShape
-      Left = 4
-      Top = 4
-      Width = 321
-      Height = 33
+      Left = 2
+      Top = 2
+      Width = 325
+      Height = 29
       Align = alClient
       Brush.Color = clActiveCaption
       Pen.Color = clActiveBorder
       ExplicitLeft = -276
+      ExplicitTop = 4
       ExplicitWidth = 801
-      ExplicitHeight = 29
     end
     object lblTop: TLabel
       AlignWithMargins = True
-      Left = 10
-      Top = 9
-      Width = 312
-      Height = 25
+      Left = 8
+      Top = 7
+      Width = 316
+      Height = 21
       Margins.Left = 6
       Margins.Top = 5
       Align = alClient
@@ -181,7 +180,7 @@ object frmProfileSettings: TfrmProfileSettings
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWhite
       Font.Height = -16
-      Font.Name = 'MS Sans Serif'
+      
       Font.Style = [fsBold]
       GlowSize = 1
       ParentColor = False
@@ -195,7 +194,7 @@ object frmProfileSettings: TfrmProfileSettings
   end
   object rbInstalled: TRadioButton
     Left = 4
-    Top = 140
+    Top = 132
     Width = 321
     Height = 21
     Anchors = [akLeft, akTop, akRight]
@@ -206,7 +205,7 @@ object frmProfileSettings: TfrmProfileSettings
   end
   object rbPortable: TRadioButton
     Left = 4
-    Top = 204
+    Top = 196
     Width = 321
     Height = 21
     Anchors = [akLeft, akTop, akRight]
@@ -215,36 +214,36 @@ object frmProfileSettings: TfrmProfileSettings
   end
   object btnDelete: TButton
     Left = 20
-    Top = 164
+    Top = 156
     Width = 81
-    Height = 25
+    Height = 27
     Caption = 'Delete'
     TabOrder = 4
     OnClick = btnDeleteClick
   end
   object btnDelete2: TButton
     Left = 20
-    Top = 228
+    Top = 220
     Width = 81
-    Height = 25
+    Height = 27
     Caption = 'Delete'
     TabOrder = 5
     OnClick = btnDeleteClick
   end
   object btnCopy: TButton
     Left = 108
-    Top = 164
+    Top = 156
     Width = 81
-    Height = 25
+    Height = 27
     Caption = 'Copy'
     TabOrder = 6
     OnClick = btnCopyClick
   end
   object btnCopy2: TButton
     Left = 108
-    Top = 228
+    Top = 220
     Width = 81
-    Height = 25
+    Height = 27
     Caption = 'Copy'
     TabOrder = 7
     OnClick = btnCopyClick

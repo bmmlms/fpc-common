@@ -4,8 +4,8 @@ object frmSettingsBase: TfrmSettingsBase
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Settings'
-  ClientHeight = 479
-  ClientWidth = 609
+  ClientHeight = 470
+  ClientWidth = 620
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -59,33 +59,35 @@ object frmSettingsBase: TfrmSettingsBase
   object pnlHeader: TPanel
     Left = 0
     Top = 0
-    Width = 609
-    Height = 41
+    Width = 620
+    Height = 38
     Align = alTop
     BevelOuter = bvNone
-    Padding.Left = 4
-    Padding.Top = 4
-    Padding.Right = 4
-    Padding.Bottom = 4
+    Padding.Left = 2
+    Padding.Top = 2
+    Padding.Right = 2
+    Padding.Bottom = 2
     TabOrder = 0
+    ExplicitWidth = 660
     object Shape1: TShape
-      Left = 4
-      Top = 4
-      Width = 601
-      Height = 33
+      Left = 2
+      Top = 2
+      Width = 616
+      Height = 34
       Align = alClient
       Brush.Color = clActiveCaption
       Pen.Color = clActiveBorder
       ExplicitLeft = -276
+      ExplicitTop = 4
       ExplicitWidth = 801
       ExplicitHeight = 29
     end
     object lblTop: TLabel
       AlignWithMargins = True
-      Left = 10
-      Top = 9
-      Width = 592
-      Height = 25
+      Left = 8
+      Top = 7
+      Width = 607
+      Height = 26
       Margins.Left = 6
       Margins.Top = 5
       Align = alClient
@@ -95,7 +97,7 @@ object frmSettingsBase: TfrmSettingsBase
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWhite
       Font.Height = -16
-      Font.Name = 'MS Sans Serif'
+      Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       GlowSize = 1
       ParentColor = False
@@ -110,8 +112,8 @@ object frmSettingsBase: TfrmSettingsBase
   object pnlNav: TPanel
     Left = 0
     Top = 430
-    Width = 609
-    Height = 49
+    Width = 620
+    Height = 40
     Align = alBottom
     BevelOuter = bvNone
     Padding.Left = 4
@@ -119,10 +121,12 @@ object frmSettingsBase: TfrmSettingsBase
     Padding.Right = 4
     Padding.Bottom = 4
     TabOrder = 1
+    ExplicitTop = 420
+    ExplicitWidth = 660
     object Bevel2: TBevel
       Left = 4
       Top = 4
-      Width = 601
+      Width = 612
       Height = 5
       Align = alTop
       Shape = bsTopLine
@@ -130,10 +134,10 @@ object frmSettingsBase: TfrmSettingsBase
       ExplicitWidth = 396
     end
     object btnOK: TBitBtn
-      Left = 508
+      Left = 519
       Top = 9
       Width = 97
-      Height = 36
+      Height = 27
       Align = alRight
       Caption = '&OK'
       Default = True
@@ -142,18 +146,20 @@ object frmSettingsBase: TfrmSettingsBase
       ParentDoubleBuffered = False
       TabOrder = 0
       OnClick = btnOKClick
+      ExplicitLeft = 559
     end
   end
   object pnlLeft: TPanel
     Left = 0
-    Top = 41
+    Top = 38
     Width = 93
-    Height = 389
+    Height = 392
     Align = alLeft
     BevelOuter = bvNone
     Padding.Left = 4
     Padding.Right = 8
     TabOrder = 2
+    ExplicitHeight = 382
   end
   object pnlGeneral: TPanel
     Left = 100
@@ -204,7 +210,7 @@ object frmSettingsBase: TfrmSettingsBase
       Left = 4
       Top = 248
       Width = 129
-      Height = 29
+      Height = 27
       Caption = '&Copy profile'
       TabOrder = 2
       OnClick = btnCopyProfileClick
@@ -244,7 +250,7 @@ object frmSettingsBase: TfrmSettingsBase
       Left = 4
       Top = 280
       Width = 129
-      Height = 29
+      Height = 27
       Caption = '&Delete profile'
       TabOrder = 6
       OnClick = btnDeleteProfileClick
@@ -253,7 +259,7 @@ object frmSettingsBase: TfrmSettingsBase
       Left = 148
       Top = 248
       Width = 129
-      Height = 29
+      Height = 27
       Caption = '&Export profile'
       TabOrder = 7
       OnClick = btnExportProfileClick
@@ -262,7 +268,7 @@ object frmSettingsBase: TfrmSettingsBase
       Left = 148
       Top = 280
       Width = 129
-      Height = 29
+      Height = 27
       Caption = '&Import profile'
       TabOrder = 8
       OnClick = btnImportProfileClick

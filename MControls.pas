@@ -83,8 +83,6 @@ type
     procedure FSetShowCloseButton(Value: Boolean);
 
     procedure AlignButton;
-  protected
-    procedure WndProc(var Message: TMessage); override;
   public
     constructor Create(AOwner: TComponent); reintroduce; virtual;
     destructor Destroy; override;
@@ -116,7 +114,6 @@ type
   protected
     procedure DrawPanel(Panel: TStatusPanel; const Rect: TRect); override;
   public
-    constructor Create(AOwner: TComponent); reintroduce;
   end;
 
   TMShowHidePanel = class(TCustomControl)
@@ -440,25 +437,8 @@ begin
   inherited Caption := s2 + s;
 end;
 
-procedure TMTabSheet.WndProc(var Message: TMessage);
-begin
-  //if (PageControl <> nil) and (TMPageControl(PageControl).FLocked) then
-  //  Exit;
-
-  inherited;
-end;
 
 { TMStatusBar }
-
-constructor TMStatusBar.Create(AOwner: TComponent);
-var
-  P: TStatusPanel;
-begin
-  inherited;
-  P := Panels.Add;
-  P.Style := psOwnerDraw;
-  P.Width := 200;
-end;
 
 procedure TMStatusBar.DrawPanel(Panel: TStatusPanel; const Rect: TRect);
 begin
@@ -474,7 +454,7 @@ var
   sw: Integer;
 begin
   s := Panel.Text;
-  w := Panel.Width; // Rect.Right - Rect.Left;
+  w := Panel.Width;
   sw := Canvas.TextWidth(s);
 
   if sw > w then

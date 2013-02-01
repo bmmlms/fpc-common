@@ -165,8 +165,8 @@ var
   n, i: Integer;
   ComboItem: TComboExItem;
 begin
-  ClientWidth := 400;
-  ClientHeight := 300;
+  //ClientWidth := 400;
+  //ClientHeight := 300;
 
   for n := 0 to ControlCount - 1 do
     for i := 0 to FStepList.Count - 1 do

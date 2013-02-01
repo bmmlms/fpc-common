@@ -32,10 +32,11 @@ type
 
   TfrmMsgDlg = class(TForm)
     chkNotShowAgain: TCheckBox;
-    Bevel1: TBevel;
-    cmdOK: TButton;
-    cmdCancel: TButton;
     txtText: TMemo;
+    pnlNav: TPanel;
+    Bevel2: TBevel;
+    cmdCancel: TButton;
+    cmdOK: TButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure cmdOKClick(Sender: TObject);
@@ -74,7 +75,7 @@ end;
 procedure TfrmMsgDlg.FormActivate(Sender: TObject);
 begin
   if not chkNotShowAgain.Visible then
-    txtText.Height := Bevel1.Top - 4 - txtText.Top
+    txtText.Height := pnlNav.Top - 4 - txtText.Top
   else
     txtText.Height := chkNotShowAgain.Top - 4 - txtText.Top;
 end;

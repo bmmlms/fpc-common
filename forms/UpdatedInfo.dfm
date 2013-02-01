@@ -4,13 +4,13 @@ object frmUpdatedInfo: TfrmUpdatedInfo
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Update installed'
-  ClientHeight = 262
+  ClientHeight = 242
   ClientWidth = 393
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
-  Font.Name = 'Tahoma'
+  
   Font.Style = []
   KeyPreview = True
   OldCreateOrder = False
@@ -21,12 +21,12 @@ object frmUpdatedInfo: TfrmUpdatedInfo
   OnShow = FormShow
   DesignSize = (
     393
-    262)
+    242)
   PixelsPerInch = 96
   TextHeight = 13
   object btnDonateEn: TImage
-    Left = 79
-    Top = 142
+    Left = 63
+    Top = 130
     Width = 283
     Height = 40
     Cursor = crHandPoint
@@ -393,12 +393,11 @@ object frmUpdatedInfo: TfrmUpdatedInfo
       66C9A3AAF878563595A4FF03379D474917C5C6110000000049454E44AE426082}
     Visible = False
     OnClick = btnDonateClick
-    ExplicitLeft = 31
-    ExplicitTop = 121
+    ExplicitTop = 150
   end
   object btnDonateDe: TImage
-    Left = 79
-    Top = 142
+    Left = 63
+    Top = 130
     Width = 283
     Height = 40
     Cursor = crHandPoint
@@ -774,25 +773,25 @@ object frmUpdatedInfo: TfrmUpdatedInfo
       49454E44AE426082}
     Visible = False
     OnClick = btnDonateClick
-    ExplicitLeft = 31
-    ExplicitTop = 121
+    ExplicitTop = 150
   end
   object txtInfo: TMemo
     Left = 4
     Top = 4
     Width = 385
-    Height = 127
+    Height = 117
     Anchors = [akLeft, akTop, akRight, akBottom]
     Color = clBtnFace
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 0
+    ExplicitHeight = 137
   end
   object pnlNav: TPanel
     Left = 0
-    Top = 213
+    Top = 202
     Width = 393
-    Height = 49
+    Height = 40
     Align = alBottom
     BevelOuter = bvNone
     Padding.Left = 4
@@ -800,6 +799,7 @@ object frmUpdatedInfo: TfrmUpdatedInfo
     Padding.Right = 4
     Padding.Bottom = 4
     TabOrder = 1
+    ExplicitTop = 222
     object Bevel2: TBevel
       Left = 4
       Top = 4
@@ -814,7 +814,7 @@ object frmUpdatedInfo: TfrmUpdatedInfo
       Left = 292
       Top = 9
       Width = 97
-      Height = 36
+      Height = 27
       Align = alRight
       Caption = '&Close'
       Default = True
@@ -823,15 +823,17 @@ object frmUpdatedInfo: TfrmUpdatedInfo
       ParentDoubleBuffered = False
       TabOrder = 0
       OnClick = btnCloseClick
+      ExplicitHeight = 36
     end
   end
   object chkNotShowAgain: TCheckBox
     Left = 4
-    Top = 190
+    Top = 178
     Width = 283
     Height = 19
     Anchors = [akLeft, akRight, akBottom]
     Caption = '&Don'#39't show this message again'
     TabOrder = 2
+    ExplicitTop = 198
   end
 end

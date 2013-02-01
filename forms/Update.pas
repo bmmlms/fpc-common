@@ -25,7 +25,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, UpdateClient, AppData, StdCtrls, ComCtrls, LanguageObjects,
-  Functions, ChangeLog, ShellAPI;
+  Functions, ChangeLog, ShellAPI, ExtCtrls;
 
 type
   TfrmUpdate = class(TForm)
@@ -35,9 +35,11 @@ type
     lblVersion: TLabel;
     lblNewestVersion: TLabel;
     ProgressBar1: TProgressBar;
+    lblChangeLog: TLabel;
+    pnlNav: TPanel;
+    Bevel2: TBevel;
     cmdOK: TButton;
     cmdCancel: TButton;
-    lblChangeLog: TLabel;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure cmdCancelClick(Sender: TObject);
     procedure cmdOKClick(Sender: TObject);

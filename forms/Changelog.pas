@@ -24,12 +24,14 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, LanguageObjects;
+  Dialogs, StdCtrls, LanguageObjects, Buttons, ExtCtrls;
 
 type
   TfrmChangeLog = class(TForm)
-    btnClose: TButton;
     txtChangeLog: TMemo;
+    pnlNav: TPanel;
+    Bevel2: TBevel;
+    btnClose: TBitBtn;
     procedure FormKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure btnCloseClick(Sender: TObject);

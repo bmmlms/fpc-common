@@ -4,13 +4,13 @@ object frmUpdate: TfrmUpdate
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Update'
-  ClientHeight = 166
+  ClientHeight = 153
   ClientWidth = 269
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
-  Font.Name = 'Tahoma'
+  
   Font.Style = []
   Icon.Data = {
     0000010001001010000001002000680400001600000028000000100000002000
@@ -57,12 +57,12 @@ object frmUpdate: TfrmUpdate
   OnKeyDown = FormKeyDown
   DesignSize = (
     269
-    166)
+    153)
   PixelsPerInch = 96
   TextHeight = 13
   object lblState: TLabel
     Left = 8
-    Top = 57
+    Top = 49
     Width = 253
     Height = 20
     Alignment = taCenter
@@ -73,14 +73,14 @@ object frmUpdate: TfrmUpdate
   object Label1: TLabel
     Left = 8
     Top = 8
-    Width = 83
+    Width = 87
     Height = 13
     Caption = 'Installed version:'
   end
   object Label2: TLabel
     Left = 8
-    Top = 32
-    Width = 78
+    Top = 28
+    Width = 81
     Height = 13
     Caption = 'Newest version:'
   end
@@ -95,7 +95,7 @@ object frmUpdate: TfrmUpdate
   end
   object lblNewestVersion: TLabel
     Left = 257
-    Top = 32
+    Top = 28
     Width = 4
     Height = 13
     Alignment = taRightJustify
@@ -104,7 +104,7 @@ object frmUpdate: TfrmUpdate
   end
   object lblChangeLog: TLabel
     Left = 112
-    Top = 80
+    Top = 72
     Width = 51
     Height = 13
     Cursor = crHandPoint
@@ -122,31 +122,58 @@ object frmUpdate: TfrmUpdate
   end
   object ProgressBar1: TProgressBar
     Left = 8
-    Top = 104
+    Top = 92
     Width = 253
     Height = 17
     Anchors = [akLeft, akTop, akRight]
-    TabOrder = 2
-  end
-  object cmdOK: TButton
-    Left = 156
-    Top = 132
-    Width = 105
-    Height = 29
-    Anchors = [akRight, akBottom]
-    Caption = '&Download'
-    Enabled = False
-    TabOrder = 1
-    OnClick = cmdOKClick
-  end
-  object cmdCancel: TButton
-    Left = 8
-    Top = 132
-    Width = 105
-    Height = 29
-    Anchors = [akLeft, akBottom]
-    Caption = '&Close'
     TabOrder = 0
-    OnClick = cmdCancelClick
+  end
+  object pnlNav: TPanel
+    Left = 0
+    Top = 113
+    Width = 269
+    Height = 40
+    Align = alBottom
+    BevelOuter = bvNone
+    Padding.Left = 4
+    Padding.Top = 4
+    Padding.Right = 4
+    Padding.Bottom = 4
+    TabOrder = 1
+    ExplicitLeft = -340
+    ExplicitTop = 230
+    ExplicitWidth = 609
+    object Bevel2: TBevel
+      Left = 4
+      Top = 4
+      Width = 261
+      Height = 5
+      Align = alTop
+      Shape = bsTopLine
+      ExplicitLeft = -7
+      ExplicitWidth = 396
+    end
+    object cmdOK: TButton
+      Left = 168
+      Top = 9
+      Width = 97
+      Height = 27
+      Align = alRight
+      Caption = '&Download'
+      Enabled = False
+      TabOrder = 0
+      OnClick = cmdOKClick
+      ExplicitLeft = 160
+    end
+    object cmdCancel: TButton
+      Left = 4
+      Top = 9
+      Width = 97
+      Height = 27
+      Align = alLeft
+      Caption = '&Close'
+      TabOrder = 1
+      OnClick = cmdCancelClick
+    end
   end
 end

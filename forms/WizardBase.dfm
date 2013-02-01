@@ -2,13 +2,13 @@ object frmWizardBase: TfrmWizardBase
   Left = 0
   Top = 0
   Caption = 'Setup wizard'
-  ClientHeight = 594
-  ClientWidth = 809
+  ClientHeight = 300
+  ClientWidth = 430
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
-  Font.Name = 'Tahoma'
+  
   Font.Style = []
   OldCreateOrder = False
   OnClose = FormClose
@@ -30,7 +30,7 @@ object frmWizardBase: TfrmWizardBase
     object lblLanguageList: TLabel
       Left = 8
       Top = 4
-      Width = 51
+      Width = 54
       Height = 13
       Caption = 'Language:'
     end
@@ -47,9 +47,9 @@ object frmWizardBase: TfrmWizardBase
   end
   object pnlNav: TPanel
     Left = 0
-    Top = 545
-    Width = 809
-    Height = 49
+    Top = 260
+    Width = 430
+    Height = 40
     Align = alBottom
     BevelOuter = bvNone
     Padding.Left = 4
@@ -57,10 +57,12 @@ object frmWizardBase: TfrmWizardBase
     Padding.Right = 4
     Padding.Bottom = 4
     TabOrder = 1
+    ExplicitTop = 554
+    ExplicitWidth = 809
     object Bevel2: TBevel
       Left = 4
       Top = 4
-      Width = 801
+      Width = 422
       Height = 5
       Align = alTop
       Shape = bsTopLine
@@ -68,10 +70,10 @@ object frmWizardBase: TfrmWizardBase
       ExplicitWidth = 396
     end
     object btnNext: TPngBitBtn
-      Left = 708
+      Left = 329
       Top = 9
       Width = 97
-      Height = 36
+      Height = 27
       Align = alRight
       Caption = '&Next'
       Default = True
@@ -95,12 +97,14 @@ object frmWizardBase: TfrmWizardBase
         8A311C0769BEF66EF1CBAD4E712445A364D4D1FFCA121C0CB7AEBC5DF86A975B
         020301806180B8FFC1FFFF3E7F9FF37A9F472A21CD580D2015506C0000335FC0
         E114135B270000000049454E44AE426082}
+      ExplicitLeft = 708
+      ExplicitHeight = 36
     end
     object btnBack: TPngBitBtn
       Left = 4
       Top = 9
       Width = 97
-      Height = 36
+      Height = 27
       Align = alLeft
       Caption = '&Cancel'
       DoubleBuffered = True
@@ -122,6 +126,7 @@ object frmWizardBase: TfrmWizardBase
         BCDEEF469A0120206AB57581AC9A40FCE35B9F195E1FF320DD00101032DC389B
         919925E5ED196FF20CC0072836000013EF9BE18A8403640000000049454E44AE
         426082}
+      ExplicitHeight = 36
     end
   end
   object pnlStorage: TPanel
@@ -187,32 +192,33 @@ object frmWizardBase: TfrmWizardBase
   object pnlHeader: TPanel
     Left = 0
     Top = 0
-    Width = 809
-    Height = 41
+    Width = 430
+    Height = 33
     Align = alTop
     BevelOuter = bvNone
-    Padding.Left = 4
-    Padding.Top = 4
-    Padding.Right = 4
-    Padding.Bottom = 4
+    Padding.Left = 2
+    Padding.Top = 2
+    Padding.Right = 2
+    Padding.Bottom = 2
     TabOrder = 4
     object Shape1: TShape
-      Left = 4
-      Top = 4
-      Width = 801
-      Height = 33
+      Left = 2
+      Top = 2
+      Width = 426
+      Height = 29
       Align = alClient
       Brush.Color = clActiveCaption
       Pen.Color = clActiveBorder
       ExplicitLeft = -276
-      ExplicitHeight = 29
+      ExplicitTop = 4
+      ExplicitWidth = 801
     end
     object lblTop: TLabel
       AlignWithMargins = True
-      Left = 10
-      Top = 9
-      Width = 792
-      Height = 25
+      Left = 8
+      Top = 7
+      Width = 417
+      Height = 21
       Margins.Left = 6
       Margins.Top = 5
       Align = alClient
@@ -222,7 +228,7 @@ object frmWizardBase: TfrmWizardBase
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWhite
       Font.Height = -16
-      Font.Name = 'MS Sans Serif'
+      
       Font.Style = [fsBold]
       GlowSize = 1
       ParentColor = False
@@ -236,8 +242,8 @@ object frmWizardBase: TfrmWizardBase
   end
   object pnlDesc: TPanel
     Left = 0
-    Top = 41
-    Width = 809
+    Top = 33
+    Width = 430
     Height = 48
     Align = alTop
     BevelOuter = bvNone
@@ -246,10 +252,11 @@ object frmWizardBase: TfrmWizardBase
     Padding.Right = 8
     Padding.Bottom = 4
     TabOrder = 5
+    ExplicitTop = 37
     object lblDesc: TLabel
       Left = 8
       Top = 4
-      Width = 793
+      Width = 414
       Height = 13
       Align = alTop
       ExplicitWidth = 3
