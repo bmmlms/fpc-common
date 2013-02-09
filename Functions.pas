@@ -74,7 +74,7 @@ function CmpInt(const A, B: Int64): Integer;
 function ParseVersion(const Version: string): TAppVersion; overload;
 function ParseVersion(const Major, Minor, Revision, Build: Cardinal): TAppVersion; overload;
 function IsVersionNewer(const Current, Found: TAppVersion): Boolean;
-procedure GetBitmap(const Resname: string; const NumGlyphs: Integer; Bmp: TBitmap);
+//procedure GetBitmap(const Resname: string; const NumGlyphs: Integer; Bmp: TBitmap);
 function BuildPattern(const s: string; var Hash: Cardinal; var NumChars: Integer; AlwaysAlter: Boolean): string;
 function CryptStr(const s: string): string;
 function TryRelativePath(const s: string; IsFile: Boolean): string;
@@ -891,7 +891,8 @@ begin
             (MajorEq and MinorEq and RevisionEq and (Found.Build > Current.Build));
 end;
 
-procedure GetBitmap(const Resname: string; const NumGlyphs: Integer; Bmp: TBitmap);
+{
+procedure GetBitmap(const ResName: string; const NumGlyphs: Integer; Bmp: TBitmap);
 var
   i, j, k: Integer;
   Grayshade, Red, Green, Blue: Byte;
@@ -901,7 +902,7 @@ var
 begin
   Icon := TIcon.Create;
   try
-    Icon.LoadFromResourceName(HInstance, Resname);
+    Icon.LoadFromResourceName(HInstance, ResName);
 
     Bmp.Width := 16 * NumGlyphs;
     Bmp.Height := 16;
@@ -940,6 +941,7 @@ begin
     Icon.Free;
   end;
 end;
+}
 
 function TrimChars(const s: string; const c: Char): string;
 var

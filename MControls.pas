@@ -24,7 +24,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Messages, ComCtrls, ActiveX, Controls, Buttons,
-  StdCtrls, Menus, VirtualTrees, DragDrop, DragDropFile, ShellApi,
+  StdCtrls, Menus, VirtualTrees, DragDrop, DragDropFile, ShellApi, Types,
   Themes, ImgList, GUIFunctions, LanguageObjects, Graphics;
 
 type

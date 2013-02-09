@@ -8,7 +8,7 @@ object frmWizardBase: TfrmWizardBase
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
-  
+  Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
   OnClose = FormClose
@@ -30,7 +30,7 @@ object frmWizardBase: TfrmWizardBase
     object lblLanguageList: TLabel
       Left = 8
       Top = 4
-      Width = 54
+      Width = 51
       Height = 13
       Caption = 'Language:'
     end
@@ -57,8 +57,6 @@ object frmWizardBase: TfrmWizardBase
     Padding.Right = 4
     Padding.Bottom = 4
     TabOrder = 1
-    ExplicitTop = 554
-    ExplicitWidth = 809
     object Bevel2: TBevel
       Left = 4
       Top = 4
@@ -97,8 +95,6 @@ object frmWizardBase: TfrmWizardBase
         8A311C0769BEF66EF1CBAD4E712445A364D4D1FFCA121C0CB7AEBC5DF86A975B
         020301806180B8FFC1FFFF3E7F9FF37A9F472A21CD580D2015506C0000335FC0
         E114135B270000000049454E44AE426082}
-      ExplicitLeft = 708
-      ExplicitHeight = 36
     end
     object btnBack: TPngBitBtn
       Left = 4
@@ -126,7 +122,6 @@ object frmWizardBase: TfrmWizardBase
         BCDEEF469A0120206AB57581AC9A40FCE35B9F195E1FF320DD00101032DC389B
         919925E5ED196FF20CC0072836000013EF9BE18A8403640000000049454E44AE
         426082}
-      ExplicitHeight = 36
     end
   end
   object pnlStorage: TPanel
@@ -228,7 +223,7 @@ object frmWizardBase: TfrmWizardBase
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWhite
       Font.Height = -16
-      
+      Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       GlowSize = 1
       ParentColor = False
@@ -252,7 +247,6 @@ object frmWizardBase: TfrmWizardBase
     Padding.Right = 8
     Padding.Bottom = 4
     TabOrder = 5
-    ExplicitTop = 37
     object lblDesc: TLabel
       Left = 8
       Top = 4

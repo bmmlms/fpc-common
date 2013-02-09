@@ -68,7 +68,6 @@ object frmSettingsBase: TfrmSettingsBase
     Padding.Right = 2
     Padding.Bottom = 2
     TabOrder = 0
-    ExplicitWidth = 660
     object Shape1: TShape
       Left = 2
       Top = 2
@@ -121,8 +120,6 @@ object frmSettingsBase: TfrmSettingsBase
     Padding.Right = 4
     Padding.Bottom = 4
     TabOrder = 1
-    ExplicitTop = 420
-    ExplicitWidth = 660
     object Bevel2: TBevel
       Left = 4
       Top = 4
@@ -146,7 +143,6 @@ object frmSettingsBase: TfrmSettingsBase
       ParentDoubleBuffered = False
       TabOrder = 0
       OnClick = btnOKClick
-      ExplicitLeft = 559
     end
   end
   object pnlLeft: TPanel
@@ -159,7 +155,6 @@ object frmSettingsBase: TfrmSettingsBase
     Padding.Left = 4
     Padding.Right = 8
     TabOrder = 2
-    ExplicitHeight = 382
   end
   object pnlGeneral: TPanel
     Left = 100
