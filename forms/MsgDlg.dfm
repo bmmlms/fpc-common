@@ -12,7 +12,7 @@ object frmMsgDlg: TfrmMsgDlg
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
-  
+  Font.Name = 'Tahoma'
   Font.Style = []
   Icon.Data = {
     0000010001001010000001002000680400001600000028000000100000002000
@@ -65,7 +65,7 @@ object frmMsgDlg: TfrmMsgDlg
   TextHeight = 13
   object chkNotShowAgain: TCheckBox
     Left = 4
-    Top = 105
+    Top = 109
     Width = 277
     Height = 21
     Anchors = [akLeft, akBottom]
@@ -76,14 +76,13 @@ object frmMsgDlg: TfrmMsgDlg
     Left = 4
     Top = 4
     Width = 373
-    Height = 99
+    Height = 101
     Anchors = [akLeft, akTop, akRight, akBottom]
     BorderStyle = bsNone
     Color = clBtnFace
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 1
-    ExplicitHeight = 97
   end
   object pnlNav: TPanel
     Left = 0
@@ -97,7 +96,6 @@ object frmMsgDlg: TfrmMsgDlg
     Padding.Right = 4
     Padding.Bottom = 4
     TabOrder = 2
-    ExplicitTop = 128
     object Bevel2: TBevel
       Left = 4
       Top = 4
@@ -118,7 +116,6 @@ object frmMsgDlg: TfrmMsgDlg
       ModalResult = 2
       TabOrder = 0
       OnClick = cmdCancelClick
-      ExplicitHeight = 25
     end
     object cmdOK: TButton
       Left = 4
@@ -131,7 +128,6 @@ object frmMsgDlg: TfrmMsgDlg
       ModalResult = 1
       TabOrder = 1
       OnClick = cmdOKClick
-      ExplicitHeight = 25
     end
   end
 end
