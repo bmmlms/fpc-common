@@ -63,15 +63,15 @@ object frmSettingsBase: TfrmSettingsBase
     Height = 33
     Align = alTop
     BevelOuter = bvNone
-    Padding.Left = 2
+    Padding.Left = 4
     Padding.Top = 2
-    Padding.Right = 2
+    Padding.Right = 4
     Padding.Bottom = 2
     TabOrder = 0
     object Shape1: TShape
-      Left = 2
+      Left = 4
       Top = 2
-      Width = 616
+      Width = 612
       Height = 29
       Align = alClient
       Brush.Color = clActiveCaption
@@ -82,9 +82,9 @@ object frmSettingsBase: TfrmSettingsBase
     end
     object lblTop: TLabel
       AlignWithMargins = True
-      Left = 5
+      Left = 7
       Top = 5
-      Width = 610
+      Width = 606
       Height = 23
       Align = alClient
       AutoSize = False
@@ -152,8 +152,6 @@ object frmSettingsBase: TfrmSettingsBase
     Padding.Left = 4
     Padding.Right = 8
     TabOrder = 2
-    ExplicitTop = 38
-    ExplicitHeight = 392
   end
   object pnlGeneral: TPanel
     Left = 100

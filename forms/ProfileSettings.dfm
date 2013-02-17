@@ -148,15 +148,15 @@ object frmProfileSettings: TfrmProfileSettings
     Height = 33
     Align = alTop
     BevelOuter = bvNone
-    Padding.Left = 2
+    Padding.Left = 4
     Padding.Top = 2
-    Padding.Right = 2
+    Padding.Right = 4
     Padding.Bottom = 2
     TabOrder = 1
     object Shape1: TShape
-      Left = 2
+      Left = 4
       Top = 2
-      Width = 325
+      Width = 321
       Height = 29
       Align = alClient
       Brush.Color = clActiveCaption
@@ -167,9 +167,9 @@ object frmProfileSettings: TfrmProfileSettings
     end
     object lblTop: TLabel
       AlignWithMargins = True
-      Left = 5
+      Left = 7
       Top = 5
-      Width = 319
+      Width = 315
       Height = 23
       Align = alClient
       AutoSize = False
