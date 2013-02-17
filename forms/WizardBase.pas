@@ -225,6 +225,11 @@ procedure TfrmWizardBase.FormShow(Sender: TObject);
 begin
   btnNext.SetFocus;
   SetText;
+
+  pnlHeader.Height := MulDiv(pnlHeader.Height, lblTop.Font.Size, 12);
+  pnlNav.Height := MulDiv(pnlNav.Height, btnNext.Font.Size, 8);
+
+  lblDesc.Left := lblLanguageList.Left;
 end;
 
 procedure TfrmWizardBase.FSetDescription(Value: string);

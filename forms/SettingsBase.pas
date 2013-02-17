@@ -507,6 +507,9 @@ begin
   FTreeView.Setup;
   SetPage(FPageList[0]);
   FTreeView.SetFocus;
+
+  pnlHeader.Height := MulDiv(pnlHeader.Height, lblTop.Font.Size, 12);
+  pnlNav.Height := MulDiv(pnlNav.Height, btnOK.Font.Size, 8);
 end;
 
 procedure TfrmSettingsBase.lstLanguagesChange(Sender: TObject);

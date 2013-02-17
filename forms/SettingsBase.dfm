@@ -60,7 +60,7 @@ object frmSettingsBase: TfrmSettingsBase
     Left = 0
     Top = 0
     Width = 620
-    Height = 38
+    Height = 33
     Align = alTop
     BevelOuter = bvNone
     Padding.Left = 2
@@ -72,23 +72,20 @@ object frmSettingsBase: TfrmSettingsBase
       Left = 2
       Top = 2
       Width = 616
-      Height = 34
+      Height = 29
       Align = alClient
       Brush.Color = clActiveCaption
       Pen.Color = clActiveBorder
       ExplicitLeft = -276
       ExplicitTop = 4
       ExplicitWidth = 801
-      ExplicitHeight = 29
     end
     object lblTop: TLabel
       AlignWithMargins = True
-      Left = 8
-      Top = 7
-      Width = 607
-      Height = 26
-      Margins.Left = 6
-      Margins.Top = 5
+      Left = 5
+      Top = 5
+      Width = 610
+      Height = 23
       Align = alClient
       AutoSize = False
       Caption = 'Settings'
@@ -147,14 +144,16 @@ object frmSettingsBase: TfrmSettingsBase
   end
   object pnlLeft: TPanel
     Left = 0
-    Top = 38
+    Top = 33
     Width = 93
-    Height = 392
+    Height = 397
     Align = alLeft
     BevelOuter = bvNone
     Padding.Left = 4
     Padding.Right = 8
     TabOrder = 2
+    ExplicitTop = 38
+    ExplicitHeight = 392
   end
   object pnlGeneral: TPanel
     Left = 100

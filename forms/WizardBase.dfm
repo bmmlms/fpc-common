@@ -210,12 +210,10 @@ object frmWizardBase: TfrmWizardBase
     end
     object lblTop: TLabel
       AlignWithMargins = True
-      Left = 8
-      Top = 7
-      Width = 417
-      Height = 21
-      Margins.Left = 6
-      Margins.Top = 5
+      Left = 5
+      Top = 5
+      Width = 420
+      Height = 23
       Align = alClient
       AutoSize = False
       Caption = 'Welcome'
@@ -247,13 +245,16 @@ object frmWizardBase: TfrmWizardBase
     Padding.Right = 8
     Padding.Bottom = 4
     TabOrder = 5
+    DesignSize = (
+      430
+      48)
     object lblDesc: TLabel
       Left = 8
       Top = 4
-      Width = 414
-      Height = 13
-      Align = alTop
-      ExplicitWidth = 3
+      Width = 413
+      Height = 45
+      Anchors = [akLeft, akTop, akRight, akBottom]
+      AutoSize = False
     end
   end
 end

@@ -223,6 +223,7 @@ type
   private
     FProjects: TList;
     FCurrentLanguage: TLanguage;
+    FCurrentUserLanguage: TLanguage;
     FIgnoreClassList: TClassList;
     FSync: TRTLCriticalSection;
     procedure Setup;
@@ -238,6 +239,7 @@ type
     procedure SetLanguage(Language: string);
     procedure LoadFromFile(LanguageFile: string);
     property CurrentLanguage: TLanguage read FCurrentLanguage write FCurrentLanguage;
+    property CurrentUserLanguage: TLanguage read FCurrentUserLanguage;
     property IgnoreClassList: TClassList read FIgnoreClassList;
   end;
 
@@ -1166,8 +1168,12 @@ begin
     if GetLocaleInfoA(LangID, LOCALE_SISO639LANGNAME, @szLangCode[0], 3) > 0 then
     begin
       Lang := LanguageList.FindLanguage(LowerCase(string(szLangCode)));
-      if Lang.Available then
-        FCurrentLanguage := Lang;
+      if Lang <> nil then
+      begin
+        if Lang.Available then
+          FCurrentLanguage := Lang;
+        FCurrentUserLanguage := Lang;
+      end;
     end;
   end;
 

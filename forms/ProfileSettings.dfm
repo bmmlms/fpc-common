@@ -11,7 +11,7 @@ object frmProfileSettings: TfrmProfileSettings
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
-  
+  Font.Name = 'Tahoma'
   Font.Style = []
   Icon.Data = {
     0000010001001010000001002000680400001600000028000000100000002000
@@ -167,12 +167,10 @@ object frmProfileSettings: TfrmProfileSettings
     end
     object lblTop: TLabel
       AlignWithMargins = True
-      Left = 8
-      Top = 7
-      Width = 316
-      Height = 21
-      Margins.Left = 6
-      Margins.Top = 5
+      Left = 5
+      Top = 5
+      Width = 319
+      Height = 23
       Align = alClient
       AutoSize = False
       Caption = 'Select profile'
@@ -180,7 +178,7 @@ object frmProfileSettings: TfrmProfileSettings
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWhite
       Font.Height = -16
-      
+      Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       GlowSize = 1
       ParentColor = False
