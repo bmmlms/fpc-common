@@ -39,7 +39,8 @@ type
     ctSetSettings,
     ctClientStats,
     ctSubmitStream,
-    ctSetStreamData);
+    ctSetStreamData,
+    ctGetMonitorStreamsResponse);
 
   TReadRes = (rrOk, rrBadPacket, rrMoreBytesNeeded);
   TBytes = array of Byte;
@@ -204,9 +205,7 @@ begin
   if Stream.Position < Stream.Size then
   begin
     DecompressStream := TExtendedStream.Create;
-
     zlib.ZDecompressStream(Stream, DecompressStream);
-
     FStream := DecompressStream;
 
     FStream.Seek(0, soFromBeginning);
