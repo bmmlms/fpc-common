@@ -575,15 +575,7 @@ begin
               for i := 0 to Languages.Count - 1 do
                 if Languages[i].ID = LangID then
                 begin
-                  // TODO: Falls schon da, dann nicht hinzufügen. Ein Fix für ein Problem was erledigt sein sollte.
-                  //       Kann bald raus.
-                  AlreadyExists := False;
-                  for xx := 0 to Entry.Translations.Count - 1 do
-                    if Entry.Translations[xx].Language.ID = Languages[i].ID then
-                      AlreadyExists := True;
-
-                  if not AlreadyExists then
-                    Entry.Translations.Add(TTranslation.Create(Languages[i], GetSafe(Copy(Line, 9, Length(Line) - 8))));
+                  Entry.Translations.Add(TTranslation.Create(Languages[i], GetSafe(Copy(Line, 9, Length(Line) - 8))));
                   LangFound := True;
                   Break;
                 end;
@@ -716,26 +708,7 @@ procedure TProject.Save(Stream: TMemoryStream; SaveMeta: Boolean);
   end;
 var
   i, n: Integer;
-  F: TStringList;
 begin
-  // Sauber machen - TODO: Irgendwann wieder entfernen. Ist quasi ein Bugfix.
-  F := TStringList.Create;
-  try
-    for i := 0 to Entries.Count - 1 do
-    begin
-      for n := Entries[i].Translations.Count - 1 downto 0 do
-      begin
-        if F.IndexOf(Entries[i].Translations[n].Language.ID) > -1 then
-          Entries[i].Translations.Delete(n);
-        F.Add(Entries[i].Translations[n].Language.ID);
-      end;
-      F.Clear;
-    end;
-  finally
-    F.Free;
-  end;
-
-
   WriteToStream('[settings]', Stream);
   WriteToStream('version=1', Stream);
   WriteToStream('name=' + FName, Stream);
@@ -784,33 +757,6 @@ begin
     if SaveMeta then
       for n := 0 to FEntries[i].Occurences.Count - 1 do
         WriteToStream('occurence=' + FEntries[i].Occurences[n].GetString, Stream);
-
-    // TODO: Irgendwie hat der gute russische Übersetzer es hinbekommen, dass Strings sich duplizieren.
-    //       Das hier ist nicht schön, aber räumt die Datei auf. Das sah so aus:
-    // text_id=seconds
-    // occurence=Settings.dfm:412:Label1
-    // occurence=Settings.dfm:692:Label4
-    // occurence=Settings.dfm:749:Label15
-    // text_de=Sekunden
-    // text_en=
-    // text_ru=...
-    // text_ru=...
-    // [...]
-    {
-    for n := FEntries[i].Translations.Count - 1 downto 0 do
-      for k := FEntries[i].Translations.Count - 1 downto 0 do
-        if (n <> k) and
-           (FEntries[i].Translations[n].Translation <> '') and
-           (FEntries[i].Translations[n].Language.ID <> 'en') and
-           (FEntries[i].Translations[n].FLanguage.ID = FEntries[i].Translations[k].Language.ID) and
-           (FEntries[i].Translations[n].Translation = FEntries[i].Translations[k].Translation) then
-        begin
-          FEntries[i].Translations[n].Free;
-          FEntries[i].Translations.Delete(n);
-          Break;
-        end;
-    }
-    // Ende Hack
 
     for n := 0 to FEntries[i].Translations.Count - 1 do
     begin

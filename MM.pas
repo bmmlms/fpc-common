@@ -37,7 +37,7 @@ begin
 end;
 
 begin
-  {$ifdef FullDebugMode}
+  {$IFDEF FullDebugMode}
   SetMMLogFileName(PAnsiChar(AnsiString(GetDesktopDir + 'streamwriter_fastmm.txt')));
-  {$endif}
+  {$ENDIF}
 end.

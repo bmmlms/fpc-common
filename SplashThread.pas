@@ -41,7 +41,7 @@ type
 
 const
   FADE_TIME = 1000;
-  FADE_WAIT_TIME = 1700;
+  FADE_WAIT_TIME = 1300;
 
 var
   SplashWndHandle: LongWord;

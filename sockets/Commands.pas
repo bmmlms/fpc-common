@@ -40,7 +40,8 @@ type
     ctClientStats,
     ctSubmitStream,
     ctSetStreamData,
-    ctGetMonitorStreamsResponse);
+    ctGetMonitorStreamsResponse,
+    ctGetMonitorStreams);
 
   TReadRes = (rrOk, rrBadPacket, rrMoreBytesNeeded);
   TBytes = array of Byte;
@@ -85,6 +86,7 @@ type
     destructor Destroy; override;
 
     class procedure RegisterCommand(CommandType: TCommandTypes; CommandClass: TClass);
+    class procedure UnregisterCommands;
     class function Read(CommandHeader: TCommandHeader; Stream: TExtendedStream): TCommand;
     procedure Load(CommandHeader: TCommandHeader; Stream: TExtendedStream); virtual;
 
@@ -242,6 +244,11 @@ begin
   R.CommandType := CommandType;
   R.CommandClass := CommandClass;
   FCommands.Add(R);
+end;
+
+class procedure TCommand.UnregisterCommands;
+begin
+  FCommands.Free;
 end;
 
 end.
