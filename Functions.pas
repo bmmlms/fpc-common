@@ -294,7 +294,7 @@ var
   i: Integer;
 begin
   Result := -1;
-  for i := Length(S) - Length(SubStr) downto 1 do
+  for i := Length(S) - Length(SubStr) + 1 downto 1 do
   begin
     if Copy(S, i, Length(SubStr)) = SubStr then
     begin

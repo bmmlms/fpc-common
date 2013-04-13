@@ -41,7 +41,8 @@ type
     ctSubmitStream,
     ctSetStreamData,
     ctGetMonitorStreamsResponse,
-    ctGetMonitorStreams);
+    ctGetMonitorStreams,
+    ctSyncWishlist);
 
   TReadRes = (rrOk, rrBadPacket, rrMoreBytesNeeded);
   TBytes = array of Byte;
