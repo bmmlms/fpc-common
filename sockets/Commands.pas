@@ -42,7 +42,11 @@ type
     ctSetStreamData,
     ctGetMonitorStreamsResponse,
     ctGetMonitorStreams,
-    ctSyncWishlist);
+    ctSyncWishlist,
+    ctSearchCharts,
+    ctSearchChartsResponse,
+    ctGetWishlistUpgrade,
+    ctGetWishlistUpgradeResponse);
 
   TReadRes = (rrOk, rrBadPacket, rrMoreBytesNeeded);
   TBytes = array of Byte;
@@ -104,6 +108,10 @@ const
   COMMAND_HEADER_LEN = 12;
 
 implementation
+
+uses
+homecommands; // TODO: homecommands entfernen!!!
+
 
 { TCommandHeader }
 
@@ -228,7 +236,12 @@ begin
   for i := 0 to FCommands.Count - 1 do
     if FCommands[i].CommandType = CommandHeader.CommandType then
     begin
-      Cmd := TCommand(FCommands[i].CommandClass.Create);
+      // TODO: das laden funzt irgendwie nicht. ich habe absolut keinen plan, warum. prüfen!!!
+      if FCommands[i].CommandType = ctGetWishlistUpgradeResponse then
+      begin
+        Cmd := TCommandGetWishlistUpgradeResponse.Create;
+      end else
+        Cmd := TCommand(FCommands[i].CommandClass.Create);
       Cmd.Load(CommandHeader, Stream);
       Exit(Cmd);
     end;
