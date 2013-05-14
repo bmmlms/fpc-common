@@ -24,7 +24,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Sockets, Generics.Collections, ExtendedStream,
-  zlib;
+  zlib, RTTI;
 
 type
   TCommandTypes = (ctHandshake, ctHandshakeResponse,
@@ -76,6 +76,8 @@ type
     CommandClass: TClass;
   end;
 
+  TCommandClass = class of TCommand;
+
   TCommand = class
   private
     class var FCommands: TList<TCommandRegistration>;
@@ -90,7 +92,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    class procedure RegisterCommand(CommandType: TCommandTypes; CommandClass: TClass);
+    class procedure RegisterCommand(CommandType: TCommandTypes; CommandClass: TCommandClass);
     class procedure UnregisterCommands;
     class function Read(CommandHeader: TCommandHeader; Stream: TExtendedStream): TCommand;
     procedure Load(CommandHeader: TCommandHeader; Stream: TExtendedStream); virtual;
@@ -108,10 +110,6 @@ const
   COMMAND_HEADER_LEN = 12;
 
 implementation
-
-uses
-homecommands; // TODO: homecommands entfernen!!!
-
 
 { TCommandHeader }
 
@@ -232,24 +230,29 @@ class function TCommand.Read(CommandHeader: TCommandHeader; Stream: TExtendedStr
 var
   i: Integer;
   Cmd: TCommand;
+  Context: TRttiContext;
+  ClassType: TRttiType;
 begin
   for i := 0 to FCommands.Count - 1 do
     if FCommands[i].CommandType = CommandHeader.CommandType then
     begin
-      // TODO: das laden funzt irgendwie nicht. ich habe absolut keinen plan, warum. prüfen!!!
-      if FCommands[i].CommandType = ctGetWishlistUpgradeResponse then
-      begin
-        Cmd := TCommandGetWishlistUpgradeResponse.Create;
-      end else
-        Cmd := TCommand(FCommands[i].CommandClass.Create);
-      Cmd.Load(CommandHeader, Stream);
+      Context := TRttiContext.Create;
+      try
+        ClassType := Context.GetType(FCommands[i].CommandClass);
+
+        Cmd := TCommand(ClassType.GetMethod('Create').Invoke(ClassType.AsInstance.MetaclassType, []).AsObject);
+        Cmd.Load(CommandHeader, Stream);
+      finally
+        Context.Free;
+      end;
+
       Exit(Cmd);
     end;
   raise Exception.Create('Unbekannter CommandType');
 end;
 
 class procedure TCommand.RegisterCommand(CommandType: TCommandTypes;
-  CommandClass: TClass);
+  CommandClass: TCommandClass);
 var
   R: TCommandRegistration;
 begin
