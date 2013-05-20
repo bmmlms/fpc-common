@@ -82,6 +82,7 @@ function TryUnRelativePath(const s: string): string;
 function FixPathName(Path: string): string;
 function GetFileVersion(Filename: string): TAppVersion;
 function ShortenString(Str: string; Len: Integer): string;
+procedure Explode(const Separator, S: string; Lst: TStringList);
 
 function VerSetConditionMask(dwlConditionMask: LONGLONG; TypeBitMask: DWORD; ConditionMask: Byte): LONGLONG; stdcall;
   external 'kernel32.dll';
@@ -1179,6 +1180,60 @@ begin
   if Length(Result) > Len then
   begin
     Result := Trim(Copy(Result, 1, Len - 3)) + '...';
+  end;
+end;
+
+procedure Explode(const Separator, S: string; Lst: TStringList);
+var
+  SepLen: Integer;
+  F, P: PChar;
+  ALen, Index: Integer;
+  Res: array of string;
+  i: Integer;
+begin
+  Lst.Clear;
+
+  try
+    SetLength(Res, 0);
+
+    if S = '' then
+      Exit;
+
+    if Separator = '' then
+    begin
+      SetLength(Res, 1);
+      Res[0] := S;
+      Exit;
+    end;
+
+    SepLen := Length(Separator);
+    ALen := 0;
+    SetLength(Res, ALen);
+
+    Index := 0;
+    P := PChar(S);
+    while P^ <> #0 do
+    begin
+      F := P;
+      P := AnsiStrPos(P, PChar(Separator));
+      if P = nil then
+        P := StrEnd(F);
+      if Index >= ALen then
+      begin
+        Inc(ALen, 5);
+        SetLength(Res, ALen);
+      end;
+      SetString(Res[Index], F, P - F);
+      Inc(Index);
+      if P^ <> #0 then
+        Inc(P, SepLen);
+    end;
+    if Index < ALen then
+      SetLength(Res, Index);
+  finally
+    for i := 0 to High(Res) do
+      if Length(Trim(Res[i])) > 0 then
+        Lst.Add(Res[i]);
   end;
 end;
 
