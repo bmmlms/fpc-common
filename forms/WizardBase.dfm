@@ -255,6 +255,7 @@ object frmWizardBase: TfrmWizardBase
       Height = 45
       Anchors = [akLeft, akTop, akRight, akBottom]
       AutoSize = False
+      WordWrap = True
     end
   end
 end
