@@ -70,7 +70,8 @@ function PatternReplace(S: string; ReplaceList: TPatternReplaceArray): string;
 function IsAdmin: LongBool;
 function HTML2Color(const HTML: string): Integer;
 function GetFileSize(const AFilename: string): Int64;
-function CmpInt(const A, B: Int64): Integer;
+function CmpInt(const A, B: Int64; R: Boolean = False): Integer;
+function CmpUInt64(const A, B: UInt64; R: Boolean = False): Integer;
 function ParseVersion(const Version: string): TAppVersion; overload;
 function ParseVersion(const Major, Minor, Revision, Build: Cardinal): TAppVersion; overload;
 function IsVersionNewer(const Current, Found: TAppVersion): Boolean;
@@ -840,14 +841,46 @@ begin
   end;
 end;
 
-function CmpInt(const A, B: Int64): Integer;
+function CmpInt(const A, B: Int64; R: Boolean): Integer;
 begin
-  if A > B then
-    Result := 1
-  else if A < B then
-    Result := -1
-  else
-    Result := 0;
+  if not R then
+  begin
+    if A > B then
+      Result := 1
+    else if A < B then
+      Result := -1
+    else
+      Result := 0;
+  end else
+  begin
+    if A < B then
+      Result := 1
+    else if A > B then
+      Result := -1
+    else
+      Result := 0;
+  end;
+end;
+
+function CmpUInt64(const A, B: UInt64; R: Boolean): Integer;
+begin
+  if not R then
+  begin
+    if A > B then
+      Result := 1
+    else if A < B then
+      Result := -1
+    else
+      Result := 0;
+  end else
+  begin
+    if A < B then
+      Result := 1
+    else if A > B then
+      Result := -1
+    else
+      Result := 0;
+  end;
 end;
 
 function ParseVersion(const Version: string): TAppVersion;
