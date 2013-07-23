@@ -87,6 +87,7 @@ type
     constructor Create(AOwner: TComponent); reintroduce; virtual;
     destructor Destroy; override;
 
+    procedure AfterShown; virtual;
     function CanClose: Boolean; virtual;
 
     property Caption: string read FGetCaption write FSetCaption;
@@ -332,6 +333,11 @@ begin
 end;
 
 { TMTabSheet }
+
+procedure TMTabSheet.AfterShown;
+begin
+
+end;
 
 procedure TMTabSheet.AlignButton;
 var
