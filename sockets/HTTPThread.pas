@@ -58,6 +58,7 @@ type
 
     procedure DoReceivedData(Buf: Pointer; Len: Integer); override;
     procedure DoDisconnected; override;
+    procedure DoException(E: Exception); override;
 
     procedure DoHeaderRemoved; virtual;
     procedure DoSpeedChange; virtual;
@@ -179,9 +180,21 @@ begin
     Sync(FOnDownloadProgress);
 end;
 
+procedure THTTPThread.DoException(E: Exception);
+begin
+  inherited;
+
+  FSpeed := 0;
+  DoSpeedChange();
+end;
+
 procedure THTTPThread.DoDisconnected;
 begin
   inherited;
+
+  FSpeed := 0;
+  DoSpeedChange();
+
   if FTypedStream.ContentLength > -1 then
     if FTypedStream.ContentLength <> Received then
     begin

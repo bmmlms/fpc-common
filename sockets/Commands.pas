@@ -40,13 +40,11 @@ type
     ctClientStats,
     ctSubmitStream,
     ctSetStreamData,
-    ctGetMonitorStreamsResponse,
-    ctGetMonitorStreams,
+    ctGetMonitorStreamsResponse, ctGetMonitorStreams,
     ctSyncWishlist,
-    ctSearchCharts,
-    ctSearchChartsResponse,
-    ctGetWishlistUpgrade,
-    ctGetWishlistUpgradeResponse);
+    ctSearchCharts, ctSearchChartsResponse,
+    ctGetWishlistUpgrade, ctGetWishlistUpgradeResponse,
+    ctStreamAnalyzationData);
 
   TReadRes = (rrOk, rrBadPacket, rrMoreBytesNeeded);
   TBytes = array of Byte;

@@ -38,6 +38,7 @@ type
     procedure Write(Value: TDateTime); overload;
     procedure Write(Value: UInt64); overload;
     procedure Write(Value: Byte); overload;
+    procedure Write(Value: UInt16); overload;
     procedure Read(var Value: Integer); overload;
     procedure Read(var Value: Cardinal); overload;
     procedure Read(var Value: Boolean); overload;
@@ -134,6 +135,11 @@ end;
 procedure TExtendedStream.Write(Value: Byte);
 begin
   WriteBuffer(Value, SizeOf(Byte));
+end;
+
+procedure TExtendedStream.Write(Value: UInt16);
+begin
+  WriteBuffer(Value, SizeOf(UInt16));
 end;
 
 procedure TExtendedStream.Read(var Value: UnicodeString);
