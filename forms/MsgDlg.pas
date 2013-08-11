@@ -24,34 +24,38 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, AppData, LanguageObjects;
+  Dialogs, StdCtrls, ExtCtrls, AppData, LanguageObjects, ShellAPI;
+
+const
+  mrDontShow = 100;
 
 type
-  TMsgButtons = (btOK, btOKCancel);
-  TMsgRetTypes = (mtOK, mtCancel, mtDontShow);
 
   TfrmMsgDlg = class(TForm)
     chkNotShowAgain: TCheckBox;
     txtText: TMemo;
     pnlNav: TPanel;
     Bevel2: TBevel;
-    cmdCancel: TButton;
-    cmdOK: TButton;
+    cmdNoCancel: TButton;
+    cmdYesOK: TButton;
+    imgIcon: TImage;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure FormCreate(Sender: TObject);
-    procedure cmdOKClick(Sender: TObject);
-    procedure cmdCancelClick(Sender: TObject);
+    procedure cmdYesOKClick(Sender: TObject);
+    procedure cmdNoCancelClick(Sender: TObject);
     procedure FormKeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure FormActivate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     FID: Integer;
-    FRes: TMsgRetTypes;
-    function ShowMsgInternal(Text: string; ID: Integer; Buttons: TMsgButtons): TMsgRetTypes; overload;
-    function ShowMsgInternal(Text: string; Buttons: TMsgButtons): TMsgRetTypes; overload;
+    FButtons: TMsgDlgButtons;
+    FButtonToFocus: TButton;
+    FResult: TModalResult;
+    function ShowMsgInternal: TModalResult;
   public
-    class function ShowMsg(Owner: TCustomForm; Text: string; ID: Integer; Buttons: TMsgButtons): TMsgRetTypes; overload;
-    class function ShowMsg(Owner: TCustomForm; Text: string; Buttons: TMsgButtons): TMsgRetTypes; overload;
+    constructor Create(AOwner: TComponent; Text: string; MsgType: TMsgDlgType; Buttons: TMsgDlgButtons; DefButton: TMsgDlgBtn; ID: Integer);
+
+    class function ShowMsg(Owner: TCustomForm; Text: string; MsgType: TMsgDlgType; Buttons: TMsgDlgButtons; DefButton: TMsgDlgBtn; ID: Integer = -1): TModalResult;
   end;
 
 implementation
@@ -61,14 +65,18 @@ uses
 
 {$R *.dfm}
 
-procedure TfrmMsgDlg.cmdCancelClick(Sender: TObject);
+procedure TfrmMsgDlg.cmdNoCancelClick(Sender: TObject);
 begin
   Close;
 end;
 
-procedure TfrmMsgDlg.cmdOKClick(Sender: TObject);
+procedure TfrmMsgDlg.cmdYesOKClick(Sender: TObject);
 begin
-  FRes := mtOK;
+  if (mbYes in FButtons) then
+    FResult := mrYes
+  else
+    FResult := mrOk;
+
   Close;
 end;
 
@@ -83,14 +91,8 @@ end;
 procedure TfrmMsgDlg.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   if FID > -1 then
-    if chkNotShowAgain.Checked and (FRes = mtOK) then
+    if chkNotShowAgain.Checked and ((FResult = mrYes) or (FResult = mrOk)) then
       AppGlobals.InfoShown[FID] := True;
-end;
-
-procedure TfrmMsgDlg.FormCreate(Sender: TObject);
-begin
-  Language.Translate(Self);
-  FRes := mtCancel;
 end;
 
 procedure TfrmMsgDlg.FormKeyUp(Sender: TObject; var Key: Word;
@@ -103,49 +105,122 @@ begin
   end;
 end;
 
-class function TfrmMsgDlg.ShowMsg(Owner: TCustomForm; Text: string; ID: Integer; Buttons: TMsgButtons): TMsgRetTypes;
+procedure TfrmMsgDlg.FormShow(Sender: TObject);
+begin
+  if FButtonToFocus <> nil then
+    FButtonToFocus.SetFocus;
+end;
+
+class function TfrmMsgDlg.ShowMsg(Owner: TCustomForm; Text: string; MsgType: TMsgDlgType; Buttons: TMsgDlgButtons; DefButton: TMsgDlgBtn; ID: Integer): TModalResult;
 var
   M: TfrmMsgDlg;
+  CheckButtons: TMsgDlgButtons;
 begin
+  CheckButtons := Buttons + [DefButton];
+  if (mbAbort in CheckButtons) or (mbRetry in CheckButtons) or (mbIgnore in CheckButtons) or
+     (mbAll in CheckButtons) or (mbNoToAll in CheckButtons) or (mbYesToAll in CheckButtons) or
+     (mbClose in CheckButtons)
+  then
+    raise Exception.Create('Unsupported button supplied');
+
+  if ((mbYes in Buttons) and (mbCancel in Buttons)) or
+     ((mbOK in Buttons) and (mbNo in Buttons))
+  then
+    raise Exception.Create('Unsupported button set supplied');
+
+  if not (DefButton in Buttons) then
+    raise Exception.Create('DefButton not in button set');
+
   if ID > -1 then
     if AppGlobals.InfoShown[ID] then
     begin
-      Result := mtDontShow;
+      Result := mrDontShow;
       Exit;
     end;
 
-  M := TfrmMsgDlg.Create(Owner);
+  M := TfrmMsgDlg.Create(Owner, Text, MsgType, Buttons, DefButton, ID);
   try
     if (Owner = nil) or (not Owner.Visible) or (IsIconic(Owner.Handle)) then
       M.Position := poScreenCenter;
-    M.ShowMsgInternal(Text, ID, Buttons);
-    Result := M.FRes;
+    Result := M.ShowMsgInternal;
   finally
     M.Free;
   end;
 end;
 
-class function TfrmMsgDlg.ShowMsg(Owner: TCustomForm; Text: string; Buttons: TMsgButtons): TMsgRetTypes;
+function TfrmMsgDlg.ShowMsgInternal: TModalResult;
 begin
-  Result := ShowMsg(Owner, Text, -1, Buttons);
+  Self.ShowModal;
+  Result := FResult;
 end;
 
-function TfrmMsgDlg.ShowMsgInternal(Text: string; ID: Integer; Buttons: TMsgButtons): TMsgRetTypes;
+constructor TfrmMsgDlg.Create(AOwner: TComponent; Text: string; MsgType: TMsgDlgType; Buttons: TMsgDlgButtons; DefButton: TMsgDlgBtn; ID: Integer);
+var
+  Icon: TIcon;
 begin
-  FID := ID;
+  inherited Create(AOwner);
 
-  cmdCancel.Visible := Buttons = btOKCancel;
+  FID := ID;
+  FButtons := Buttons;
+
+  cmdNoCancel.Visible := (mbNo in Buttons) or (mbCancel in Buttons);
+  if mbNo in Buttons then
+    cmdNoCancel.Caption := '&No';
+  if mbYes in Buttons then
+    cmdYesOK.Caption := '&Yes';
+
+  FButtonToFocus := nil;
+  if (DefButton = mbOK) or (DefButton = mbYes) then
+  begin
+    cmdYesOK.Default := True;
+    FButtonToFocus := cmdYesOK;
+  end;
+  if (DefButton = mbNo) or (DefButton = mbCancel) then
+  begin
+    cmdNoCancel.Default := True;
+    FButtonToFocus := cmdNoCancel;
+  end;
+
+  FResult := mrCancel;
+  if (mbNo in FButtons) then
+    FResult := mrNo;
+
+  Icon := TIcon.Create;
+  try
+    case MsgType of
+      mtWarning:
+        begin
+          Caption := 'Warning';
+          Icon.Handle := LoadIcon(Icon.Handle, PChar(IDI_EXCLAMATION));
+        end;
+      mtError:
+        begin
+          Caption := 'Error';
+          Icon.Handle := LoadIcon(Icon.Handle, PChar(IDI_HAND));
+        end;
+      mtInformation:
+        begin
+          Caption := 'Information';
+          Icon.Handle := LoadIcon(Icon.Handle, PChar(IDI_ASTERISK));
+        end;
+      mtConfirmation:
+        begin
+          Caption := 'Question';
+          Icon.Handle := LoadIcon(Icon.Handle, PChar(IDI_QUESTION));
+        end;
+      mtCustom:
+        raise Exception.Create('mtCustom not supported');
+    end;
+    imgIcon.Picture.Icon := Icon;
+  finally
+    Icon.Free;
+  end;
+
   chkNotShowAgain.Visible := ID > -1;
 
+  Language.Translate(Self);
+
   txtText.Text := Text;
-  Self.ShowModal;
-
-  Result := Self.FRes;
-end;
-
-function TfrmMsgDlg.ShowMsgInternal(Text: string; Buttons: TMsgButtons): TMsgRetTypes;
-begin
-  Result := ShowMsgInternal(Text, -1, Buttons);
 end;
 
 end.

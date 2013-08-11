@@ -24,7 +24,7 @@ interface
 
 uses
   Windows, SysUtils, WinSock, Forms, AppData, UpdateClient, Update, Wizard,
-  ProfileSettings, Functions, SettingsStorage, LanguageObjects,
+  ProfileSettings, Functions, SettingsStorage, LanguageObjects, Dialogs,
   AppDataBase, About, Menus, UpdatedInfo, Logging, MsgDlg, SplashThread;
 
 type
@@ -68,7 +68,8 @@ begin
     if not IsVersionNewer(ParseVersion('5.0.0.0'), VerRec) then
     begin
       TfrmMsgDlg.ShowMsg(nil, Format(_('%s requires at least Windows XP, earlier versions of windows are not supported.'#13#10 +
-                                       'If you continue running %s using a not supported operating system I am not responsible for any problems that might occur.'), [AppGlobals.AppName, AppGlobals.AppName]), 12, btOK);
+                                       'If you continue running %s using a not supported operating system I am not responsible for any problems that might occur.'), [AppGlobals.AppName, AppGlobals.AppName]),
+                         mtWarning, [mbOK], mbOK, 12);
     end;
   end;
 
