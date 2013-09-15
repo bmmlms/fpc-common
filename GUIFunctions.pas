@@ -24,7 +24,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Graphics, ShellAPI, ShlObj, ActiveX,
-  Types;
+  ComObj, Types;
 
 type
   TAccessCanvas = class(TCanvas);
@@ -37,6 +37,7 @@ function GetShellFolder(CSIDL: Integer): string;
 function Recycle(Handle: Cardinal; Filename: string): Boolean; overload;
 function GetUserDir: string;
 function ResizeBitmap(Bitmap: TBitmap; MaxSize: Integer): TBitmap;
+function CreateLink(Executable, Dest, Name, Args: string; Delete: Boolean): Boolean;
 
 implementation
 
@@ -217,6 +218,34 @@ begin
   Res.Height := FH;
   Res.Canvas.StretchDraw(Rect(0, 0, FW, FH), Bitmap);
   Result := Res;
+end;
+
+function CreateLink(Executable, Dest, Name, Args: string; Delete: Boolean): Boolean;
+var
+  IObject: IUnknown;
+  ISLink: IShellLink;
+  IPFile: IPersistFile;
+  PIDL: PItemIDList;
+  InFolder: array[0..MAX_PATH] of Char;
+  LinkName: WideString;
+begin
+  Dest := IncludeTrailingPathDelimiter(Dest);
+  if Delete then
+  begin
+    Result := DeleteFile(Dest + Name + '.lnk');
+  end else
+  begin
+    IObject := CreateComObject(CLSID_ShellLink);
+    ISLink := IObject as IShellLink;
+    IPFile := IObject as IPersistFile;
+
+    ISLink.SetPath(PChar(Executable));
+    ISLink.SetWorkingDirectory(PChar(ExtractFilePath(Executable)));
+    ISLink.SetArguments(PChar(Args));
+
+    LinkName := Dest + Name + '.lnk';
+    Result := IPFile.Save(PChar(LinkName), False) = S_OK;
+  end;
 end;
 
 end.
