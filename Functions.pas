@@ -23,7 +23,7 @@ unit Functions;
 interface
 
 uses
-  Windows, ShLwApi, SysUtils, Classes, StrUtils, Graphics;
+  Windows, ShLwApi, SysUtils, Classes, StrUtils, Graphics, PerlRegEx;
 
 type
   TPatternReplace = record
@@ -84,6 +84,7 @@ function FixPathName(Path: string): string;
 function GetFileVersion(Filename: string): TAppVersion;
 function ShortenString(Str: string; Len: Integer): string;
 procedure Explode(const Separator, S: string; Lst: TStringList);
+function RegExReplace(RegEx, ReplaceWith, Data: string): string;
 
 function VerSetConditionMask(dwlConditionMask: LONGLONG; TypeBitMask: DWORD; ConditionMask: Byte): LONGLONG; stdcall;
   external 'kernel32.dll';
@@ -1267,6 +1268,26 @@ begin
     for i := 0 to High(Res) do
       if Length(Trim(Res[i])) > 0 then
         Lst.Add(Res[i]);
+  end;
+end;
+
+function RegExReplace(RegEx, ReplaceWith, Data: string): string;
+var
+  R: TPerlRegEx;
+begin
+  Result := '';
+  R := TPerlRegEx.Create;
+  try
+    R.Options := R.Options + [preCaseLess];
+    R.Subject := Data;
+    R.RegEx := RegEx;
+    R.Replacement := ReplaceWith;
+    try
+      R.ReplaceAll;
+      Result := R.Subject;
+    except end;
+  finally
+    R.Free;
   end;
 end;
 
