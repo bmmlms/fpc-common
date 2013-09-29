@@ -44,7 +44,8 @@ type
     ctSyncWishlist,
     ctSearchCharts, ctSearchChartsResponse,
     ctGetWishlistUpgrade, ctGetWishlistUpgradeResponse,
-    ctStreamAnalyzationData);
+    ctStreamAnalyzationData,
+    ctGenerateAuthToken, ctGenerateAuthTokenResponse);
 
   TReadRes = (rrOk, rrBadPacket, rrMoreBytesNeeded);
   TBytes = array of Byte;
