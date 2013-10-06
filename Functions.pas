@@ -85,6 +85,7 @@ function GetFileVersion(Filename: string): TAppVersion;
 function ShortenString(Str: string; Len: Integer): string;
 procedure Explode(const Separator, S: string; Lst: TStringList);
 function RegExReplace(RegEx, ReplaceWith, Data: string): string;
+function ContainsRegEx(RegEx, Data: string): Boolean;
 
 function VerSetConditionMask(dwlConditionMask: LONGLONG; TypeBitMask: DWORD; ConditionMask: Byte): LONGLONG; stdcall;
   external 'kernel32.dll';
@@ -1285,6 +1286,24 @@ begin
     try
       R.ReplaceAll;
       Result := R.Subject;
+    except end;
+  finally
+    R.Free;
+  end;
+end;
+
+function ContainsRegEx(RegEx, Data: string): Boolean;
+var
+  R: TPerlRegEx;
+begin
+  Result := False;
+  R := TPerlRegEx.Create;
+  try
+    R.Options := R.Options + [preCaseLess];
+    R.Subject := Data;
+    R.RegEx := RegEx;
+    try
+      Result := R.Match;
     except end;
   finally
     R.Free;
