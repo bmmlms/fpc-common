@@ -23,7 +23,8 @@ unit SplashThread;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, PngImage, MultiMon;
+  Windows, Messages, SysUtils, Classes, Graphics, PngImage, MultiMon,
+  Functions, LanguageObjects;
 
 type
   TStates = (stFadeIn, stWaiting, stFadeOut);
@@ -31,17 +32,18 @@ type
   TSplashThread = class(TThread)
   private
     FResourceName: string;
+    FVersion: string;
 
     procedure PremultiplyBitmap(Bitmap: TBitmap);
   protected
     procedure Execute; override;
   public
-    constructor Create(WindowClass: string; ResourceName: string; MainLeft, MainTop, MainWidth, MainHeight: Integer);
+    constructor Create(WindowClass, ResourceName, Version: string; Build, MainLeft, MainTop, MainWidth, MainHeight: Integer);
   end;
 
 const
-  FADE_TIME = 1000;
-  FADE_WAIT_TIME = 1300;
+  FADE_TIME = 750;
+  FADE_WAIT_TIME = 1600;
 
 var
   SplashWndHandle: LongWord;
@@ -209,7 +211,8 @@ end;
 
 { TSplashThread }
 
-constructor TSplashThread.Create(WindowClass: string; ResourceName: string; MainLeft, MainTop, MainWidth, MainHeight: Integer);
+constructor TSplashThread.Create(WindowClass, ResourceName, Version: string; Build: Integer;
+  MainLeft, MainTop, MainWidth, MainHeight: Integer);
 begin
   inherited Create(False);
 
@@ -220,6 +223,7 @@ begin
   MainWindowClass := WindowClass;
 
   FResourceName := ResourceName;
+  FVersion := _('Version') + ' ' + Version + ' ' + _('Build') + ' ' + IntToStr(Build);
 
   StartPosLeft := MainLeft;
   StartPosTop := MainTop;
@@ -289,6 +293,13 @@ begin
   ResStream := TResourceStream.Create(HInstance, FResourceName, RT_RCDATA);
   try
     PngImage.LoadFromStream(ResStream);
+
+    PngImage.Canvas.Font.Name := 'Arial';
+    PngImage.Canvas.Font.Color := clWhite;
+    SetBkMode(PngImage.Canvas.Handle, TRANSPARENT);
+    PngImage.Canvas.TextOut(PngImage.Width - PngImage.Canvas.TextWidth(FVersion) - 25,
+      PngImage.Height - PngImage.Canvas.TextHeight(FVersion) - 20, FVersion);
+
     SplashBitmap.Assign(PngImage);
 
     PremultiplyBitmap(SplashBitmap);
