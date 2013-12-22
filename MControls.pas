@@ -86,8 +86,8 @@ type
   public
     constructor Create(AOwner: TComponent); reintroduce; virtual;
     destructor Destroy; override;
+    procedure AfterCreate; virtual;
 
-    procedure AfterShown; virtual;
     function CanClose: Boolean; virtual;
 
     property Caption: string read FGetCaption write FSetCaption;
@@ -334,7 +334,7 @@ end;
 
 { TMTabSheet }
 
-procedure TMTabSheet.AfterShown;
+procedure TMTabSheet.AfterCreate;
 begin
 
 end;
