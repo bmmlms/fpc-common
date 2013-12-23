@@ -225,8 +225,6 @@ var
   IObject: IUnknown;
   ISLink: IShellLink;
   IPFile: IPersistFile;
-  PIDL: PItemIDList;
-  InFolder: array[0..MAX_PATH] of Char;
   LinkName: WideString;
 begin
   Dest := IncludeTrailingPathDelimiter(Dest);

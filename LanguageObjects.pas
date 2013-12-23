@@ -5,6 +5,7 @@
 
     Fixed/Enhanced by:
     Thomas Benz
+    Steffen Wagner
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -1253,7 +1254,7 @@ procedure TLanguageManager.TranslateProperty(C: TObject; Owner: TComponent; Prop
         Result := GetStrProp(C, Name);
       tkWString:
         Result := GetWideStrProp(C, Name);
-      {$IF CompilerVersion >= 18.5}
+      {$IF CompilerVersion > 18.5}
       tkUString:
         Result := GetUnicodeStrProp(C, Name);
       {$IFEND}
@@ -1265,7 +1266,7 @@ begin
   if Prop.SetProc <> nil then
   begin
     case Prop.PropType^.Kind of
-      {$IF CompilerVersion >= 18.5}
+      {$IF CompilerVersion > 18.5}
       tkString, tkLString, tkWString, tkUString:
       {$ELSE}
       tkString, tkLString, tkWString:
@@ -1359,7 +1360,7 @@ begin
   if C is TComponent then
     Owner := TComponent(C);
 
-  {$IF CompilerVersion >= 18.5}
+  {$IF CompilerVersion > 18.5}
   Count := GetPropList(PTypeInfo(C.ClassInfo), [tkClass, tkString, tkLString, tkWString, tkUString], @PropList);
   {$ELSE}
   Count := GetPropList(PTypeInfo(C.ClassInfo), [tkClass, tkString, tkLString, tkWString], @PropList);
@@ -1370,7 +1371,7 @@ begin
     PropInfo := PropList[i];
 
     case PropInfo^.PropType^.Kind of
-      {$IF CompilerVersion >= 18.5}
+      {$IF CompilerVersion > 18.5}
       tkString, tkLString, tkWString, tkUString:
       {$ELSE}
       tkString, tkLString, tkWString:
