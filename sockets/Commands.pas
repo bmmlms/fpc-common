@@ -43,7 +43,6 @@ type
     ctGetMonitorStreamsResponse, ctGetMonitorStreams,
     ctSyncWishlist,
     ctSearchCharts, ctSearchChartsResponse,
-    ctGetWishlistUpgrade, ctGetWishlistUpgradeResponse,
     ctStreamAnalyzationData,
     ctGenerateAuthToken, ctGenerateAuthTokenResponse);
 

@@ -420,6 +420,9 @@ var
   S1, S2, S3: Int64;
   SetMin: TLargeInteger;
 begin
+  if Path = '' then
+    Exit(True);
+
   Result := False;
   if Pos('\', Path) > 0 then
     Path := Copy(Path, 1, Pos('\', Path));
