@@ -286,6 +286,10 @@ begin
     Dlg.DefaultExt := '.dat';
     S := TExtendedStream.Create;
     Lst := TSettingsList.Create;
+
+    AppGlobals.Storage.IgnoreFields.Clear;
+    AppGlobals.Storage.IgnoreFields.Add('User');
+    AppGlobals.Storage.IgnoreFields.Add('Pass');
     try
       if Dlg.Execute then
       begin
@@ -303,6 +307,7 @@ begin
         MsgBox(Handle, _('The profile was exported successfully.'), _('Info'), MB_ICONINFORMATION);
       end;
     finally
+      AppGlobals.Storage.IgnoreFields.Clear;
       Lst.Free;
       S.Free;
       Dlg.Free;

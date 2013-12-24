@@ -93,12 +93,13 @@ type
     FAppPath: string;
 
     FDataDir: string;
-
     FDataDirOverridden: Boolean;
+    FIgnoreFields: TStringList;
 
     FCommandLine: TCommandLine;
   public
     constructor Create(AppName, AppPath: string; CommandLine: TCommandLine); virtual;
+    destructor Destroy; override;
 
     procedure Assign(AssignFrom: TSettingsStorage); overload;
     procedure Assign(AssignFrom: TSettingsList); overload;
@@ -127,6 +128,7 @@ type
 
     property DataDir: string read FDataDir;
     property DataDirOverridden: Boolean read FDataDirOverridden;
+    property IgnoreFields: TStringList read FIgnoreFields;
   end;
 
   TSettingsInstalled = class(TSettingsStorage)
@@ -320,6 +322,7 @@ var
   BV: Boolean;
   i, n: Integer;
   DT: TDataType;
+  SkipKey: Boolean;
 begin
   SV := '';
   IV := 0;
@@ -339,6 +342,17 @@ begin
 
     for n := 0 to Values.Count - 1 do
     begin
+      SkipKey := False;
+      for i := 0 to FIgnoreFields.Count - 1 do
+        if LowerCase(FIgnoreFields[i]) = LowerCase(Values[n]) then
+        begin
+          SkipKey := True;
+          Break;
+        end;
+
+      if SkipKey then
+        Continue;
+
       DT := dtString;
       SV := Reg.GetDataAsString(Values[n], False);
       if SV <> '' then
@@ -641,8 +655,9 @@ var
   SV: string;
   IV: Integer;
   BV: Boolean;
-  i, n, P: Integer;
+  i, n, P, m: Integer;
   DT: TDataType;
+  SkipKey: Boolean;
 begin
   SV := '';
   IV := 0;
@@ -669,6 +684,18 @@ begin
         if P > 0 then
         begin
           Values[n] := Copy(Values[n], 1, P - 1);
+
+          // TODO: SkipKey testen hier in portable profile!!!!!!
+          SkipKey := False;
+          for m := 0 to FIgnoreFields.Count - 1 do
+            if LowerCase(FIgnoreFields[m]) = LowerCase(Values[n]) then
+            begin
+              SkipKey := True;
+              Break;
+            end;
+
+          if SkipKey then
+            Continue;
 
           SV := Ini.ReadString(Sections[i], Values[n], '');
           DT := dtString;
@@ -916,6 +943,7 @@ begin
   FAppName := AppName;
   FAppPath := AppPath;
   FCommandLine := CommandLine;
+  FIgnoreFields := TStringList.Create;
 end;
 
 function TSettingsStorage.CreatePath: Boolean;
@@ -926,6 +954,13 @@ end;
 function TSettingsStorage.DeleteProfile: Boolean;
 begin
   Result := False;
+end;
+
+destructor TSettingsStorage.Destroy;
+begin
+  FIgnoreFields.Free;
+
+  inherited;
 end;
 
 procedure TSettingsStorage.GetData(Lst: TSettingsList);
