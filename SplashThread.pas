@@ -38,12 +38,12 @@ type
   protected
     procedure Execute; override;
   public
-    constructor Create(WindowClass, ResourceName, Version: string; Build, MainLeft, MainTop, MainWidth, MainHeight: Integer);
+    constructor Create(WindowClass, ResourceName, Codename, Version: string; Build, MainLeft, MainTop, MainWidth, MainHeight: Integer);
   end;
 
 const
   FADE_TIME = 750;
-  FADE_WAIT_TIME = 1600;
+  FADE_WAIT_TIME = 1800;
 
 var
   SplashWndHandle: LongWord;
@@ -211,7 +211,7 @@ end;
 
 { TSplashThread }
 
-constructor TSplashThread.Create(WindowClass, ResourceName, Version: string; Build: Integer;
+constructor TSplashThread.Create(WindowClass, ResourceName, Codename, Version: string; Build: Integer;
   MainLeft, MainTop, MainWidth, MainHeight: Integer);
 begin
   inherited Create(False);
@@ -224,6 +224,8 @@ begin
 
   FResourceName := ResourceName;
   FVersion := _('Version') + ' ' + Version + ' ' + _('Build') + ' ' + IntToStr(Build);
+  if Codename <> '' then
+    FVersion := FVersion + ' ''' + Codename + '''';
 
   StartPosLeft := MainLeft;
   StartPosTop := MainTop;
@@ -297,6 +299,7 @@ begin
     PngImage.Canvas.Font.Name := 'Arial';
     PngImage.Canvas.Font.Color := clWhite;
     SetBkMode(PngImage.Canvas.Handle, TRANSPARENT);
+
     PngImage.Canvas.TextOut(PngImage.Width - PngImage.Canvas.TextWidth(FVersion) - 25,
       PngImage.Height - PngImage.Canvas.TextHeight(FVersion) - 20, FVersion);
 
