@@ -104,8 +104,6 @@ type
     FBuildNumber: Integer;
 
     procedure DoSave; virtual;
-
-    function FGetCodename: string; virtual;
   public
     constructor Create(AppName: String; OnlyOne: Boolean; DefWidth, DefHeight: Integer); reintroduce;
     destructor Destroy; override;
@@ -154,7 +152,6 @@ type
     property SuppressUpdatedInfo: Boolean read FSuppressUpdatedInfo write FSuppressUpdatedInfo;
     property WindowHandle: Cardinal read FWindowHandle write FSetWindowHandle;
     property InfoShown[Idx: Integer]: Boolean read FGetInfoShown write FSetInfoShown;
-    property Codename: string read FGetCodename;
 
     property Storage: TSettingsStorage read FStorage;
 
@@ -303,11 +300,6 @@ begin
         FWasSetup := False;
       end;
   end;
-end;
-
-function TAppDataBase.FGetCodename: string;
-begin
-  Result := '';
 end;
 
 function TAppDataBase.FGetInfoShown(Idx: Integer): Boolean;
