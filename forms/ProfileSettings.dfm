@@ -54,6 +54,7 @@ object frmProfileSettings: TfrmProfileSettings
   Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
+  ExplicitWidth = 320
   DesignSize = (
     329
     290)

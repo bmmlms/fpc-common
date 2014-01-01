@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2013 Alexander Nottelmann
+    Copyright (c) 2010-2014 Alexander Nottelmann
 
     Fixed/Enhanced by:
     Thomas Benz

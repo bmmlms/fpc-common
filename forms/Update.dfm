@@ -10,7 +10,7 @@ object frmUpdate: TfrmUpdate
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
-  
+  Font.Name = 'Tahoma'
   Font.Style = []
   Icon.Data = {
     0000010001001010000001002000680400001600000028000000100000002000
@@ -73,14 +73,14 @@ object frmUpdate: TfrmUpdate
   object Label1: TLabel
     Left = 8
     Top = 8
-    Width = 87
+    Width = 83
     Height = 13
     Caption = 'Installed version:'
   end
   object Label2: TLabel
     Left = 8
     Top = 28
-    Width = 81
+    Width = 78
     Height = 13
     Caption = 'Newest version:'
   end
