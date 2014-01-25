@@ -374,6 +374,11 @@ var
 begin
   inherited Create(AOwner);
 
+  // Alle Panels verstecken
+  for i := 0 to ControlCount - 1 do
+    if Controls[i].InheritsFrom(TPanel) and (Controls[i] <> pnlHeader) and (Controls[i] <> pnlLeft) and (Controls[i] <> pnlNav) then
+      Controls[i].Visible := False;
+
   FShowGeneral := ShowGeneral;
   FActivePage := nil;
 
@@ -396,6 +401,8 @@ begin
   begin
     if FPageList[i].FCaption = '' then
       Continue;
+
+    FPageList[i].Panel.Visible := True;
 
     Res := TResourceStream.Create(HInstance, FPageList[i].ResName, MakeIntResource(RT_RCDATA));
     Png := TPngImage.Create;
