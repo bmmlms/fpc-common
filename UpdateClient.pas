@@ -107,13 +107,16 @@ implementation
 
 constructor TUpdateThread.Create(Action: TUpdateAction; URL: string);
 begin
+  // Das muss vor das inherited(), weil es dadrin benutzt wird.
+  FUserAgent := AnsiString(AppGlobals.AppName) + '/' + AppGlobals.AppVersion.AsString;
+
   if Action = uaVersion then
     inherited Create(URL)
   else
     inherited Create(URL);
+
   FUpdateAction := Action;
   FChangeLog := '';
-  FUserAgent := AnsiString(AppGlobals.AppName) + ' v' + AppGlobals.AppVersion.AsString;
 end;
 
 function TUpdateThread.GetValue(Data, Name: AnsiString): AnsiString;

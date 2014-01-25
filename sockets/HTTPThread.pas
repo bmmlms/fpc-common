@@ -115,6 +115,7 @@ begin
   SendData := SendData + 'Accept: */*'#13#10;
   SendData := SendData + 'User-Agent: mhttplib/' + FUserAgent + #13#10;
   SendData := SendData + 'Connection: close'#13#10;
+
   if FPostData <> '' then
     SendData := SendData + 'Content-Length: ' + AnsiString(IntToStr(Length(FPostData))) + #13#10;
   SendData := SendData + #13#10;
@@ -157,7 +158,6 @@ begin
   FProxyEnabled := False;
   FProxyHost := '';
   FProxyPort := 0;
-  FUserAgent := '';
 
   {$IFDEF DEBUG}
   FDataTimeout := 100000;
