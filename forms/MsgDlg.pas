@@ -53,7 +53,7 @@ type
     FResult: TModalResult;
     function ShowMsgInternal: TModalResult;
   public
-    constructor Create(AOwner: TComponent; Text: string; MsgType: TMsgDlgType; Buttons: TMsgDlgButtons; DefButton: TMsgDlgBtn; ID: Integer);
+    constructor Create(AOwner: TComponent; Text: string; MsgType: TMsgDlgType; Buttons: TMsgDlgButtons; DefButton: TMsgDlgBtn; ID: Integer); reintroduce;
 
     class function ShowMsg(Owner: TCustomForm; Text: string; MsgType: TMsgDlgType; Buttons: TMsgDlgButtons; DefButton: TMsgDlgBtn; ID: Integer = -1): TModalResult;
   end;

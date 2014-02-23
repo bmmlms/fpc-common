@@ -393,8 +393,6 @@ begin
 end;
 
 procedure TAppDataBase.NotifyRunningInstance(Handle: Cardinal);
-var
-  s: string;
 begin
   PostMessage(Handle, WM_USER + 1234, 0, 0);
 end;
@@ -407,8 +405,6 @@ end;
 procedure TAppDataBase.InitOnlyOne;
 var
   Handle: Cardinal;
-  CDS: TCOPYDATASTRUCT;
-  s: string;
 begin
   FFileMapping := 0;
   if FOnlyOne then
