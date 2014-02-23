@@ -74,25 +74,25 @@ procedure TfrmUpdate.cmdOKClick(Sender: TObject);
 begin
   case cmdOK.Tag of
     0:
-    begin
-      lblState.Caption := _('Searching for new version...');
-      Updater.Start(uaVersion, True);
-    end;
-    1:
-    begin
-      if AppGlobals.RunningFromInstalledLocation then
       begin
-        lblState.Caption := _('Downloading update...');
-        ProgressBar1.Tag := -1;
-        ProgressBar1.Position := 0;
-        ProgressBar1.State := pbsNormal;
-        Updater.Start(uaUpdate, True);
-      end else
-      begin
-        ShellExecute(0, 'open', PChar(AppGlobals.ProjectLink), '', '', 1);
-        Close;
+        lblState.Caption := _('Searching for new version...');
+        Updater.Start(uaVersion, True);
       end;
-    end;
+    1:
+      begin
+        if AppGlobals.RunningFromInstalledLocation then
+        begin
+          lblState.Caption := _('Downloading update...');
+          ProgressBar1.Tag := -1;
+          ProgressBar1.Position := 0;
+          ProgressBar1.State := pbsNormal;
+          Updater.Start(uaUpdate, True);
+        end else
+        begin
+          ShellExecute(0, 'open', PChar(AppGlobals.ProjectLink), '', '', 1);
+          Close;
+        end;
+      end;
   end;
   cmdOK.Enabled := False;
 end;
@@ -100,6 +100,7 @@ end;
 constructor TfrmUpdate.Create(AOwner: TComponent; Version: string; UpdateURL: string);
 begin
   inherited Create(AOwner);
+
   Exit := False;
   Updated := False;
   lblVersion.Caption := AppGlobals.AppVersion.AsString;

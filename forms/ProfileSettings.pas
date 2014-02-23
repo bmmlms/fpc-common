@@ -25,13 +25,13 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Buttons, ExtCtrls, AppDataBase, AppData, Functions,
-  LanguageObjects, SettingsStorage;
+  LanguageObjects, SettingsStorage, PngBitBtn;
 
 type
   TfrmProfileSettings = class(TForm)
     pnlNav: TPanel;
     Bevel2: TBevel;
-    btnOk: TBitBtn;
+    btnOk: TPngBitBtn;
     pnlHeader: TPanel;
     Shape1: TShape;
     lblTop: TLabel;

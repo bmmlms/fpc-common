@@ -233,6 +233,8 @@ begin
     Result := DeleteFile(Dest + Name + '.lnk');
   end else
   begin
+    DeleteFile(Dest + Name + '.lnk');
+
     IObject := CreateComObject(CLSID_ShellLink);
     ISLink := IObject as IShellLink;
     IPFile := IObject as IPersistFile;

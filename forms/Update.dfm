@@ -140,9 +140,6 @@ object frmUpdate: TfrmUpdate
     Padding.Right = 4
     Padding.Bottom = 4
     TabOrder = 1
-    ExplicitLeft = -340
-    ExplicitTop = 230
-    ExplicitWidth = 609
     object Bevel2: TBevel
       Left = 4
       Top = 4
@@ -163,7 +160,6 @@ object frmUpdate: TfrmUpdate
       Enabled = False
       TabOrder = 0
       OnClick = cmdOKClick
-      ExplicitLeft = 160
     end
     object cmdCancel: TButton
       Left = 4

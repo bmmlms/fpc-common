@@ -247,7 +247,7 @@ begin
 
       Exit(Cmd);
     end;
-  raise Exception.Create('Unbekannter CommandType');
+  raise Exception.Create('Unknown CommandType');
 end;
 
 class procedure TCommand.RegisterCommand(CommandType: TCommandTypes;

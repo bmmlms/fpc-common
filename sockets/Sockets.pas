@@ -212,7 +212,7 @@ begin
     FHost := inet_ntoa(Addr.sin_addr);
     FPort := ntohs(Addr.sin_port);
   end else
-    raise Exception.Create('getpeername() error');
+    raise Exception.Create('Function getpeername() failed');
 end;
 
 constructor TSocketThread.Create(Host: string; Port: Integer;
@@ -328,11 +328,11 @@ begin
 
         FSocketHandle := socket(AF_INET, SOCK_STREAM, 0);
         if FSocketHandle = SOCKET_ERROR then
-          raise Exception.Create('socket() failed');
+          raise Exception.Create('Function socket() failed');
 
         NonBlock := 1;
         if ioctlsocket(FSocketHandle, FIONBIO, NonBlock) = SOCKET_ERROR then
-          raise Exception.Create('ioctlsocket() failed');
+          raise Exception.Create('Function ioctlsocket() failed');
 
         Addr.sin_family := AF_INET;
         Addr.sin_port := htons(FPort);
@@ -345,6 +345,7 @@ begin
         begin
           if Terminated then
             Exit;
+
           Ticks := GetTickCount;
           timeout.tv_sec := 0;
           timeout.tv_usec := 100;
@@ -354,17 +355,9 @@ begin
           FD_SET(FSocketHandle, exceptfds);
           Res := select(0, nil, @writefds, @exceptfds, @timeout);
           if (Res = SOCKET_ERROR) then
-            {$IFDEF DEBUG}
-            raise Exception.Create('select() failed while connecting');
-            {$ELSE}
             raise Exception.Create('Error while connecting');
-            {$ENDIF}
           if (Res > 0) and (FD_ISSET(FSocketHandle, exceptfds)) then
-            {$IFDEF DEBUG}
-            raise Exception.Create('select() socket error while connecting');
-            {$ELSE}
             raise Exception.Create('Error while connecting');
-            {$ENDIF}
           if (Res > 0) and (FD_ISSET(FSocketHandle, writefds)) then
             Break;
           if StartTime < Ticks - 5000 then
@@ -400,10 +393,10 @@ begin
         Res := select(0, @readfds, @writefds, @exceptfds, @timeout);
 
         if Res = SOCKET_ERROR then
-          raise EExceptionParams.CreateFmt('select() error: %d', [Res]);
+          raise EExceptionParams.CreateFmt('Function select() returned error %d', [Res]);
 
         if (Res > 0) and (FD_ISSET(FSocketHandle, exceptfds)) then
-          raise Exception.Create('select() socket error');
+          raise Exception.Create('Function select() failed');
 
         if FDataTimeout > 0 then
           if (FLastTimeReceived < GetTickCount - FDataTimeout) and
@@ -424,7 +417,7 @@ begin
           end else if RecvRes = SOCKET_ERROR then
           begin
             // Fehler
-            raise EExceptionParams.CreateFmt('recv() error: %d', [WSAGetLastError]);
+            raise EExceptionParams.CreateFmt('Function recv() returned error %d', [WSAGetLastError]);
           end else if RecvRes > 0 then
           begin
             // Alles cremig
@@ -446,7 +439,7 @@ begin
           try
             SendRes := send(FSocketHandle, FSendStream.Memory^, FSendStream.Size, 0);
             if SendRes = SOCKET_ERROR then
-              raise EExceptionParams.CreateFmt('send() socket error: %d', [WSAGetLastError]);
+              raise EExceptionParams.CreateFmt('Function send() returned error %d', [WSAGetLastError]);
             if SendRes > 0 then
             begin
               FLastTimeSent := GetTickCount;
@@ -454,7 +447,7 @@ begin
             end;
             if WSAGetLastError <> 0 then
             begin
-              raise EExceptionParams.CreateFmt('send() error: %d', [WSAGetLastError]);
+              raise EExceptionParams.CreateFmt('Function send() returned error %d', [WSAGetLastError]);
             end;
           finally
             FSendLock.Leave;
@@ -596,23 +589,23 @@ var
 begin
   FAcceptHandle := socket(AF_INET, SOCK_STREAM, 0);
   if FAcceptHandle = SOCKET_ERROR then
-    raise Exception.Create('socket() error');
+    raise Exception.Create('Function socket() failed');
 
   try
     try
       NonBlock := 1;
       if ioctlsocket(FAcceptHandle, FIONBIO, NonBlock) = SOCKET_ERROR then
-        raise Exception.Create('ioctlsocket() error');
+        raise Exception.Create('Function ioctlsocket() failed');
 
       Addr.sin_family := AF_INET;
       Addr.sin_Port := htons(FPort);
       Addr.sin_Addr.S_Addr := inet_addr('0.0.0.0');
 
       if bind(FAcceptHandle, Addr, sizeof(Addr)) = SOCKET_ERROR then
-        raise Exception.Create('bind() error');
+        raise Exception.Create('Function bind() failed');
 
       if listen(FAcceptHandle, 5) = SOCKET_ERROR then
-        raise Exception.Create('listen() error');
+        raise Exception.Create('Function listen() failed');
 
       while True do
       begin
@@ -627,13 +620,13 @@ begin
         Res := select(0, @readfds, nil, @exceptfds, @timeout);
 
         if Res = SOCKET_ERROR then
-          raise EExceptionParams.CreateFmt('select() error: %d', [Res]);
+          raise EExceptionParams.CreateFmt('Function select() returned error %d', [Res]);
 
         if Terminated then
           Exit;
 
         if (Res > 0) and (FD_ISSET(FAcceptHandle, exceptfds)) then
-          raise Exception.Create('select() socket error');
+          raise Exception.Create('Function select() socket failed');
 
         if (Res <> SOCKET_ERROR) and (FD_ISSET(FAcceptHandle, readfds)) then
         begin

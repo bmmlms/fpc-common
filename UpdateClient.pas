@@ -110,10 +110,7 @@ begin
   // Das muss vor das inherited(), weil es dadrin benutzt wird.
   FUserAgent := AnsiString(AppGlobals.AppName) + '/' + AppGlobals.AppVersion.AsString;
 
-  if Action = uaVersion then
-    inherited Create(URL)
-  else
-    inherited Create(URL);
+  inherited Create(URL);
 
   FUpdateAction := Action;
   FChangeLog := '';
@@ -173,7 +170,7 @@ begin
         if (RecvDataStream.Size = FTypedStream.ContentLength) and (RecvDataStream.Size > 1024) then
         begin
           Sync(FOnUpdateDownloaded);
-        end else
+        end else if (not Terminated) then                 
           Sync(FOnError);
     end;
   end else
@@ -200,8 +197,8 @@ end;
 
 destructor TUpdateClient.Destroy;
 begin
-  if FThread <> nil then
-    FThread.Terminate;
+  Kill;
+
   inherited;
 end;
 

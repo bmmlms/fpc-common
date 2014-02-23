@@ -82,7 +82,7 @@ begin
     Code := Copy(FHeader, P + 1, 3);
     FResponseCode := StrToInt(Code);
   end else
-    raise Exception.Create('Response code could not be determined');
+    raise Exception.Create('Status code could not be determined');
 end;
 
 procedure THTTPStream.Process(Received: Cardinal);
@@ -111,7 +111,7 @@ begin
         begin
           Len := StrToIntDef('$' + Trim(string(ToString(Position, P - Position))), -1);
           if Len = -1 then
-            raise Exception.Create('Error dechunking content');
+            raise Exception.Create('Error dechunking response');
           if Len = 0 then
           begin
             Clear;
