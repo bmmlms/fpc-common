@@ -165,7 +165,7 @@ object frmSettingsBase: TfrmSettingsBase
       317)
     object lblLanguage: TLabel
       Left = 4
-      Top = 24
+      Top = 28
       Width = 51
       Height = 13
       Caption = 'Language:'
@@ -182,7 +182,7 @@ object frmSettingsBase: TfrmSettingsBase
     end
     object lstLanguages: TComboBoxEx
       Left = 4
-      Top = 40
+      Top = 44
       Width = 165
       Height = 22
       ItemsEx = <>
