@@ -165,14 +165,14 @@ object frmSettingsBase: TfrmSettingsBase
       317)
     object lblLanguage: TLabel
       Left = 4
-      Top = 28
+      Top = 24
       Width = 51
       Height = 13
       Caption = 'Language:'
     end
     object lblPortable: TLabel
       Left = 4
-      Top = 192
+      Top = 184
       Width = 321
       Height = 57
       Anchors = [akLeft, akTop, akRight]
@@ -182,7 +182,7 @@ object frmSettingsBase: TfrmSettingsBase
     end
     object lstLanguages: TComboBoxEx
       Left = 4
-      Top = 44
+      Top = 40
       Width = 165
       Height = 22
       ItemsEx = <>
@@ -200,7 +200,7 @@ object frmSettingsBase: TfrmSettingsBase
     end
     object btnCopyProfile: TButton
       Left = 4
-      Top = 248
+      Top = 244
       Width = 129
       Height = 27
       Caption = '&Copy profile'
@@ -209,7 +209,7 @@ object frmSettingsBase: TfrmSettingsBase
     end
     object txtPort: TLabeledEdit
       Left = 20
-      Top = 156
+      Top = 152
       Width = 121
       Height = 21
       EditLabel.Width = 24
@@ -220,7 +220,7 @@ object frmSettingsBase: TfrmSettingsBase
     end
     object txtHost: TLabeledEdit
       Left = 20
-      Top = 116
+      Top = 108
       Width = 121
       Height = 21
       EditLabel.Width = 26
@@ -230,7 +230,7 @@ object frmSettingsBase: TfrmSettingsBase
     end
     object chkProxy: TCheckBox
       Left = 4
-      Top = 80
+      Top = 68
       Width = 245
       Height = 21
       Anchors = [akLeft, akTop, akRight]
@@ -240,7 +240,7 @@ object frmSettingsBase: TfrmSettingsBase
     end
     object btnDeleteProfile: TButton
       Left = 4
-      Top = 280
+      Top = 276
       Width = 129
       Height = 27
       Caption = '&Delete profile'
@@ -248,8 +248,8 @@ object frmSettingsBase: TfrmSettingsBase
       OnClick = btnDeleteProfileClick
     end
     object btnExportProfile: TButton
-      Left = 148
-      Top = 248
+      Left = 140
+      Top = 244
       Width = 129
       Height = 27
       Caption = '&Export profile'
@@ -257,8 +257,8 @@ object frmSettingsBase: TfrmSettingsBase
       OnClick = btnExportProfileClick
     end
     object btnImportProfile: TButton
-      Left = 148
-      Top = 280
+      Left = 140
+      Top = 276
       Width = 129
       Height = 27
       Caption = '&Import profile'
