@@ -27,11 +27,9 @@ uses
 
 type
   TLogger = class
-  private
-    //class function GetDesktopDir: string;
   public
     class procedure SetFilename(LogFile: string);
-    class procedure Write(ID, Data: string);
+    class procedure Write(ID, Data: string; ThreadID: Boolean = False);
   end;
 
 var
@@ -44,32 +42,18 @@ var
 
 { TLogger }
 
-{
-class function TLogger.GetDesktopDir: string;
-begin
-  Result := GetShellFolder(CSIDL_DESKTOP);
-  if (Trim(Result) <> '') then
-  begin
-    Result := IncludeTrailingPathDelimiter(Result);
-  end;
-end;
-}
-
 class procedure TLogger.SetFilename(LogFile: string);
 begin
-  LoggingFile :=  LogFile; //GetDesktopDir + 'streamwriter_log.txt';
+  LoggingFile :=  LogFile;
 end;
 
-class procedure TLogger.Write(ID, Data: string);
+class procedure TLogger.Write(ID, Data: string; ThreadID: Boolean = False);
 const
   FILE_APPEND_DATA = 4;
 var
   H: THandle;
   W: Cardinal;
 begin
-  //{$IFNDEF DEBUG}
-  //Exit;
-  //{$ENDIF}
   if LoggingFile = '' then
     Exit;
 
@@ -83,7 +67,10 @@ begin
 
     if H <> INVALID_HANDLE_VALUE then
     begin
-      Data := TimeToStr(Now) + ' - ' + IntToStr(GetCurrentThreadId) + ' - ' + ID + ' - ' + Data + #13#10;
+      if ThreadID then
+        Data := TimeToStr(Now) + ' - ' + IntToStr(GetCurrentThreadId) + ' - ' + ID + ' - ' + Data + #13#10
+      else
+        Data := TimeToStr(Now) + ' - ' + ID + ' - ' + Data + #13#10;
       WriteFile(H, Data[1], Length(Data) * SizeOf(Char), W, nil);
 
       FileClose(H);
