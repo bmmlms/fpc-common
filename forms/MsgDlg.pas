@@ -24,7 +24,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, AppData, LanguageObjects, ShellAPI;
+  Dialogs, StdCtrls, ExtCtrls, AppData, LanguageObjects, ShellAPI, MControls;
 
 const
   mrDontShow = 100;
@@ -108,7 +108,7 @@ end;
 procedure TfrmMsgDlg.FormShow(Sender: TObject);
 begin
   if FButtonToFocus <> nil then
-    FButtonToFocus.SetFocus;
+    FButtonToFocus.ApplyFocus;
 end;
 
 class function TfrmMsgDlg.ShowMsg(Owner: TCustomForm; Text: string; MsgType: TMsgDlgType; Buttons: TMsgDlgButtons; DefButton: TMsgDlgBtn; ID: Integer): TModalResult;

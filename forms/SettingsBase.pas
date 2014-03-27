@@ -26,7 +26,8 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Buttons, ComCtrls, LanguageObjects,
   AppData, AppDataBase, SettingsStorage, Functions, ListActns, pngimage,
-  PngImageList, ImgList, VirtualTrees, ExtendedStream, GUIFunctions;
+  PngImageList, ImgList, VirtualTrees, ExtendedStream, GUIFunctions,
+  MControls;
 
 type
   TPage = class
@@ -350,9 +351,9 @@ begin
         MsgBox(Handle, _('You need to supply a host and a port (must be a positive number) to connect to if the use of a HTTP proxy is enabled.'), _('Info'), MB_ICONINFORMATION);
         SetPage(FPageList.Find(TPanel(txtHost.Parent)));
         if Trim(txtHost.Text) = '' then
-          txtHost.SetFocus
+          txtHost.ApplyFocus
         else
-          txtPort.SetFocus;
+          txtPort.ApplyFocus;
         Exit;
       end;
     end;
@@ -518,7 +519,7 @@ begin
 
   FTreeView.Setup;
   SetPage(FPageList[0]);
-  FTreeView.SetFocus;
+  FTreeView.ApplyFocus;
 
   pnlHeader.Height := MulDiv(pnlHeader.Height, lblTop.Font.Size, 12);
   pnlNav.Height := MulDiv(pnlNav.Height, btnOK.Font.Size, 8);

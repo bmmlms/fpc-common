@@ -24,7 +24,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Buttons, ExtCtrls, LanguageObjects, AppData,
+  Dialogs, StdCtrls, Buttons, ExtCtrls, LanguageObjects, AppData, MControls,
   Functions, ComCtrls, AppDataBase, SettingsStorage, ListActns, PngBitBtn;
 
 type
@@ -223,7 +223,7 @@ end;
 
 procedure TfrmWizardBase.FormShow(Sender: TObject);
 begin
-  btnNext.SetFocus;
+  btnNext.ApplyFocus;
   SetText;
 
   pnlHeader.Height := MulDiv(pnlHeader.Height, lblTop.Font.Size, 12);

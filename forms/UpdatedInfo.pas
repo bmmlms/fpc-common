@@ -25,7 +25,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Buttons, ExtCtrls, AppData, pngimage, LanguageObjects,
-  ShellAPI;
+  ShellAPI, MControls;
 
 type
   TfrmUpdatedInfo = class(TForm)
@@ -102,7 +102,7 @@ end;
 
 procedure TfrmUpdatedInfo.FormShow(Sender: TObject);
 begin
-  btnClose.SetFocus;
+  btnClose.ApplyFocus;
 end;
 
 end.

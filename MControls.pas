@@ -25,7 +25,7 @@ interface
 uses
   Windows, SysUtils, Classes, Messages, ComCtrls, ActiveX, Controls, Buttons,
   StdCtrls, Menus, VirtualTrees, DragDrop, DragDropFile, ShellApi, Types,
-  Themes, ImgList, GUIFunctions, LanguageObjects, Graphics;
+  Themes, ImgList, GUIFunctions, LanguageObjects, Graphics, Forms;
 
 type
   TMTabSheet = class;
@@ -52,7 +52,10 @@ type
 
     procedure FSetActivePage(Value: TTabSheet);
     function FGetActivePage: TTabSheet;
+
+
   protected
+    function CanChange: Boolean; override;
     procedure Change; override;
 
     procedure TabClosed(Tab: TMTabSheet); virtual;
@@ -75,6 +78,8 @@ type
     Button: TMTabSheetCloseButton;
     FShowCloseButton: Boolean;
     FOnClosed: TNotifyEvent;
+
+    FFocusedControlBeforeChange: TWinControl;
 
     procedure SetCaptionInternal(Value: string);
     procedure FSetMaxWidth(Value: Integer);
@@ -133,6 +138,11 @@ type
   published
     property ShowCaption: string read FShowCaption write FShowCaption;
     property HideCaption: string read FHideCaption write FHideCaption;
+  end;
+
+  TWinControlFocuser = class helper for TWinControl
+  public
+    procedure ApplyFocus;
   end;
 
 implementation
@@ -211,11 +221,19 @@ begin
   end;
 end;
 
+function TMPageControl.CanChange: Boolean;
+begin
+  TMTabSheet(ActivePage).FFocusedControlBeforeChange := Screen.ActiveControl;
+
+  Result := inherited;
+end;
+
 procedure TMPageControl.Change;
 begin
-  // FLastTab := TMTabSheet(Pages[ActivePageIndex]);
-
   inherited;
+
+  if TMTabSheet(ActivePage).FFocusedControlBeforeChange <> nil then
+    TMTabSheet(ActivePage).FFocusedControlBeforeChange.ApplyFocus;
 
   AlignButtons;
 end;
@@ -327,6 +345,10 @@ begin
           if Pages[i] <> ActivePage then
             RemoveTab(TMTabSheet(Pages[i]));
     end;
+
+//    if Message.Msg = T then
+
+
     AlignButtons;
   end;
   inherited;
@@ -580,6 +602,16 @@ begin
   FBuffer := TBitmap.Create;
   FBuffer.Width := ClientWidth;
   FBuffer.Height := ClientHeight;
+end;
+
+{ TWinControlFocuser }
+
+procedure TWinControlFocuser.ApplyFocus;
+begin
+  try
+    SetFocus;
+  except
+  end;
 end;
 
 end.
