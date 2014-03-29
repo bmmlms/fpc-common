@@ -4,7 +4,7 @@ object frmAbout: TfrmAbout
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'About'
-  ClientHeight = 255
+  ClientHeight = 295
   ClientWidth = 421
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -56,27 +56,25 @@ object frmAbout: TfrmAbout
   OnResize = FormResize
   DesignSize = (
     421
-    255)
+    295)
   PixelsPerInch = 96
   TextHeight = 13
   object pagAbout: TPageControl
     Left = 4
     Top = 4
     Width = 413
-    Height = 205
+    Height = 245
     ActivePage = tabAbout
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 0
     OnChange = pagAboutChange
+    ExplicitHeight = 205
     object tabAbout: TTabSheet
       Caption = 'About'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
+      ExplicitHeight = 177
       DesignSize = (
         405
-        177)
+        217)
       object lblAbout: TLabel
         Left = 4
         Top = 2
@@ -135,7 +133,7 @@ object frmAbout: TfrmAbout
       end
       object btnDonateDe: TImage
         Left = 4
-        Top = 120
+        Top = 148
         Width = 283
         Height = 40
         Cursor = crHandPoint
@@ -513,7 +511,7 @@ object frmAbout: TfrmAbout
       end
       object btnDonateEn: TImage
         Left = 4
-        Top = 120
+        Top = 148
         Width = 283
         Height = 40
         Cursor = crHandPoint
@@ -885,13 +883,9 @@ object frmAbout: TfrmAbout
     object tabLicense: TTabSheet
       Caption = 'License'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         405
-        177)
+        217)
       object lblGPL: TLabel
         Left = 4
         Top = 4
@@ -911,7 +905,7 @@ object frmAbout: TfrmAbout
         Left = 4
         Top = 24
         Width = 397
-        Height = 149
+        Height = 189
         Anchors = [akLeft, akTop, akRight, akBottom]
         Color = clBtnFace
         ReadOnly = True
@@ -931,7 +925,7 @@ object frmAbout: TfrmAbout
   end
   object pnlNav: TPanel
     Left = 0
-    Top = 215
+    Top = 255
     Width = 421
     Height = 40
     Align = alBottom
@@ -942,6 +936,7 @@ object frmAbout: TfrmAbout
     Padding.Bottom = 4
     TabOrder = 1
     OnClick = pnlNavClick
+    ExplicitTop = 215
     object Bevel2: TBevel
       Left = 4
       Top = 4

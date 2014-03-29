@@ -86,6 +86,7 @@ function ShortenString(Str: string; Len: Integer): string;
 procedure Explode(const Separator, S: string; Lst: TStringList);
 function RegExReplace(RegEx, ReplaceWith, Data: string): string;
 function ContainsRegEx(RegEx, Data: string): Boolean;
+function ExistsIconSize(const Name: string; const Size: Integer): Boolean;
 
 function VerSetConditionMask(dwlConditionMask: LONGLONG; TypeBitMask: DWORD; ConditionMask: Byte): LONGLONG; stdcall;
   external 'kernel32.dll';
@@ -1308,6 +1309,39 @@ begin
     try
       Result := R.Match;
     except end;
+  finally
+    R.Free;
+  end;
+end;
+
+function ExistsIconSize(const Name: string; const Size: Integer): Boolean;
+var
+  R: TResourceStream;
+  Width, Height: Byte;
+  IconCount: WORD;
+  i: Integer;
+begin
+  Result := False;
+
+  try
+    R := TResourceStream.Create(HInstance, Name, RT_GROUP_ICON);
+  except
+    Exit(False);
+  end;
+
+  try
+    R.Seek(SizeOf(WORD) * 2, soFromCurrent);
+    R.ReadBuffer(IconCount, SizeOf(IconCount));
+    for i := 0 to IconCount - 1 do
+    begin
+      R.ReadBuffer(Width, SizeOf(Width));
+      R.ReadBuffer(Height, SizeOf(Height));
+
+      if (Width = Size) and (Height = Size) then
+        Exit(True);
+
+      R.Seek(SizeOf(Byte) * 2 + SizeOf(WORD) * 3 + SizeOf(DWORD), soFromCurrent);
+    end;
   finally
     R.Free;
   end;
