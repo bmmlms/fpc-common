@@ -4,7 +4,7 @@ object frmAbout: TfrmAbout
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'About'
-  ClientHeight = 295
+  ClientHeight = 268
   ClientWidth = 421
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -56,14 +56,14 @@ object frmAbout: TfrmAbout
   OnResize = FormResize
   DesignSize = (
     421
-    295)
+    268)
   PixelsPerInch = 96
   TextHeight = 13
   object pagAbout: TPageControl
     Left = 4
     Top = 4
     Width = 413
-    Height = 245
+    Height = 218
     ActivePage = tabAbout
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 0
@@ -74,7 +74,7 @@ object frmAbout: TfrmAbout
       ExplicitHeight = 177
       DesignSize = (
         405
-        217)
+        190)
       object lblAbout: TLabel
         Left = 4
         Top = 2
@@ -133,7 +133,7 @@ object frmAbout: TfrmAbout
       end
       object btnDonateDe: TImage
         Left = 4
-        Top = 148
+        Top = 144
         Width = 283
         Height = 40
         Cursor = crHandPoint
@@ -511,7 +511,7 @@ object frmAbout: TfrmAbout
       end
       object btnDonateEn: TImage
         Left = 4
-        Top = 148
+        Top = 144
         Width = 283
         Height = 40
         Cursor = crHandPoint
@@ -883,9 +883,10 @@ object frmAbout: TfrmAbout
     object tabLicense: TTabSheet
       Caption = 'License'
       ImageIndex = 1
+      ExplicitHeight = 217
       DesignSize = (
         405
-        217)
+        190)
       object lblGPL: TLabel
         Left = 4
         Top = 4
@@ -905,7 +906,7 @@ object frmAbout: TfrmAbout
         Left = 4
         Top = 24
         Width = 397
-        Height = 189
+        Height = 162
         Anchors = [akLeft, akTop, akRight, akBottom]
         Color = clBtnFace
         ReadOnly = True
@@ -925,7 +926,7 @@ object frmAbout: TfrmAbout
   end
   object pnlNav: TPanel
     Left = 0
-    Top = 255
+    Top = 228
     Width = 421
     Height = 40
     Align = alBottom
