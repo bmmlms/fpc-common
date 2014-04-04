@@ -136,6 +136,9 @@ type
     constructor Create(Name: string; Languages: TLanguageList); overload;
     constructor Create(Stream: TCustomMemoryStream); overload;
     destructor Destroy; override;
+
+    function Clone: TProject;
+
     procedure AddLanguage(Lang: TLanguage);
     procedure RemoveLanguage(Lang: TLanguage);
     procedure Save(Stream: TMemoryStream; SaveMeta: Boolean);
@@ -402,6 +405,21 @@ begin
       FLanguages.Add(Languages[i]);
   FPrimaryLanguage := nil;
   FEntries := TEntryList.Create;
+end;
+
+function TProject.Clone: TProject;
+var
+  MS: TMemoryStream;
+begin
+  Result := nil;
+  MS := TMemoryStream.Create;
+  try
+    Save(MS, True);
+    Result := TProject.Create(MS);
+    Result.Filename := Filename;
+  finally
+    MS.Free;
+  end;
 end;
 
 constructor TProject.Create(Stream: TCustomMemoryStream);
