@@ -223,9 +223,12 @@ begin
   MainWindowClass := WindowClass;
 
   FResourceName := ResourceName;
-  FVersion := _('Version') + ' ' + Version + ' ' + _('Build') + ' ' + IntToStr(Build);
-  if Codename <> '' then
-    FVersion := FVersion + ' ''' + Codename + '''';
+
+  FVersion := _('Version') + ' ' + Version;
+  if (Build > 0) and (Codename <> '') then
+    FVersion := FVersion + ' ''' + Codename + ''' ' + Format(_('build %d'), [Build])
+  else if Build > 0 then
+    FVersion := FVersion + ' ' + Format(_('build %d'), [Build]);
 
   StartPosLeft := MainLeft;
   StartPosTop := MainTop;

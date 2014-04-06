@@ -4,7 +4,7 @@ object frmUpdatedInfo: TfrmUpdatedInfo
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Update installed'
-  ClientHeight = 262
+  ClientHeight = 257
   ClientWidth = 393
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -21,7 +21,7 @@ object frmUpdatedInfo: TfrmUpdatedInfo
   OnShow = FormShow
   DesignSize = (
     393
-    262)
+    257)
   PixelsPerInch = 96
   TextHeight = 13
   object btnDonateEn: TImage
@@ -783,11 +783,10 @@ object frmUpdatedInfo: TfrmUpdatedInfo
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 0
-    ExplicitHeight = 117
   end
   object pnlNav: TPanel
     Left = 0
-    Top = 222
+    Top = 217
     Width = 393
     Height = 40
     Align = alBottom
@@ -797,7 +796,6 @@ object frmUpdatedInfo: TfrmUpdatedInfo
     Padding.Right = 4
     Padding.Bottom = 4
     TabOrder = 1
-    ExplicitTop = 202
     object Bevel2: TBevel
       Left = 4
       Top = 4
@@ -831,6 +829,5 @@ object frmUpdatedInfo: TfrmUpdatedInfo
     Anchors = [akLeft, akRight, akBottom]
     Caption = '&Don'#39't show this message again'
     TabOrder = 2
-    ExplicitTop = 178
   end
 end

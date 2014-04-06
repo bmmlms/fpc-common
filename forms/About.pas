@@ -25,7 +25,8 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, LanguageObjects, StdCtrls, AppData, ExtCtrls, ShellAPI, ComCtrls,
-  Buttons, pngimage, AppDataBase, jpeg, Functions, PngFunctions;
+  Buttons, AppDataBase, jpeg, Functions, GUIFunctions, pngimage,
+  PngFunctions;
 
 type
   TScrollText = class(TGraphicControl)
@@ -76,8 +77,6 @@ type
     procedure pnlNavClick(Sender: TObject);
   private
     FScrollText: TScrollText;
-
-    function CropPNG(Source: TPNGObject; Left, Top, Width, Height: Integer): TPngImage;
   public
     constructor Create(AOwner: TComponent; Caption: string); reintroduce;
   end;
@@ -115,9 +114,13 @@ begin
 
   Self.Caption := Caption;
   lblAbout.Caption := AppGlobals.AppName;
+
   lblVersion.Caption := _('Version') + ' ' + AppGlobals.AppVersion.AsString;
-  if AppGlobals.BuildNumber > 0 then
+  if (AppGlobals.BuildNumber > 0) and (AppGlobals.Codename <> '') then
+    lblVersion.Caption := lblVersion.Caption + ' ''' + AppGlobals.Codename + ''' ' + Format(_('build %d'), [AppGlobals.BuildNumber])
+  else if AppGlobals.BuildNumber > 0 then
     lblVersion.Caption := lblVersion.Caption + ' ' + Format(_('build %d'), [AppGlobals.BuildNumber]);
+
   lblGPL.Caption := _('Distributed under the terms of the GNU General Public License');
 
   txtAbout.Text := Format(_('%s'#13#10 +
@@ -156,22 +159,7 @@ begin
 
     ConvertToPNG(Icon, PNG);
     try
-      TransparentRight := 0;
-      TransparentTop := PNG.Height;
-
-      C := PNG.Canvas.Pixels[0, 0];
-      for i := 0 to PNG.Height - 1 do
-        for n := 0 to PNG.Width - 1 do
-          if PNG.Canvas.Pixels[n, i] <> C then
-            if n > TransparentRight then
-              TransparentRight := n;
-
-      for i := PNG.Height - 1 downto 0 do
-        for n := 0 to PNG.Width - 1 do
-          if PNG.Canvas.Pixels[n, i] <> C then
-            if i < TransparentTop then
-              TransparentTop := i;
-
+      GetMaxTransparent(PNG, TransparentTop, TransparentRight);
       PNGCropped := CropPNG(PNG, 0, TransparentTop, Icon.Width - (Icon.Width - TransparentRight), Icon.Height - TransparentTop);
       try
         imgLogo.Picture.Assign(PNGCropped);
@@ -205,52 +193,6 @@ begin
     tabThanks.PageControl := nil;
 
   pagAbout.ActivePageIndex := 0;
-end;
-
-function TfrmAbout.CropPNG(Source: TPngImage; Left, Top, Width, Height: Integer): TPngImage;
-  function ColorToTriple(Color: TColor): TRGBTriple;
-  begin
-    Color := ColorToRGB(Color);
-    Result.rgbtBlue := Color shr 16 and $FF;
-    Result.rgbtGreen := Color shr 8 and $FF;
-    Result.rgbtRed := Color and $FF;
-  end;
-var
-  X, Y: Integer;
-  Bitmap: TBitmap;
-  BitmapLine: PRGBLine;
-  AlphaLineA, AlphaLineB: pngimage.PByteArray;
-begin
-  if (Source.Width < (Left + Width)) or (Source.Height < (Top + Height)) then
-    raise Exception.Create('Invalid position/size');
-
-  Bitmap := TBitmap.Create;
-  try
-    Bitmap.Width := Width;
-    Bitmap.Height := Height;
-    Bitmap.PixelFormat := pf24bit;
-
-    for Y := 0 to Bitmap.Height - 1 do begin
-      BitmapLine := Bitmap.Scanline[Y];
-      for X := 0 to Bitmap.Width - 1 do
-        BitmapLine^[X] := ColorToTriple(Source.Pixels[Left + X, Top + Y]);
-    end;
-
-    Result := TPNGObject.Create;
-    Result.Assign(Bitmap);
-  finally
-    Bitmap.Free;
-  end;
-
-  if Source.Header.ColorType in [COLOR_GRAYSCALEALPHA, COLOR_RGBALPHA] then begin
-    Result.CreateAlpha;
-    for Y := 0 to Result.Height - 1 do begin
-      AlphaLineA := Source.AlphaScanline[Top + Y];
-      AlphaLineB := Result.AlphaScanline[Y];
-      for X := 0 to Result.Width - 1 do
-        AlphaLineB^[X] := AlphaLineA^[X + Left];
-    end;
-  end;
 end;
 
 procedure TfrmAbout.FormKeyDown(Sender: TObject; var Key: Word;

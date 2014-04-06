@@ -102,6 +102,7 @@ type
     FProjectThanksText: string;
 
     FBuildNumber: Integer;
+    FCodename: string;
 
     procedure DoSave; virtual;
     procedure NotifyRunningInstance(Handle: Cardinal); virtual;
@@ -128,6 +129,7 @@ type
     property AppName: string read FAppName;
     property AppVersion: TAppVersion read FAppVersion;
     property BuildNumber: Integer read FBuildNumber;
+    property Codename: string read FCodename;
     property TempDir: string read FTempDir;
     property ProjectUpdateLinks: TStringDynArray read FProjectUpdateLinks;
     property ProjectHomepageLink: string read FProjectHomepageLink;

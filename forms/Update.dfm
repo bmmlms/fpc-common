@@ -4,7 +4,7 @@ object frmUpdate: TfrmUpdate
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Update'
-  ClientHeight = 153
+  ClientHeight = 149
   ClientWidth = 269
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -57,7 +57,7 @@ object frmUpdate: TfrmUpdate
   OnKeyDown = FormKeyDown
   DesignSize = (
     269
-    153)
+    149)
   PixelsPerInch = 96
   TextHeight = 13
   object lblState: TLabel
@@ -130,7 +130,7 @@ object frmUpdate: TfrmUpdate
   end
   object pnlNav: TPanel
     Left = 0
-    Top = 113
+    Top = 109
     Width = 269
     Height = 40
     Align = alBottom
@@ -140,6 +140,7 @@ object frmUpdate: TfrmUpdate
     Padding.Right = 4
     Padding.Bottom = 4
     TabOrder = 1
+    ExplicitTop = 113
     object Bevel2: TBevel
       Left = 4
       Top = 4

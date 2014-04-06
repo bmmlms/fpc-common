@@ -24,7 +24,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Graphics, ShellAPI, ShlObj, ActiveX,
-  ComObj, Types;
+  ComObj, Types, pngimage;
 
 type
   TAccessCanvas = class(TCanvas);
@@ -38,6 +38,8 @@ function Recycle(Handle: Cardinal; Filename: string): Boolean; overload;
 function GetUserDir: string;
 function ResizeBitmap(Bitmap: TBitmap; MaxSize: Integer): TBitmap;
 function CreateLink(Executable, Dest, Name, Args: string; Delete: Boolean): Boolean;
+function CropPNG(Source: TPngImage; Left, Top, Width, Height: Integer): TPngImage;
+procedure GetMaxTransparent(PNG: TPngImage; var Top, Right: Integer);
 
 implementation
 
@@ -246,6 +248,74 @@ begin
     LinkName := Dest + Name + '.lnk';
     Result := IPFile.Save(PChar(LinkName), False) = S_OK;
   end;
+end;
+
+function CropPNG(Source: TPngImage; Left, Top, Width, Height: Integer): TPngImage;
+  function ColorToTriple(Color: TColor): TRGBTriple;
+  begin
+    Color := ColorToRGB(Color);
+    Result.rgbtBlue := Color shr 16 and $FF;
+    Result.rgbtGreen := Color shr 8 and $FF;
+    Result.rgbtRed := Color and $FF;
+  end;
+var
+  X, Y: Integer;
+  Bitmap: TBitmap;
+  BitmapLine: PRGBLine;
+  AlphaLineA, AlphaLineB: pngimage.PByteArray;
+begin
+  if (Source.Width < (Left + Width)) or (Source.Height < (Top + Height)) then
+    raise Exception.Create('Invalid position/size');
+
+  Bitmap := TBitmap.Create;
+  try
+    Bitmap.Width := Width;
+    Bitmap.Height := Height;
+    Bitmap.PixelFormat := pf24bit;
+
+    for Y := 0 to Bitmap.Height - 1 do begin
+      BitmapLine := Bitmap.Scanline[Y];
+      for X := 0 to Bitmap.Width - 1 do
+        BitmapLine^[X] := ColorToTriple(Source.Pixels[Left + X, Top + Y]);
+    end;
+
+    Result := TPNGObject.Create;
+    Result.Assign(Bitmap);
+  finally
+    Bitmap.Free;
+  end;
+
+  if Source.Header.ColorType in [COLOR_GRAYSCALEALPHA, COLOR_RGBALPHA] then begin
+    Result.CreateAlpha;
+    for Y := 0 to Result.Height - 1 do begin
+      AlphaLineA := Source.AlphaScanline[Top + Y];
+      AlphaLineB := Result.AlphaScanline[Y];
+      for X := 0 to Result.Width - 1 do
+        AlphaLineB^[X] := AlphaLineA^[X + Left];
+    end;
+  end;
+end;
+
+procedure GetMaxTransparent(PNG: TPngImage; var Top, Right: Integer);
+var
+  i, n: Integer;
+  C: TColor;
+begin
+  Top := PNG.Height;
+  Right := -1;
+
+  C := PNG.Canvas.Pixels[0, 0];
+  for i := 0 to PNG.Height - 1 do
+    for n := 0 to PNG.Width - 1 do
+      if PNG.Canvas.Pixels[n, i] <> C then
+        if n > Right then
+          Right := n;
+
+  for i := PNG.Height - 1 downto 0 do
+    for n := 0 to PNG.Width - 1 do
+      if PNG.Canvas.Pixels[n, i] <> C then
+        if i < Top then
+          Top := i;
 end;
 
 end.

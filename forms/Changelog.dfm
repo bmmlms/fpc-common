@@ -3,7 +3,7 @@ object frmChangeLog: TfrmChangeLog
   Top = 0
   BorderIcons = [biSystemMenu]
   Caption = 'Changelog'
-  ClientHeight = 292
+  ClientHeight = 285
   ClientWidth = 449
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -56,7 +56,7 @@ object frmChangeLog: TfrmChangeLog
   OnShow = FormShow
   DesignSize = (
     449
-    292)
+    285)
   PixelsPerInch = 96
   TextHeight = 13
   object txtChangeLog: TMemo
@@ -71,7 +71,7 @@ object frmChangeLog: TfrmChangeLog
   end
   object pnlNav: TPanel
     Left = 0
-    Top = 252
+    Top = 245
     Width = 449
     Height = 40
     Align = alBottom
@@ -81,7 +81,7 @@ object frmChangeLog: TfrmChangeLog
     Padding.Right = 4
     Padding.Bottom = 4
     TabOrder = 1
-    ExplicitTop = 256
+    ExplicitTop = 252
     object Bevel2: TBevel
       Left = 4
       Top = 4
@@ -105,8 +105,6 @@ object frmChangeLog: TfrmChangeLog
       ParentDoubleBuffered = False
       TabOrder = 0
       OnClick = btnCloseClick
-      ExplicitTop = 8
-      ExplicitHeight = 24
     end
   end
 end
