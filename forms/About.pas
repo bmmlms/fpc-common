@@ -102,9 +102,7 @@ end;
 
 constructor TfrmAbout.Create(AOwner: TComponent; Caption: string);
 var
-  i, n: Integer;
   TransparentRight, TransparentTop: Integer;
-  C: TColor;
   Icon: TIcon;
   PNG, PNGCropped: TPngImage;
 begin

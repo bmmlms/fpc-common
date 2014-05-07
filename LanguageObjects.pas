@@ -411,7 +411,6 @@ function TProject.Clone: TProject;
 var
   MS: TMemoryStream;
 begin
-  Result := nil;
   MS := TMemoryStream.Create;
   try
     Save(MS, True);
