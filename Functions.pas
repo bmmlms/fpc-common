@@ -1288,7 +1288,8 @@ begin
     R.RegEx := RegEx;
     R.Replacement := ReplaceWith;
     try
-      R.ReplaceAll;
+      // Das muss so. Sonst wird z.B. aus 'ft. ft. ft. ft.' ein 'Feat. ft. Feat. ft.'
+      repeat until not R.ReplaceAll;
       Result := R.Subject;
     except end;
   finally
