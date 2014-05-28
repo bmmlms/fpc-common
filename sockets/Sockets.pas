@@ -129,7 +129,7 @@ type
     procedure DoReceivedData(Buf: Pointer; Len: Integer); virtual;
     procedure DoException(E: Exception); virtual;
   public
-    constructor Create(Handlex: Cardinal; Stream: TSocketStream); overload; virtual;
+    constructor Create(SocketHandle: Cardinal; Stream: TSocketStream); overload; virtual;
     constructor Create(Host: string; Port: Integer; Stream: TSocketStream); overload; virtual;
     destructor Destroy; override;
 
@@ -192,14 +192,14 @@ implementation
 
 { TSocketThread }
 
-constructor TSocketThread.Create(Handlex: Cardinal; Stream: TSocketStream);
+constructor TSocketThread.Create(SocketHandle: Cardinal; Stream: TSocketStream);
 var
   Len: Integer;
   Addr: TSockAddrIn;
 begin
   inherited Create(True);
   FreeOnTerminate := True;
-  FSocketHandle := Handlex;
+  FSocketHandle := SocketHandle;
   FRecvStream := Stream;
   FRecvStream.OnDebug := StreamDebug;
   FSendStream := TExtendedStream.Create;
@@ -207,7 +207,7 @@ begin
   FUseSynchronize := False;
 
   Len := SizeOf(Addr);
-  if getpeername(Handlex, Addr, Len) = 0 then
+  if getpeername(SocketHandle, Addr, Len) = 0 then
   begin
     FHost := inet_ntoa(Addr.sin_addr);
     FPort := ntohs(Addr.sin_port);

@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2012 Alexander Nottelmann
+    Copyright (c) 2010-2014 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -34,7 +34,7 @@ type
   protected
   public
     constructor Create;
-    procedure Process; override;
+    procedure Process(Received: Cardinal); override;
     property RequestProcessed: Boolean read FRequestProcessed;
     property RequestedURL: string read FRequestedURL;
   end;
@@ -46,10 +46,11 @@ implementation
 constructor THTTPServerStream.Create;
 begin
   inherited;
+
   FRequestProcessed := False;
 end;
 
-procedure THTTPServerStream.Process;
+procedure THTTPServerStream.Process(Received: Cardinal);
 begin
   inherited;
   if not FRequestProcessed then
@@ -77,13 +78,15 @@ begin
           if not IsAnsi(Data) then
             raise Exception.Create('Client requested invalid URL');
           FRequestedURL := Data;
+          FRequestProcessed := True;
         end;
       end;
     end;
-    FRequestProcessed := True;
   end;
   if Size > 100000 then
     raise Exception.Create('HTTP-Server received too many bytes in request');
+  if not RequestProcessed then
+    raise Exception.Create('Kein GET');
 end;
 
 end.
