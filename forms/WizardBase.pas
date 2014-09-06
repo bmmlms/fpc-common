@@ -138,8 +138,9 @@ begin
   end;
 
   AppGlobals.AutoUpdate := chkAutoUpdate.Checked;
-
+  AppGlobals.FirstStartShown := True;
   AppGlobals.WasSetup := True;
+
   AppGlobals.Save(Handle);
 
   Close;
