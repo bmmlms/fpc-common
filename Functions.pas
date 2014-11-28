@@ -23,7 +23,8 @@ unit Functions;
 interface
 
 uses
-  Windows, ShLwApi, SysUtils, Classes, StrUtils, Graphics, PerlRegEx;
+  Windows, ShLwApi, SysUtils, Classes, StrUtils, Graphics, PerlRegEx,
+  DateUtils;
 
 type
   TPatternReplace = record
@@ -87,6 +88,7 @@ procedure Explode(const Separator, S: string; Lst: TStringList);
 function RegExReplace(RegEx, ReplaceWith, Data: string): string;
 function ContainsRegEx(RegEx, Data: string): Boolean;
 function ExistsIconSize(const Name: string; const Size: Integer): Boolean;
+function LocalToUTC(DT: TDateTime): TDateTime;
 
 function VerSetConditionMask(dwlConditionMask: LONGLONG; TypeBitMask: DWORD; ConditionMask: Byte): LONGLONG; stdcall;
   external 'kernel32.dll';
@@ -1345,6 +1347,24 @@ begin
     end;
   finally
     R.Free;
+  end;
+end;
+
+function LocalToUTC(DT: TDateTime): TDateTime;
+var
+  Res: Cardinal;
+  TZI: TTimeZoneInformation;
+const
+  Minute = (1 / 24) / 60;
+begin
+  Result := DT;
+  try
+    // Exception unter Vista und Wine manchmal... also so gelöst!
+    Result := TTimeZone.Local.ToUniversalTime(Now)
+  except
+    Res := GetTimeZoneInformation(TZI);
+    if Res <> TIME_ZONE_ID_INVALID then
+      Result := DT + (Minute * TZI.Bias)
   end;
 end;
 
