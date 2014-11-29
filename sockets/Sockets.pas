@@ -172,7 +172,8 @@ type
 
     procedure Sync(Proc: TSocketEvent; Sender: TSocketThread); overload;
 
-    procedure DoClientConnected(Handlex: Cardinal); virtual;
+    procedure DoClientConnected(SocketHandle: Cardinal; var SocketThread: TSocketThread); virtual;
+    procedure DoClientStart(SocketThread: TSocketThread); virtual;
     procedure DoEnded; virtual;
     procedure DoException; virtual;
   public
@@ -552,18 +553,26 @@ begin
   inherited;
 end;
 
-procedure TSocketServerThread.DoClientConnected(Handlex: Cardinal);
-var
-  T: TSocketThread;
+procedure TSocketServerThread.DoClientConnected(SocketHandle: Cardinal; var SocketThread: TSocketThread);
 begin
   try
-    T := FThreadType.Create(Handlex, FStreamType.Create as TSocketStream);
-    if Assigned(FOnClientConnected) then
-      FOnClientConnected(T);
-    T.Resume;
+    SocketThread := FThreadType.Create(SocketHandle, FStreamType.Create as TSocketStream);
+    try
+      if Assigned(FOnClientConnected) then
+        FOnClientConnected(SocketThread);
+    except
+      // TODO: ???
+      SocketThread := nil;
+    end;
   except
-
+    // TODO: ???
+    SocketThread := nil;
   end;
+end;
+
+procedure TSocketServerThread.DoClientStart(SocketThread: TSocketThread);
+begin
+  SocketThread.Start;
 end;
 
 procedure TSocketServerThread.DoEnded;
@@ -586,6 +595,7 @@ var
   timeout: TimeVal;
   readfds, exceptfds: TFdSet;
   Res: Integer;
+  SocketThread: TSocketThread;
 begin
   FAcceptHandle := socket(AF_INET, SOCK_STREAM, 0);
   if FAcceptHandle = SOCKET_ERROR then
@@ -631,7 +641,8 @@ begin
         if (Res <> SOCKET_ERROR) and (FD_ISSET(FAcceptHandle, readfds)) then
         begin
           FSocketHandle := accept(FAcceptHandle, nil, nil);
-          DoClientConnected(FSocketHandle);
+          DoClientConnected(FSocketHandle, SocketThread);
+          DoClientStart(SocketThread);
         end;
       end;
     except

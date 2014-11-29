@@ -23,9 +23,9 @@ unit AppStartup;
 interface
 
 uses
-  Windows, SysUtils, WinSock, Forms, AppData, UpdateClient, Update, Wizard,
+  Windows, SysUtils, WinSock, Forms, AppData, UpdateClient, Update, WizardBase,
   ProfileSettings, Functions, SettingsStorage, LanguageObjects, Dialogs,
-  AppDataBase, About, Menus, UpdatedInfo, Logging, MsgDlg, SplashThread;
+  AppDataBase, About, Menus, UpdatedInfo, Logging, MsgDlg;
 
 type
   TPatch = packed record
@@ -34,7 +34,9 @@ type
     Ret: Byte;
   end;
 
-function InitApp: Boolean;
+  TWizardClass = class of TfrmWizardBase;
+
+function InitApp(WizardClass: TWizardClass): Boolean;
 
 implementation
 
@@ -43,7 +45,7 @@ begin
   Result := False;
 end;
 
-function InitApp: Boolean;
+function InitApp(WizardClass: TWizardClass): Boolean;
 var
   Ver: TOSVersionInfo;
   VerRec: TAppVersion;
@@ -52,7 +54,7 @@ var
   Patch: TPatch;
   Updater: TUpdateClient;
   About: TfrmAbout;
-  Wizard: TfrmWizard;
+  Wizard: TfrmWizardBase;
   UpdatedInfo: TfrmUpdatedInfo;
   ProfileSettings: TfrmProfileSettings;
 begin
@@ -67,7 +69,7 @@ begin
     VerRec := ParseVersion(Ver.dwMajorVersion, Ver.dwMinorVersion, 0, 0);
     if not IsVersionNewer(ParseVersion('5.0.0.0'), VerRec) then
     begin
-      TfrmMsgDlg.ShowMsg(nil, Format(_('%s requires at least Windows XP, earlier versions of windows are not supported.'#13#10 +
+      TfrmMsgDlg.ShowMsg(nil, Format(_('%s requires at least Windows Vista, earlier versions of windows are not supported.'#13#10 +
                                        'If you continue running %s using a not supported operating system I am not responsible for any problems that might occur.'), [AppGlobals.AppName, AppGlobals.AppName]),
                          mtWarning, [mbOK], mbOK, 12);
     end;
@@ -146,9 +148,10 @@ begin
     end;
   end;
 
+  // TODO: wizard und eh alles was ich gemodded habe nochmal im streamwriter prüfen!!!
   if not AppGlobals.WasSetup then
   begin
-    Wizard := TfrmWizard.Create(nil);
+    Wizard := WizardClass.Create(nil);
     try
       Wizard.ShowModal;
     finally

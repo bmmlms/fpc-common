@@ -82,11 +82,11 @@ begin
         end;
       end;
     end;
+    if not RequestProcessed then
+      raise Exception.Create('No GET request');
   end;
   if Size > 100000 then
     raise Exception.Create('HTTP-Server received too many bytes in request');
-  if not RequestProcessed then
-    raise Exception.Create('Kein GET');
 end;
 
 end.

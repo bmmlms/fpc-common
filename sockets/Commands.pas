@@ -45,7 +45,8 @@ type
     ctSearchCharts, ctSearchChartsResponse,
     ctHereIsADummyForARemovedCommand1, ctHereIsADummyForARemovedCommand2, // Das muss so bleiben, damit Client und Server das selbe Enum kennen!
     ctStreamAnalyzationData,
-    ctGenerateAuthToken, ctGenerateAuthTokenResponse);
+    ctGenerateAuthToken, ctGenerateAuthTokenResponse,
+    ctPing, ctPingResponse);
 
   TReadRes = (rrOk, rrBadPacket, rrMoreBytesNeeded);
   TBytes = array of Byte;
