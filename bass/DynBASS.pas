@@ -441,33 +441,13 @@ begin
 
     EnumDevices;
 
-    // TODO: auskommentiert, wegen appglobals referenz. das muss anders laufen!
-    {
-    Found := False;
-    for i := 0 to FDevices.Count - 1 do
-      if FDevices[i].ID = AppGlobals.SoundDevice then
-      begin
-        Found := True;
-        Break;
-      end;
-    if not Found then
-    begin
-      for i := 0 to FDevices.Count - 1 do
-        if FDevices[i].IsDefault then
-        begin
-          AppGlobals.SoundDevice := FDevices[i].ID;
-          Break;
-        end;
-    end;
-    }
-
     for i := 0 to FDevices.Count - 1 do
       if BASSInit(FDevices[i].ID, 44100, 0, Handle, nil) then
       begin
         BassLoaded := True;
         DeviceAvailable := True;
       end;
-    // TODO: sollte hier nicht "-1" stehen, für default device? prüfen!
+
     if not BassLoaded then
       if BassInit(0, 44100, 0, Handle, nil) then
         BassLoaded := True;
@@ -494,18 +474,14 @@ begin
         BASSWASAPISetDevice := GetProcAddress(FWASAPIDLLHandle, 'BASS_WASAPI_SetDevice');
         BASSWASAPIFree := GetProcAddress(FWASAPIDLLHandle, 'BASS_WASAPI_Free');
 
-        // TODO: hier auch devices laden und zwischenspeichern und am ende free-en...
-
         if not BASSWASAPIInit(-1, 0, 0, 0, 0.4, 0.05, nil, nil) then
         begin
-          // TODO: !!!!!!
-          halt;
+          raise Exception.Create('BASSWASAPIInit() failed');
         end;
 
         if not BASSWASAPIGetInfo(FWASAPIInfo) then
         begin
-          // TODO: !!!!!!
-          Halt;
+          raise Exception.Create('BASSWASAPIGetInfo() failed');
         end;
 
         EnumWASAPIDevices;
@@ -553,18 +529,11 @@ var
   typeStr: string;
   i: Integer;
 begin
-  //for i := 0 to FWASAPIDevices.Count - 1 do
-  //begin
-    // TODO: was sagen die parameter hier?
-    if not BASSWASAPIInit(Device, 0, 0, 0, 1, 0.1, InputProc, User) then
-    begin
-      if BASSErrorGetCode <> 14 then
-        // TODO: !!!
-        // Wenn einer nicht geht ein flag am device setzen, Initialized=False oder so. das darf dann von aussen nicht benutzt werden!!!1
-      //  Exit(False);
-        Halt;
-    end;
-  //end;
+  if not BASSWASAPIInit(Device, 0, 0, 0, 1, 0.1, InputProc, User) then
+  begin
+    if BASSErrorGetCode <> 14 then
+      raise Exception.Create('BASSErrorGetCode <> 14');
+  end;
 
   Result := True;
 
@@ -582,17 +551,14 @@ var
   i: Integer;
 begin
   try
-    // TODO: enc, wasapi, etc unloaden und löschen
     if FAACDLLHandle <> 0 then
       BASSPluginFree(FAACDLLHandle);
     if FMixerDLLHandle <> 0 then
       FreeLibrary(FMixerDLLHandle);
-
-    // TODO: !!!
-    //if FEncDLLHandle <> 0 then
-    //  FreeLibrary(FEncDLLHandle);
-    //if FWASAPIDLLHandle <> 0 then
-    //  FreeLibrary(FWASAPIDLLHandle);
+    if FEncDLLHandle <> 0 then
+      FreeLibrary(FEncDLLHandle);
+    if FWASAPIDLLHandle <> 0 then
+      FreeLibrary(FWASAPIDLLHandle);
 
     if FDLLHandle <> 0 then
     begin

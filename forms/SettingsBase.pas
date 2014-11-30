@@ -288,6 +288,8 @@ begin
     S := TExtendedStream.Create;
     Lst := TSettingsList.Create;
 
+    // TODO: wenn gerade änderungen gemacht wurden, werden die denn gespeichert?? glaube nicht.
+
     AppGlobals.Storage.IgnoreFields.Clear;
     AppGlobals.Storage.IgnoreFields.Add('User');
     AppGlobals.Storage.IgnoreFields.Add('Pass');
