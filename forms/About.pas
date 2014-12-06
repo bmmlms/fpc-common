@@ -77,8 +77,11 @@ type
     procedure pnlNavClick(Sender: TObject);
   private
     FScrollText: TScrollText;
+    FIsMainWindow: Boolean;
+  protected
+    procedure CreateParams(var Params: TCreateParams); override;
   public
-    constructor Create(AOwner: TComponent; Caption: string); reintroduce;
+    constructor Create(AOwner: TComponent; Caption: string; IsMainWindow: Boolean); reintroduce;
   end;
 
 implementation
@@ -100,13 +103,18 @@ begin
   ShellExecute(0, 'open', PChar(AppGlobals.ProjectDonateLink), '', '', 1);
 end;
 
-constructor TfrmAbout.Create(AOwner: TComponent; Caption: string);
+constructor TfrmAbout.Create(AOwner: TComponent; Caption: string; IsMainWindow: Boolean);
 var
   TransparentRight, TransparentTop: Integer;
   Icon: TIcon;
   PNG, PNGCropped: TPngImage;
 begin
+  FIsMainWindow := IsMainWindow;
+
   inherited Create(AOwner);
+
+  if IsMainWindow then
+    Self.Icon.Handle := Application.Icon.Handle;
 
   Language.Translate(Self);
 
@@ -191,6 +199,19 @@ begin
     tabThanks.PageControl := nil;
 
   pagAbout.ActivePageIndex := 0;
+end;
+
+procedure TfrmAbout.CreateParams(var Params: TCreateParams);
+begin
+  inherited;
+
+  if FIsMainWindow then
+  begin
+    // We are WS_EX_APPWINDOW - we do this to get rid of the regular taskbar-entry.
+    // The application window is hidden at this point.
+    Params.ExStyle := Params.ExStyle and WS_EX_APPWINDOW;
+    Params.WndParent := 0;
+  end;
 end;
 
 procedure TfrmAbout.FormKeyDown(Sender: TObject; var Key: Word;

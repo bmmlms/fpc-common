@@ -135,7 +135,7 @@ type
     function CanFinish: Boolean; virtual;
     procedure PreTranslate; virtual;
     procedure PostTranslate; virtual;
-    procedure GetExportData(Stream: TExtendedStream); virtual; abstract;
+    procedure GetExportData(Stream: TExtendedStream); virtual;
   public
     constructor Create(AOwner: TComponent; ShowGeneral: Boolean); reintroduce;
 
@@ -287,8 +287,6 @@ begin
     Dlg.DefaultExt := '.dat';
     S := TExtendedStream.Create;
     Lst := TSettingsList.Create;
-
-    // TODO: wenn gerade änderungen gemacht wurden, werden die denn gespeichert?? glaube nicht.
 
     AppGlobals.Storage.IgnoreFields.Clear;
     AppGlobals.Storage.IgnoreFields.Add('User');
@@ -525,6 +523,12 @@ begin
 
   pnlHeader.Height := MulDiv(pnlHeader.Height, lblTop.Font.Size, 12);
   pnlNav.Height := MulDiv(pnlNav.Height, btnOK.Font.Size, 8);
+end;
+
+procedure TfrmSettingsBase.GetExportData(Stream: TExtendedStream);
+begin
+  if Assigned(FOnSaveForExport) then
+    FOnSaveForExport(Self);
 end;
 
 procedure TfrmSettingsBase.lstLanguagesChange(Sender: TObject);

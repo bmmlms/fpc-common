@@ -70,10 +70,6 @@ object frmAbout: TfrmAbout
     OnChange = pagAboutChange
     object tabAbout: TTabSheet
       Caption = 'About'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 190
       DesignSize = (
         405
         212)
@@ -885,10 +881,6 @@ object frmAbout: TfrmAbout
     object tabLicense: TTabSheet
       Caption = 'License'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 190
       DesignSize = (
         405
         212)
@@ -942,7 +934,6 @@ object frmAbout: TfrmAbout
     Padding.Bottom = 4
     TabOrder = 1
     OnClick = pnlNavClick
-    ExplicitTop = 228
     object Bevel2: TBevel
       Left = 4
       Top = 4

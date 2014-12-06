@@ -1,6 +1,7 @@
 object frmWizardBase: TfrmWizardBase
   Left = 0
   Top = 0
+  BorderIcons = [biSystemMenu, biMinimize]
   Caption = 'Setup wizard'
   ClientHeight = 300
   ClientWidth = 430

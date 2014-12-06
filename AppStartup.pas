@@ -34,18 +34,33 @@ type
     Ret: Byte;
   end;
 
+type
+  TAppEvents = class
+  public
+    class procedure OnActivate(Sender: TObject);
+  end;
+
   TWizardClass = class of TfrmWizardBase;
 
-function InitApp(WizardClass: TWizardClass): Boolean;
+function InitAppStageOne: Boolean;
+function InitAppStageTwo(WizardClass: TWizardClass): Boolean;
+function InitWinsock: Boolean;
 
 implementation
+
+{ TAppEvents }
+
+class procedure TAppEvents.OnActivate(Sender: TObject);
+begin
+  ShowWindow(Application.Handle, SW_HIDE);
+end;
 
 function PatchedIsAltGRPressed: Boolean;
 begin
   Result := False;
 end;
 
-function InitApp(WizardClass: TWizardClass): Boolean;
+function InitAppStageOne: Boolean;
 var
   Ver: TOSVersionInfo;
   VerRec: TAppVersion;
@@ -62,6 +77,8 @@ begin
   Result := True;
 
   SetErrorMode(SEM_FAILCRITICALERRORS);
+
+  Application.OnActivate := TAppEvents.OnActivate;
 
   Ver.dwOSVersionInfoSize := SizeOf(Ver);
   if GetVersionEx(Ver) then
@@ -103,6 +120,22 @@ begin
   end;
 
   Language.SetLanguage(AppGlobals.Language);
+end;
+
+function InitAppStageTwo(WizardClass: TWizardClass): Boolean;
+var
+  Ver: TOSVersionInfo;
+  VerRec: TAppVersion;
+  Res: Integer;
+  OldProtect: Cardinal;
+  Patch: TPatch;
+  Updater: TUpdateClient;
+  About: TfrmAbout;
+  Wizard: TfrmWizardBase;
+  UpdatedInfo: TfrmUpdatedInfo;
+  ProfileSettings: TfrmProfileSettings;
+begin
+  Result := True;
 
   if AppGlobals.InstallUpdateOnStart then
   begin
@@ -140,7 +173,7 @@ begin
 
   if not AppGlobals.FirstStartShown then
   begin
-    About := TfrmAbout.Create(nil, _('Application information'));
+    About := TfrmAbout.Create(nil, _('Application information'), True);
     try
       About.ShowModal;
     finally
@@ -148,7 +181,6 @@ begin
     end;
   end;
 
-  // TODO: wizard und eh alles was ich gemodded habe nochmal im streamwriter prüfen!!!
   if not AppGlobals.WasSetup then
   begin
     Wizard := WizardClass.Create(nil);
@@ -159,18 +191,25 @@ begin
     end;
   end;
 
+  Application.OnActivate := nil;
+
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
 end;
 
+function InitWinsock: Boolean;
 var
   Data: TWSAData;
-initialization
+begin
+  Result := True;
   if WSAStartup($0101, Data) <> 0 then
   begin
-    MessageBox(0, 'The Application could not be started because Winsock could not be initialized.', 'Error', MB_ICONEXCLAMATION);
-    Halt;
+    MessageBox(0, 'The Application could not be started because Winsock could not be initialized.', 'Error', MB_ICONERROR);
+    Result := False;
   end;
+end;
+
+initialization
 
 finalization
   WSACleanup;
