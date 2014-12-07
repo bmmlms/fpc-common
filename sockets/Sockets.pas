@@ -30,9 +30,11 @@ type
   TSocketThread = class;
   TSocketServerThread = class;
 
-  TDebugEvent = procedure(Sender: TSocketThread; Data: string) of object;
+  TLogEvent = procedure(Sender: TSocketThread; Data: string) of object;
   TSocketEvent = procedure(Sender: TSocketThread) of object;
   TSocketServerEvent = procedure(Sender: TSocketServerThread) of object;
+
+  TSocketLogLevel = (slError, slWarning, slInfo, slDebug);
 
   TVarRecArray = array of TVarRec;
 
@@ -48,13 +50,12 @@ type
   TSocketStream = class(TExtendedStream)
   private
     FDebugMsg, FDebugData: string;
-    FDebugType: Integer;
-    FDebugLevel: Integer;
-    FOnDebug: TNotifyEvent;
+    FLogLevel: TSocketLogLevel;
+    FOnLog: TNotifyEvent;
   protected
     function FGetRecvDataStream: TExtendedStream; virtual;
-    procedure WriteDebug(Text, Data: string; T, Level: Integer); overload;
-    procedure WriteDebug(Text: string; T, Level: Integer); overload;
+    procedure WriteLog(Text, Data: string; Level: TSocketLogLevel); overload;
+    procedure WriteLog(Text: string; Level: TSocketLogLevel); overload;
   protected
   public
     procedure Process(Received: Cardinal); virtual;
@@ -65,9 +66,8 @@ type
 
     property DebugMsg: string read FDebugMsg;
     property DebugData: string read FDebugData;
-    property DebugType: Integer read FDebugType;
-    property DebugLevel: Integer read FDebugLevel;
-    property OnDebug: TNotifyEvent read FOnDebug write FOnDebug;
+    property LogLevel: TSocketLogLevel read FLogLevel;
+    property OnLog: TNotifyEvent read FOnLog write FOnLog;
   end;
 
   TSocketStreamClass = class of TSocketStream;
@@ -82,12 +82,11 @@ type
     FPort: Integer;
     FUseSynchronize: Boolean;
 
-    FDebugMsg: string;
-    FDebugData: string;
-    FDebugType: Integer;
-    FDebugLevel: Integer;
+    FLogMsg: string;
+    FLogData: string;
+    FLogLevel: TSocketLogLevel;
 
-    FOnDebug: TSocketEvent;
+    FOnLog: TSocketEvent;
     FOnConnected: TSocketEvent;
     FOnDisconnected: TSocketEvent;
     FOnBeforeEnded: TSocketEvent;
@@ -110,14 +109,14 @@ type
 
     procedure Execute; override;
 
-    procedure WriteDebug(Text, Data: string; T, Level: Integer); overload;
-    procedure WriteDebug(Text: string; T, Level: Integer); overload;
-    procedure StreamDebug(Sender: TObject);
+    procedure WriteLog(Text, Data: string; Level: TSocketLogLevel); overload;
+    procedure WriteLog(Text: string; Level: TSocketLogLevel); overload;
+    procedure StreamLog(Sender: TObject);
 
     procedure Sync(Proc: TSocketEvent);
     procedure Sync2;
 
-    procedure DoDebug(Text, Data: string; T, Level: Integer); virtual;
+    procedure DoLog(Text, Data: string; Level: TSocketLogLevel); virtual;
     procedure DoStuff; virtual;
     procedure DoConnecting; virtual;
     procedure DoConnected; virtual;
@@ -137,17 +136,16 @@ type
     property Port: Integer read FPort write FPort;
     property UseSynchronize: Boolean read FUseSynchronize write FUseSynchronize;
 
-    property DebugMsg: string read FDebugMsg;
-    property DebugData: string read FDebugData;
-    property DebugType: Integer read FDebugType;
-    property DebugLevel: Integer read FDebugLevel;
+    property LogMsg: string read FLogMsg;
+    property LogData: string read FLogData;
+    property LogLevel: TSocketLogLevel read FLogLevel;
     property Received: UInt64 read FReceived;
     property Error: Boolean read FError;
 
     property SendLock: TCriticalSection read FSendLock;
     property SendStream: TExtendedStream read FSendStream;
 
-    property OnDebug: TSocketEvent read FOnDebug write FOnDebug;
+    property OnLog: TSocketEvent read FOnLog write FOnLog;
     property OnConnected: TSocketEvent read FOnConnected write FOnConnected;
     property OnDisconnected: TSocketEvent read FOnDisconnected write FOnDisconnected;
     property OnBeforeEnded: TSocketEvent read FOnBeforeEnded write FOnBeforeEnded;
@@ -202,7 +200,7 @@ begin
   FreeOnTerminate := True;
   FSocketHandle := SocketHandle;
   FRecvStream := Stream;
-  FRecvStream.OnDebug := StreamDebug;
+  FRecvStream.OnLog := StreamLog;
   FSendStream := TExtendedStream.Create;
   FSendLock := TCriticalSection.Create;
   FUseSynchronize := False;
@@ -226,7 +224,7 @@ begin
   FPort := Port;
   FReceived := 0;
   FRecvStream := Stream;
-  FRecvStream.OnDebug := StreamDebug;
+  FRecvStream.OnLog := StreamLog;
   FSendStream := TExtendedStream.Create;
   FSendLock := TCriticalSection.Create;
   FUseSynchronize := False;
@@ -291,14 +289,13 @@ begin
 
 end;
 
-procedure TSocketThread.DoDebug(Text, Data: string; T, Level: Integer);
+procedure TSocketThread.DoLog(Text, Data: string; Level: TSocketLogLevel);
 begin
-  FDebugMsg := Text;
-  FDebugData := Data;
-  FDebugType := T;
-  FDebugLevel := Level;
-  if Assigned(FOnDebug) then
-    Sync(FOnDebug);
+  FLogMsg := Text;
+  FLogData := Data;
+  FLogLevel := Level;
+  if Assigned(FOnLog) then
+    Sync(FOnLog);
 end;
 
 procedure TSocketThread.DoStuff;
@@ -522,19 +519,24 @@ begin
   FProc(Self);
 end;
 
-procedure TSocketThread.WriteDebug(Text: string; T, Level: Integer);
+procedure TSocketThread.WriteLog(Text: string; Level: TSocketLogLevel);
 begin
-  WriteDebug(Text, '', T, Level);
+  WriteLog(Text, '', Level);
 end;
 
-procedure TSocketThread.WriteDebug(Text, Data: string; T, Level: Integer);
+procedure TSocketThread.WriteLog(Text, Data: string; Level: TSocketLogLevel);
 begin
-  DoDebug(Text, Data, T, Level);
+  {$IFNDEF DEBUG}
+  if Level = slDebug then
+    Exit;
+  {$ENDIF}
+
+  DoLog(Text, Data, Level);
 end;
 
-procedure TSocketThread.StreamDebug(Sender: TObject);
+procedure TSocketThread.StreamLog(Sender: TObject);
 begin
-  WriteDebug(FRecvStream.DebugMsg, FRecvStream.DebugData, FRecvStream.DebugType, FRecvStream.DebugLevel);
+  WriteLog(FRecvStream.DebugMsg, FRecvStream.DebugData, FRecvStream.LogLevel);
 end;
 
 { TSocketServerThread }
@@ -692,21 +694,20 @@ begin
 
 end;
 
-procedure TSocketStream.WriteDebug(Text, Data: string; T, Level: Integer);
+procedure TSocketStream.WriteLog(Text, Data: string; Level: TSocketLogLevel);
 begin
-  if Assigned(FOnDebug) then
+  if Assigned(FOnLog) then
   begin
     FDebugMsg := Text;
     FDebugData := Data;
-    FDebugType := T;
-    FDebugLevel := Level;
-    FOnDebug(Self);
+    FLogLevel := Level;
+    FOnLog(Self);
   end;
 end;
 
-procedure TSocketStream.WriteDebug(Text: string; T, Level: Integer);
+procedure TSocketStream.WriteLog(Text: string; Level: TSocketLogLevel);
 begin
-  WriteDebug(Text, '', T, Level);
+  WriteLog(Text, '', Level);
 end;
 
 function TSocketStream.FGetRecvDataStream: TExtendedStream;

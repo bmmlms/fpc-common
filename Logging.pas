@@ -29,7 +29,7 @@ type
   TLogger = class
   public
     class procedure SetFilename(LogFile: string);
-    class procedure Write(ID, Data: string; ThreadID: Boolean = False);
+    class procedure Write(Data: string);
   end;
 
 var
@@ -47,7 +47,7 @@ begin
   LoggingFile :=  LogFile;
 end;
 
-class procedure TLogger.Write(ID, Data: string; ThreadID: Boolean = False);
+class procedure TLogger.Write(Data: string);
 const
   FILE_APPEND_DATA = 4;
 var
@@ -67,12 +67,8 @@ begin
 
     if H <> INVALID_HANDLE_VALUE then
     begin
-      if ThreadID then
-        Data := TimeToStr(Now) + ' - ' + IntToStr(GetCurrentThreadId) + ' - ' + ID + ' - ' + Data + #13#10
-      else
-        Data := TimeToStr(Now) + ' - ' + ID + ' - ' + Data + #13#10;
+      Data := Data + #13#10;
       WriteFile(H, Data[1], Length(Data) * SizeOf(Char), W, nil);
-
       FileClose(H);
     end;
   finally

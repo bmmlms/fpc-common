@@ -47,7 +47,7 @@ type
 
     FProc: TCommandEvent;
 
-    FOnDebug: TDebugEvent;
+    FOnLog: TLogEvent;
     FOnCommandReceived: TCommandEvent;
     FOnBytesTransferred: TTransferProgressEvent;
 
@@ -70,7 +70,7 @@ type
     procedure SyncDebug;
     procedure SyncTransferred;
 
-    procedure PacketManagerDebug(Sender: TSocketThread; Data: string);
+    procedure PacketManagerLog(Sender: TSocketThread; Data: string);
     procedure PacketManagerBytesTransferred(Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal;
       CommandHeader: TCommandHeader; Transferred: UInt64);
   protected
@@ -80,7 +80,7 @@ type
     procedure DoReceivedCommand(ID: Cardinal; CommandHeader: TCommandHeader; Command: TCommand); virtual;
     procedure DoException(E: Exception); override;
 
-    procedure WriteDebug(Data: string);
+    procedure WriteLog(Data: string);
   public
     constructor Create(Handle: Cardinal; Stream: TSocketStream); overload; override;
     constructor Create(Host: string; Port: Integer; Stream: TSocketStream); overload; override;
@@ -90,7 +90,7 @@ type
 
     property OnBytesTransferred: TTransferProgressEvent read FOnBytesTransferred write FOnBytesTransferred;
     property OnCommandReceived: TCommandEvent read FOnCommandReceived write FOnCommandReceived;
-    property OnDebug: TDebugEvent read FOnDebug write FOnDebug;
+    property OnLog: TLogEvent read FOnLog write FOnLog;
   end;
 
   TCommandSocketBase = class
@@ -176,7 +176,8 @@ end;
 procedure TCommandThreadBase.DoException(E: Exception);
 begin
   inherited;
-  WriteDebug(E.Message);
+
+  WriteLog(E.Message);
 end;
 
 procedure TCommandThreadBase.DoReceivedCommand(ID: Cardinal; CommandHeader: TCommandHeader; Command: TCommand);
@@ -255,11 +256,11 @@ end;
 procedure TCommandThreadBase.Initialize;
 begin
   FPacketSender := TPacketManager.Create;
-  FPacketSender.OnDebug := PacketManagerDebug;
+  FPacketSender.OnLog := PacketManagerLog;
   FPacketSender.OnBytesTransferred := PacketManagerBytesTransferred;
 
   FPacketReader := TPacketManager.Create;
-  FPacketReader.OnDebug := PacketManagerDebug;
+  FPacketReader.OnLog := PacketManagerLog;
   FPacketReader.OnBytesTransferred := PacketManagerBytesTransferred;
 end;
 
@@ -279,10 +280,10 @@ begin
       SyncTransferred;
 end;
 
-procedure TCommandThreadBase.PacketManagerDebug(Sender: TSocketThread;
+procedure TCommandThreadBase.PacketManagerLog(Sender: TSocketThread;
   Data: string);
 begin
-  WriteDebug(Data);
+  WriteLog(Data);
 end;
 
 function TCommandThreadBase.SendCommand(Command: TCommand): Cardinal;
@@ -313,8 +314,8 @@ end;
 
 procedure TCommandThreadBase.SyncDebug;
 begin
-  if Assigned(FOnDebug) then
-    FOnDebug(Self, FDebugData);
+  if Assigned(FOnLog) then
+    FOnLog(Self, FDebugData);
 end;
 
 procedure TCommandThreadBase.SyncTransferred;
@@ -324,7 +325,7 @@ begin
       FTransferredTransferred);
 end;
 
-procedure TCommandThreadBase.WriteDebug(Data: string);
+procedure TCommandThreadBase.WriteLog(Data: string);
 begin
   FDebugData := Data;
   if UseSynchronize then

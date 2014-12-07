@@ -23,7 +23,7 @@ unit MessageBus;
 interface
 
 uses
-  Classes, Generics.Collections;
+  SysUtils, Classes, Generics.Collections;
 
 type
   TMessageBase = class;
@@ -42,7 +42,7 @@ type
 
     procedure AddSubscriber(O: TMsgReceived);
     procedure RemoveSubscriber(O: TMsgReceived);
-    procedure SendMessage(Msg: TMessageBase);
+    procedure SendMessage(Msg: TMessageBase); virtual;
   end;
 
 var
@@ -97,8 +97,8 @@ begin
 end;
 
 initialization
-  MsgBus := TMessageBus.Create;
+
 finalization
-  MsgBus.Free;
+  FreeAndNil(MsgBus);
 
 end.

@@ -97,7 +97,7 @@ type
     FSendCache: TCommandStreamList;
     FRecvCache: TCommandStreamList;
 
-    FOnDebug: TDebugEvent;
+    FOnLog: TLogEvent;
     FOnBytesTransferred: TTransferProgressEvent;
     FReceivedCommands: TReceivedCommandList;
 
@@ -117,7 +117,7 @@ type
     property RecvCache: TCommandStreamList read FRecvCache;
     property ReceivedCommands: TReceivedCommandList read FReceivedCommands;
 
-    property OnDebug: TDebugEvent read FOnDebug write FOnDebug;
+    property OnLog: TLogEvent read FOnLog write FOnLog;
     property OnBytesTransferred: TTransferProgressEvent read FOnBytesTransferred write FOnBytesTransferred;
   end;
 
@@ -227,8 +227,8 @@ end;
 
 procedure TPacketManager.WriteDebug(Data: string);
 begin
-  if Assigned(FOnDebug) then
-    FOnDebug(nil, Data);
+  if Assigned(FOnLog) then
+    FOnLog(nil, Data);
 end;
 
 function TPacketManager.Send(Command: TCommand): Cardinal;
