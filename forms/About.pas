@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2014 Alexander Nottelmann
+    Copyright (c) 2010-2015 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -25,13 +25,14 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, LanguageObjects, StdCtrls, AppData, ExtCtrls, ShellAPI, ComCtrls,
-  Buttons, AppDataBase, jpeg, Functions, GUIFunctions, pngimage,
+  Buttons, AppDataBase, jpeg, Functions, GUIFunctions, pngimage, Math,
   PngFunctions;
 
 type
   TScrollText = class(TGraphicControl)
   private
-    FOffset, FTextHeight: Integer;
+    FOffset: Integer;
+    FTextHeight: Integer;
     FText: TStringList;
     FTimer: TTimer;
     FBmp: TBitmap;
@@ -39,6 +40,7 @@ type
 
     procedure TimerOnTimer(Sender: TObject);
     procedure BuildBitmap;
+    function GetTextHeight: Integer;
   protected
     procedure Paint; override;
   public
@@ -130,7 +132,7 @@ begin
   lblGPL.Caption := _('Distributed under the terms of the GNU General Public License');
 
   txtAbout.Text := Format(_('%s'#13#10 +
-                            'Copyright (c) 2010-2014 Alexander Nottelmann'#13#10#13#10 +
+                            'Copyright (c) 2010-2015 Alexander Nottelmann'#13#10#13#10 +
                             'This program is free software: you can redistribute it and/or modify ' +
                             'it under the terms of the GNU General Public License as published by ' +
                             'the Free Software Foundation, either version 3 of the License, or ' +
@@ -265,9 +267,6 @@ begin
   inherited;
 
   FOffset := MaxInt;
-  FTextHeight := 0;
-
-  FBmp := TBitmap.Create;
 
   FText := TStringList.Create;
   SetLength(FBmps, 0);
@@ -317,90 +316,144 @@ begin
   inherited;
 end;
 
-procedure TScrollText.BuildBitmap;
-  function GetTextHeight: Integer;
-  var
-    i, H, Idx, OS: Integer;
-    Line: string;
-  begin
-    Result := 0;
-    H := FBMP.Canvas.TextHeight('A');
-    for i := 0 to FText.Count - 1 do
-    begin
-      Line := FText[i];
-      if Copy(Line, 1, 4) = '&IMG' then
-      begin
-        Idx := StrToInt(Copy(Line, 5, 1));
-        Result := Result + FBmps[Idx].Height + 20;
-      end else
-      begin
-        if Copy(Line, 1, 2) = '&U' then
-        begin
-          FBMP.Canvas.Font.Style := FBMP.Canvas.Font.Style + [fsBold];
-          H := FBMP.Canvas.TextHeight('A');
-          Line := Copy(Line, 3, Length(Line));
-          FBMP.Canvas.Font.Style := FBMP.Canvas.Font.Style - [fsBold];
-        end;
-        if (Copy(Line, 1, 1) = '&') and (StrToIntDef(Copy(Line, 2, 2), -1) <> -1) then
-        begin
-          OS := FBMP.Canvas.Font.Size;
-          FBMP.Canvas.Font.Size := StrToInt(Copy(Line, 2, 2));
-          H := FBMP.Canvas.TextHeight('A');
-          Line := Copy(Line, 4, Length(Line));
-          FBMP.Canvas.Font.Size := OS;
-        end;
-        Result := Result + H + 3;
-      end;
-    end;
-  end;
+function TScrollText.GetTextHeight: Integer;
 var
-  R: TRect;
-  i, L, H, Idx, ImageHeight: Integer;
+  i, H, Idx, OS: Integer;
   Line: string;
 begin
-  FBMP.Height := GetTextHeight + ClientHeight;
-  FBMP.Width := ClientWidth;
-  SetBkMode(FBMP.Canvas.Handle, TRANSPARENT);
-
-  FBMP.Canvas.Brush.Color := clBlack;
-  R.Left := 0;
-  R.Top := 0;
-  R.Bottom := FBMP.Height;
-  R.Right := FBMP.Width;
-  FBMP.Canvas.FillRect(R);
-  ImageHeight := 0;
-
-  FBMP.Canvas.Font.Color := clWhite;
+  Result := 0;
   H := FBMP.Canvas.TextHeight('A');
-  FTextHeight := 0;
   for i := 0 to FText.Count - 1 do
   begin
     Line := FText[i];
-    FBMP.Canvas.Font.Style := [];
-    FBMP.Canvas.Font.Size := 8;
     if Copy(Line, 1, 4) = '&IMG' then
     begin
       Idx := StrToInt(Copy(Line, 5, 1));
-      FBMP.Canvas.Draw(FBmp.Width div 2 - FBmps[Idx].Width div 2, i * H + (i * 3) + ImageHeight, FBmps[Idx]);
-      ImageHeight := ImageHeight + FBmps[Idx].Height + 20;
-      FTextHeight := FTextHeight + FBmps[Idx].Height + 20;
+      Result := Result + FBmps[Idx].Height + 20;
     end else
     begin
       if Copy(Line, 1, 2) = '&U' then
       begin
         FBMP.Canvas.Font.Style := FBMP.Canvas.Font.Style + [fsBold];
+        H := FBMP.Canvas.TextHeight('A');
+        Line := Copy(Line, 3, Length(Line));
+        FBMP.Canvas.Font.Style := FBMP.Canvas.Font.Style - [fsBold];
+      end;
+      if (Copy(Line, 1, 1) = '&') and (StrToIntDef(Copy(Line, 2, 2), -1) <> -1) then
+      begin
+        OS := FBMP.Canvas.Font.Size;
+        FBMP.Canvas.Font.Size := StrToInt(Copy(Line, 2, 2));
+        H := FBMP.Canvas.TextHeight('A');
+        Line := Copy(Line, 4, Length(Line));
+        FBMP.Canvas.Font.Size := OS;
+      end;
+      Result := Result + H + 3;
+    end;
+  end;
+end;
+
+procedure TScrollText.BuildBitmap;
+  procedure DistortArea(Percent, Y, Y2: Integer);
+  var
+    a, b, Rnd: Integer;
+    Pixels: PRGBLine;
+  begin
+    for a := Y to Y2 - 1 do
+    begin
+      Pixels := FBmp.ScanLine[a];
+      for b := 0 to FBmp.Width - 1 do
+      begin
+        Rnd := Random(100);
+        if Percent > Rnd then
+        begin
+          Pixels^[b].rgbtBlue := 0;
+          Pixels^[b].rgbtGreen := 0;
+          Pixels^[b].rgbtRed := 0;
+        end;
+      end;
+    end;
+  end;
+var
+  R, RR: TRect;
+  i, n, L, Y, H, Idx, ImageHeight, Percent, Rnd: Integer;
+  a, b: Integer;
+  Line: string;
+begin
+  if FBMP = nil then
+  begin
+    FBmp := TBitmap.Create;
+    FBmp.Height := ClientHeight;
+    FBmp.Width := ClientWidth;
+    FBmp.PixelFormat := pf24bit;
+    SetBkMode(FBmp.Canvas.Handle, TRANSPARENT);
+
+    FBmp.Canvas.Pen.Color := clYellow;
+
+    FBmp.Canvas.Brush.Color := clBlack;
+    FBmp.Canvas.Font.Color := clWhite;
+  end;
+
+  R.Left := 0;
+  R.Top := 0;
+  R.Bottom := FBmp.Height;
+  R.Right := FBmp.Width;
+  FBmp.Canvas.FillRect(R);
+  ImageHeight := 0;
+
+  if FTextHeight = 0 then
+    FTextHeight := GetTextHeight;
+
+
+  H := FBmp.Canvas.TextHeight('Ay');
+  for i := 0 to FText.Count - 1 do
+  begin
+    Line := FText[i];
+
+    Y := i * H + (i * 3) + ImageHeight + FOffset;
+    Percent := -1;
+
+    FBmp.Canvas.Font.Style := [];
+    FBmp.Canvas.Font.Size := 8;
+    if Copy(Line, 1, 4) = '&IMG' then
+    begin
+      Idx := StrToInt(Copy(Line, 5, 1));
+      FBMP.Canvas.Draw(FBmp.Width div 2 - FBmps[Idx].Width div 2, Y, FBmps[Idx]);
+      ImageHeight := ImageHeight + FBmps[Idx].Height + 20;
+    end else
+    begin
+      if Copy(Line, 1, 2) = '&U' then
+      begin
+        FBmp.Canvas.Font.Style := FBMP.Canvas.Font.Style + [fsBold];
         Line := Copy(Line, 3, Length(Line));
       end;
       if (Copy(Line, 1, 1) = '&') and (StrToIntDef(Copy(Line, 2, 2), -1) <> -1) then
       begin
-        FBMP.Canvas.Font.Size := StrToInt(Copy(Line, 2, 2));
+        FBmp.Canvas.Font.Size := StrToInt(Copy(Line, 2, 2));
         Line := Copy(Line, 4, Length(Line));
       end;
 
-      L := FBMP.Width div 2 - FBMP.Canvas.TextWidth(Line) div 2;
-      FBMP.Canvas.TextOut(L, i * H + (i * 3) + ImageHeight, Line);
-      FTextHeight := FTextHeight + H + 3;
+      L := FBmp.Width div 2 - FBmp.Canvas.TextWidth(Line) div 2;
+
+      FBmp.Canvas.TextOut(L, Y, Line);
     end;
+  end;
+
+  i := 0;
+  n := 4;
+  while i < 100 do
+  begin
+    DistortArea(100 - i, n - 4, n);
+    Inc(i, 20);
+    Inc(n, 4);
+  end;
+
+  i := 0;
+  n := 4;
+  while i < 100 do
+  begin
+    DistortArea(100 - i, FBmp.Height - n, FBmp.Height - n + 4);
+    Inc(i, 20);
+    Inc(n, 4);
   end;
 end;
 
@@ -416,10 +469,8 @@ begin
     AppGlobals.BuildThanksText;
     FText.Text := AppGlobals.ProjectThanksText;
 
-    BuildBitmap;
-
     TimerOnTimer(FTimer);
-    FTimer.Interval := 45;
+    FTimer.Interval := 35;
     FTimer.Enabled := True;
   end;
 end;
@@ -434,9 +485,11 @@ begin
   if (FOffset = MaxInt) or (FOffset <= 0 - FTextHeight - 100) then
     FOffset := ClientHeight;
 
+  BuildBitmap;
+
   FOffset := FOffset - 1;
 
-  Canvas.Draw(0, FOffset, FBMP);
+  Canvas.Draw(0, 0, FBmp);
 end;
 
 end.

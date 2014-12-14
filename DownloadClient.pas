@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2014 Alexander Nottelmann
+    Copyright (c) 2010-2015 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -143,11 +143,16 @@ begin
 
   FThread := TDownloadThread.Create(FURL);
 
-  if AppGlobals.ProxyEnabled then
-  begin
-    FThread.ProxyEnabled := True;
-    FThread.ProxyHost := AppGlobals.ProxyHost;
-    FThread.ProxyPort := AppGlobals.ProxyPort;
+  AppGlobals.Lock;
+  try
+    if AppGlobals.ProxyEnabled then
+    begin
+      FThread.ProxyEnabled := True;
+      FThread.ProxyHost := AppGlobals.ProxyHost;
+      FThread.ProxyPort := AppGlobals.ProxyPort;
+    end;
+  finally
+    AppGlobals.Unlock;
   end;
   FThread.OnDownloadPercentProgress := ThreadDownloadPercentProgress;
   FThread.FOnFileDownloaded := ThreadFileDownloaded;

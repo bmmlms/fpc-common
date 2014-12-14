@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2014 Alexander Nottelmann
+    Copyright (c) 2010-2015 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -177,7 +177,6 @@ procedure TCommandThreadBase.DoException(E: Exception);
 begin
   inherited;
 
-  WriteLog(E.Message);
 end;
 
 procedure TCommandThreadBase.DoReceivedCommand(ID: Cardinal; CommandHeader: TCommandHeader; Command: TCommand);
@@ -418,3 +417,6 @@ begin
 end;
 
 end.
+
+
+

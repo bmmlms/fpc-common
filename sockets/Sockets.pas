@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2014 Alexander Nottelmann
+    Copyright (c) 2010-2015 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -140,7 +140,7 @@ type
     property LogData: string read FLogData;
     property LogLevel: TSocketLogLevel read FLogLevel;
     property Received: UInt64 read FReceived;
-    property Error: Boolean read FError;
+    property Error: Boolean read FError write FError;
 
     property SendLock: TCriticalSection read FSendLock;
     property SendStream: TExtendedStream read FSendStream;
@@ -563,12 +563,10 @@ begin
       if Assigned(FOnClientConnected) then
         FOnClientConnected(SocketThread);
     except
-      // TODO: ???
-      SocketThread := nil;
+      FreeAndNil(SocketThread);
     end;
   except
-    // TODO: ???
-    SocketThread := nil;
+    FreeAndNil(SocketThread);
   end;
 end;
 
@@ -644,7 +642,8 @@ begin
         begin
           FSocketHandle := accept(FAcceptHandle, nil, nil);
           DoClientConnected(FSocketHandle, SocketThread);
-          DoClientStart(SocketThread);
+          if SocketThread <> nil then
+            DoClientStart(SocketThread);
         end;
       end;
     except

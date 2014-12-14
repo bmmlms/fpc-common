@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2014 Alexander Nottelmann
+    Copyright (c) 2010-2015 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -430,9 +430,14 @@ begin
   begin
     AppGlobals.AutoUpdate := chkAutoUpdateCheck.Checked;
 
-    AppGlobals.ProxyEnabled := chkProxy.Checked;
-    AppGlobals.ProxyHost := txtHost.Text;
-    AppGlobals.ProxyPort := StrToIntDef(txtPort.Text, 8080);
+    AppGlobals.Lock;
+    try
+      AppGlobals.ProxyEnabled := chkProxy.Checked;
+      AppGlobals.ProxyHost := txtHost.Text;
+      AppGlobals.ProxyPort := StrToIntDef(txtPort.Text, 8080);
+    finally
+      AppGlobals.Unlock;
+    end;
 
     if lstLanguages.ItemIndex > -1 then
     begin
