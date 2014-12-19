@@ -52,6 +52,7 @@ const
   BASS_DEVICE_DEFAULT = 2;
   BASS_SAMPLE_FLOAT = 256; // 32-bit floating-point
   STREAMPROC_PUSH = Pointer(-1); // push stream
+  BASS_CONFIG_DEV_DEFAULT   = 36;
 
   // BASS WASAPI
   BASS_DEVICE_LOOPBACK = 8;
@@ -159,7 +160,7 @@ type
     constructor Create(ID: Cardinal; Name: string; IsDefault, IsLoopback: Boolean);
 
     property ID: Cardinal read FID;
-    property Name: string read FName;
+    property Name: string read FName write FName;
     property IsDefault: Boolean read FIsDefault;
     property IsLoopback: Boolean read FIsLoopback;
   end;
@@ -261,7 +262,6 @@ var
   BASSEncodeSetPaused: function(handle: DWORD; paused: BOOL): BOOL; stdcall;
   BASSEncodeStop: function(handle: DWORD): BOOL; stdcall;
 
-
   Bass: TBassLoader;
 
 implementation
@@ -292,7 +292,8 @@ begin
 
   inherited;
 end;
-
+                                    // TODO: es sollte in sw möglich sein, das output device WÄHREND der wiedergabe zu switchen!!! und wenn das nicht geht, dann zumindest wärend das programm läuft und
+                                    //       man einmal stop/start drückt.
 procedure TBassLoader.EnumDevices;
 var
   i: Integer;
@@ -326,7 +327,6 @@ end;
 function TBassLoader.InitializeBass(Handle: THandle; LoadAAC, LoadMixer, LoadEnc, LoadWASAPI: Boolean): Boolean;
 var
   i: Integer;
-  //Found: Boolean;
   Res: TResourceStream;
   BassInfo: BASS_INFO;
 begin
@@ -438,6 +438,9 @@ begin
 
     BassLoaded := False;
     DeviceAvailable := False;
+
+    // TODO: auf nem rdp desktop testen. ist alles wie vorher?
+    BASSSetConfig(BASS_CONFIG_DEV_DEFAULT, 1);
 
     EnumDevices;
 
