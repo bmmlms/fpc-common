@@ -33,6 +33,8 @@ type
 
   TPortable = (poYes, poNo, poUndefined);
 
+  EAlreadyRunning = class(Exception);
+
   TAppDataBase = class(TObject)
   private
     FCS: TCriticalSection;
@@ -82,7 +84,6 @@ type
     procedure GetPortable;
     procedure GetRunningFromInstalledLocation;
 
-    procedure InitOnlyOne;
     function ReadHandle: Cardinal;
     procedure WriteHandle(Handle: Cardinal);
     procedure FSetWindowHandle(Value: Cardinal);
@@ -104,6 +105,7 @@ type
     FBuildNumber: Integer;
     FCodename: string;
 
+    procedure InitOnlyOne; virtual;
     procedure DoSave; virtual;
     procedure NotifyRunningInstance(Handle: Cardinal); virtual;
   public
@@ -114,6 +116,8 @@ type
     procedure BuildThanksText; virtual;
     procedure Lock;
     procedure Unlock;
+
+    property MutexHandle: Cardinal read FMutexHandle;
 
     property MainMaximized: Boolean read FMainMaximized write FMainMaximized;
     property MainLeft: Integer read FMainLeft write FMainLeft;
@@ -223,8 +227,11 @@ begin
   FCS.Free;
   if FFileMapping > 0 then
     CloseHandle(FFileMapping);
-  if FMutexHandle > 0 then
-    CloseHandle(FMutexHandle);
+
+  // Don't free it, let windows clean it up when we really exited
+  //if FMutexHandle > 0 then
+  //  CloseHandle(FMutexHandle);
+
   if FStorage <> nil then
     FStorage.Free;
   FCommandLine.Free;
@@ -429,7 +436,7 @@ begin
         NotifyRunningInstance(Handle);
       end;
 
-      Halt;
+      raise EAlreadyRunning.Create('');
     end else
     begin
       WriteHandle(0);

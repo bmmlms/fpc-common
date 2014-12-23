@@ -353,30 +353,29 @@ begin
 end;
 
 procedure TScrollText.BuildBitmap;
-  procedure DistortArea(Percent, Y, Y2: Integer);
+  procedure DistortArea(Percent, YFrom, YTo: Integer);
   var
-    a, b, Rnd: Integer;
+    Y, X, Rnd: Integer;
     Pixels: PRGBLine;
   begin
-    for a := Y to Y2 - 1 do
+    for Y := YFrom to YTo - 1 do
     begin
-      Pixels := FBmp.ScanLine[a];
-      for b := 0 to FBmp.Width - 1 do
+      Pixels := FBmp.ScanLine[Y];
+      for X := 0 to FBmp.Width - 1 do
       begin
         Rnd := Random(100);
         if Percent > Rnd then
         begin
-          Pixels^[b].rgbtBlue := 0;
-          Pixels^[b].rgbtGreen := 0;
-          Pixels^[b].rgbtRed := 0;
+          Pixels^[X].rgbtBlue := 0;
+          Pixels^[X].rgbtGreen := 0;
+          Pixels^[X].rgbtRed := 0;
         end;
       end;
     end;
   end;
 var
-  R, RR: TRect;
-  i, n, L, Y, H, Idx, ImageHeight, Percent, Rnd: Integer;
-  a, b: Integer;
+  R: TRect;
+  i, L, Y, H, Idx, ImageHeight: Integer;
   Line: string;
 begin
   if FBMP = nil then
@@ -410,7 +409,6 @@ begin
     Line := FText[i];
 
     Y := i * H + (i * 3) + ImageHeight + FOffset;
-    Percent := -1;
 
     FBmp.Canvas.Font.Style := [];
     FBmp.Canvas.Font.Size := 8;
@@ -438,22 +436,22 @@ begin
     end;
   end;
 
-  i := 0;
-  n := 4;
+  i := 20;
+  Y := 4;
   while i < 100 do
   begin
-    DistortArea(100 - i, n - 4, n);
+    DistortArea(100 - i, Y - 4, Y);
     Inc(i, 20);
-    Inc(n, 4);
+    Inc(Y, 4);
   end;
 
-  i := 0;
-  n := 4;
+  i := 20;
+  Y := 4;
   while i < 100 do
   begin
-    DistortArea(100 - i, FBmp.Height - n, FBmp.Height - n + 4);
+    DistortArea(100 - i, FBmp.Height - Y, FBmp.Height - Y + 4);
     Inc(i, 20);
-    Inc(n, 4);
+    Inc(Y, 4);
   end;
 end;
 
@@ -482,7 +480,7 @@ end;
 
 procedure TScrollText.TimerOnTimer(Sender: TObject);
 begin
-  if (FOffset = MaxInt) or (FOffset <= 0 - FTextHeight - 100) then
+  if (FOffset = MaxInt) or (FOffset <= 0 - FTextHeight - 20) then
     FOffset := ClientHeight;
 
   BuildBitmap;

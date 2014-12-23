@@ -728,11 +728,6 @@ begin
 end;
 
 initialization
-  if WSAStartup($0101, Data) <> 0 then
-  begin
-    MessageBox(0, 'The application could not be started because Winsock could not be initialized.', 'Error', MB_ICONEXCLAMATION);
-    Halt;
-  end;
 
 finalization
   WSACleanup;

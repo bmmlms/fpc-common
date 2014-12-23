@@ -97,7 +97,7 @@ destructor TPowerManagement.Destroy;
 var
   i: Integer;
 begin
-  Critical := False;
+  FCritical := False;
 
   for i := 0 to FWakeupList.Count - 1 do
     FWakeupList[i].Free;
@@ -108,6 +108,7 @@ end;
 
 procedure TPowerManagement.FSetCritical(Value: Boolean);
 begin
+  FCritical := Value;
   if Assigned(@FFunc) then
   begin
     if Value then

@@ -292,8 +292,7 @@ begin
 
   inherited;
 end;
-                                    // TODO: es sollte in sw möglich sein, das output device WÄHREND der wiedergabe zu switchen!!! und wenn das nicht geht, dann zumindest wärend das programm läuft und
-                                    //       man einmal stop/start drückt.
+
 procedure TBassLoader.EnumDevices;
 var
   i: Integer;
@@ -439,7 +438,6 @@ begin
     BassLoaded := False;
     DeviceAvailable := False;
 
-    // TODO: auf nem rdp desktop testen. ist alles wie vorher?
     BASSSetConfig(BASS_CONFIG_DEV_DEFAULT, 1);
 
     EnumDevices;
@@ -527,10 +525,6 @@ begin
 end;
 
 function TBassLoader.InitializeWASAPIDevice(Device: Integer; InputProc: WASAPIPROC; User: Pointer): Boolean;
-var
-  Volume: Real;
-  typeStr: string;
-  i: Integer;
 begin
   if not BASSWASAPIInit(Device, 0, 0, 0, 1, 0.1, InputProc, User) then
   begin
@@ -539,14 +533,6 @@ begin
   end;
 
   Result := True;
-
-  {
-  BASSWASAPIGetDeviceInfo(Device, WasapiDevInfo);
-  If (WasapiDevInfo.flags AND BASS_DEVICE_LOOPBACK > 1)   then
-  begin
-    Result := True;
-  end;
-  }
 end;
 
 procedure TBassLoader.UninitializeBass;

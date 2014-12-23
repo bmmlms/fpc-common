@@ -64,13 +64,8 @@ function InitAppStageOne: Boolean;
 var
   Ver: TOSVersionInfo;
   VerRec: TAppVersion;
-  Res: Integer;
   OldProtect: Cardinal;
   Patch: TPatch;
-  Updater: TUpdateClient;
-  About: TfrmAbout;
-  Wizard: TfrmWizardBase;
-  UpdatedInfo: TfrmUpdatedInfo;
   ProfileSettings: TfrmProfileSettings;
 begin
   Randomize;
@@ -124,16 +119,11 @@ end;
 
 function InitAppStageTwo(WizardClass: TWizardClass): Boolean;
 var
-  Ver: TOSVersionInfo;
-  VerRec: TAppVersion;
   Res: Integer;
-  OldProtect: Cardinal;
-  Patch: TPatch;
   Updater: TUpdateClient;
   About: TfrmAbout;
   Wizard: TfrmWizardBase;
   UpdatedInfo: TfrmUpdatedInfo;
-  ProfileSettings: TfrmProfileSettings;
 begin
   Result := True;
 
