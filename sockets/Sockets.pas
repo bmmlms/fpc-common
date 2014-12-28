@@ -678,9 +678,6 @@ begin
   FProc(FSender);
 end;
 
-var
-  Data: TWSAData;
-
 { TSocketStream }
 
 procedure TSocketStream.Disconnected;

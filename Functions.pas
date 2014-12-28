@@ -830,22 +830,21 @@ end;
 
 function GetFileSize(const AFileName: string): Int64;
 var
-  SearchRec: TSearchRec;
-  OldMode: Cardinal;
-  Size: TULargeInteger;
+  FileStream: TFileStream;
 begin
   Result := -1;
-  OldMode := SetErrorMode(SEM_FAILCRITICALERRORS);
   try
-    if FindFirst(AFileName, faAnyFile, SearchRec) = 0 then
-    begin
-      Size.LowPart := SearchRec.FindData.nFileSizeLow;
-      Size.HighPart := SearchRec.FindData.nFileSizeHigh;
-      Result := Size.QuadPart;
-      SysUtils.FindClose(SearchRec);
+    FileStream := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyNone);
+    try
+      try
+        Result := FileStream.Size;
+      except
+        Result := 0;
+      end;
+    finally
+      FileStream.Free;
     end;
-  finally
-    SetErrorMode(OldMode);
+  except
   end;
 end;
 
