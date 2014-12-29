@@ -135,6 +135,7 @@ type
     function CanFinish: Boolean; virtual;
     procedure PreTranslate; virtual;
     procedure PostTranslate; virtual;
+    procedure GetExportDataHeader(Stream: TExtendedStream); virtual;
     procedure GetExportData(Stream: TExtendedStream); virtual;
   public
     constructor Create(AOwner: TComponent; ShowGeneral: Boolean); reintroduce;
@@ -293,12 +294,9 @@ begin
     AppGlobals.Storage.IgnoreFields.Add('Pass');
     try
       if Dlg.Execute then
-      begin
         if Dlg.FileName <> '' then
         begin
-          if Assigned(FOnSaveForExport) then
-            FOnSaveForExport(Self);
-
+          GetExportDataHeader(S);
           S.Write(Cardinal(1));
           AppGlobals.Storage.GetData(Lst);
           Lst.Save(S);
@@ -306,7 +304,6 @@ begin
           S.SaveToFile(Dlg.FileName);
         end;
         MsgBox(Handle, _('The profile was exported successfully.'), _('Info'), MB_ICONINFORMATION);
-      end;
     finally
       AppGlobals.Storage.IgnoreFields.Clear;
       Lst.Free;
@@ -534,6 +531,11 @@ procedure TfrmSettingsBase.GetExportData(Stream: TExtendedStream);
 begin
   if Assigned(FOnSaveForExport) then
     FOnSaveForExport(Self);
+end;
+
+procedure TfrmSettingsBase.GetExportDataHeader(Stream: TExtendedStream);
+begin
+
 end;
 
 procedure TfrmSettingsBase.lstLanguagesChange(Sender: TObject);
