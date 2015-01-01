@@ -480,7 +480,7 @@ end;
 
 procedure TScrollText.TimerOnTimer(Sender: TObject);
 begin
-  if (FOffset = MaxInt) or (FOffset <= 0 - FTextHeight - 20) then
+  if (FOffset = MaxInt) or (FOffset <= 0 - FTextHeight) then
     FOffset := ClientHeight;
 
   BuildBitmap;

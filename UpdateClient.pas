@@ -107,9 +107,6 @@ implementation
 
 constructor TUpdateThread.Create(Action: TUpdateAction; URL: string);
 begin
-  // Das muss vor das inherited(), weil es dadrin benutzt wird.
-  FUserAgent := AnsiString(AppGlobals.AppName) + '/' + AppGlobals.AppVersion.AsString;
-
   inherited Create(URL);
 
   FUpdateAction := Action;

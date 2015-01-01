@@ -79,7 +79,7 @@ implementation
 constructor TDownloadThread.Create(URL: string);
 begin
   inherited Create(URL);
-  FUserAgent := AnsiString(AppGlobals.AppName) + ' v' + AppGlobals.AppVersion.AsString;
+
 end;
 
 procedure TDownloadThread.DoEnded;

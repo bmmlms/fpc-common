@@ -46,7 +46,6 @@ type
     FProxyEnabled: Boolean;
     FProxyHost: string;
     FProxyPort: Integer;
-    FUserAgent: AnsiString;
 
     procedure SetSendParams;
     procedure FSetPostData(Value: string);
@@ -76,7 +75,6 @@ type
     property ProxyEnabled: Boolean read FProxyEnabled write FSetProxyEnabled;
     property ProxyHost: string read FProxyHost write FSetProxyHost;
     property ProxyPort: Integer read FProxyPort write FSetProxyPort;
-    property UserAgent: AnsiString read FUserAgent write FUserAgent;
 
     property OnSpeedChanged: TSocketEvent read FOnSpeedChanged write FOnSpeedChanged;
     property OnDownloadProgress: TSocketEvent read FOnDownloadProgress write FOnDownloadProgress;
@@ -113,7 +111,6 @@ begin
   end;
   SendData := SendData + 'Host: ' + AnsiString(Host) + #13#10;
   SendData := SendData + 'Accept: */*'#13#10;
-  SendData := SendData + 'User-Agent: mhttplib/' + FUserAgent + #13#10;
   SendData := SendData + 'Connection: close'#13#10;
 
   if FPostData <> '' then
