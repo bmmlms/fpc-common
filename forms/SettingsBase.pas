@@ -137,6 +137,7 @@ type
     procedure PostTranslate; virtual;
     procedure GetExportDataHeader(Stream: TExtendedStream); virtual;
     procedure GetExportData(Stream: TExtendedStream); virtual;
+    function CheckImportFile(Filename: string): Boolean; virtual;
   public
     constructor Create(AOwner: TComponent; ShowGeneral: Boolean); reintroduce;
 
@@ -325,7 +326,7 @@ begin
     Dlg.Filter := 'streamWriter profile (*.dat)|*.dat';
     try
       if Dlg.Execute then
-        if Dlg.FileName <> '' then
+        if (Dlg.FileName <> '') and (CheckImportFile(Dlg.FileName)) then
         begin
           FImportFilename := Dlg.FileName;
           Close;
@@ -355,6 +356,11 @@ begin
       end;
     end;
   end;
+  Result := True;
+end;
+
+function TfrmSettingsBase.CheckImportFile(Filename: string): Boolean;
+begin
   Result := True;
 end;
 
