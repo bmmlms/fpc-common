@@ -294,17 +294,16 @@ begin
     AppGlobals.Storage.IgnoreFields.Add('User');
     AppGlobals.Storage.IgnoreFields.Add('Pass');
     try
-      if Dlg.Execute then
-        if Dlg.FileName <> '' then
-        begin
-          GetExportDataHeader(S);
-          S.Write(Cardinal(1));
-          AppGlobals.Storage.GetData(Lst);
-          Lst.Save(S);
-          GetExportData(S);
-          S.SaveToFile(Dlg.FileName);
-        end;
+      if Dlg.Execute and (Dlg.FileName <> '') then
+      begin
+        GetExportDataHeader(S);
+        S.Write(Cardinal(1));
+        AppGlobals.Storage.GetData(Lst);
+        Lst.Save(S);
+        GetExportData(S);
+        S.SaveToFile(Dlg.FileName);
         MsgBox(Handle, _('The profile was exported successfully.'), _('Info'), MB_ICONINFORMATION);
+      end;
     finally
       AppGlobals.Storage.IgnoreFields.Clear;
       Lst.Free;
