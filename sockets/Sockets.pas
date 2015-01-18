@@ -484,7 +484,6 @@ begin
             // Verbindung wurde geschlossen
             FClosed := True;
             Break;
-          //end else if RecvRes = SOCKET_ERROR then
           end else if RecvRes < 0 then
           begin
             // Fehler
