@@ -38,6 +38,16 @@ type
     AsString: AnsiString;
   end;
 
+  TParseURLRes = record
+    URL: string;
+    Host: string;
+    Port: Integer;
+    Data: string;
+    PortDetected: Boolean;
+    Secure: Boolean;
+    Success: Boolean;
+  end;
+
   TRunProcessResults = (rpWin, rpFail, rpTerminated, rpTimeout);
 
   TReadCallback = procedure(Data: AnsiString) of object;
@@ -45,8 +55,7 @@ type
 function MsgBox(Handle: HWND; Text, Title: string; uType: Cardinal): Integer;
 function ValidURL(URL: string): Boolean;
 function StripURL(URL: string): string;
-function ParseURL(var URL: string; var Host: string; var Port: Integer; var Data: string): Boolean; overload;
-function ParseURL(var URL: string; var Host: string; var Port: Integer; var Data: string; var PortDetected: Boolean): Boolean; overload;
+function ParseURL(URL: string): TParseURLRes; overload;
 function GetSystemDir: string;
 function GetTempDir: string;
 function ExtractLastDirName(s: string): string;
@@ -107,7 +116,7 @@ var
 begin
   Result := IsAnsi(URL);
   if Result then
-    Result := ParseURL(URL, H, P, D);
+    Result := ParseURL(URL).Success;
 end;
 
 function StripURL(URL: string): string;
@@ -124,45 +133,53 @@ begin
   end;
 end;
 
-function ParseURL(var URL: string; var Host: string; var Port: Integer; var Data: string): Boolean;
+function ParseURL(URL: string): TParseURLRes;
 var
-  PD: Boolean;
-begin
-  Result := ParseURL(URL, Host, Port, Data, PD);
-end;
-
-function ParseURL(var URL: string; var Host: string; var Port: Integer; var Data: string; var PortDetected: Boolean): Boolean;
-var
-  i, n: Integer;
+  i, n, HostStart: Integer;
   Host2, Port2, Data2: string;
   URL2: string;
 begin
-  Result := False;
+  Result.URL := URL;
+  Result.Host := '';
+  Result.Port := 0;
+  Result.Data := '';
+  Result.PortDetected := False;
+  Result.Secure := False;
+  Result.Success := False;
+
   URL := Trim(URL);
   URL2 := LowerCase(URL);
 
-  if Copy(URL2, 0, 7) <> 'http://' then
+  if (Copy(URL2, 0, 7) <> 'http://') and (Copy(URL2, 0, 8) <> 'https://') then
   begin
     URL2 := 'http://' + URL2;
     URL := 'http://' + URL;
   end;
 
-  Host2 := ''; Port2 := ''; Data2 := ''; Host := ''; Port := -1; Data := ''; PortDetected := False;
-  i := PosEx('/', URL2, 8);
+  if Copy(URL2, 0, 8) = 'https://' then
+    Result.Secure := True;
+
+  HostStart := PosEx('://', URL2) + 3;
+
+  Host2 := ''; Port2 := ''; Data2 := '';
+  i := PosEx('/', URL2, HostStart);
   if i = 0 then
   begin
     // No get-data because no further slash
-    Host2 := Copy(URL, 8, 100);
+    Host2 := Copy(URL, HostStart, 100);
     n := PosEx(':', Host2, 1);
     if n = 0 then
     begin
       // No port, set default
-      Port2 := '80';
+      if Result.Secure then
+        Port2 := '443'
+      else
+        Port2 := '80';
     end else
     begin
       Port2 := Copy(Host2, n + 1, 10);
       Host2 := Copy(Host2, 1, n - 1);
-      PortDetected := True;
+      Result.PortDetected := True;
       {
       if n > 1 then
       begin
@@ -177,7 +194,7 @@ begin
     Data2 := '';
   end else
   begin
-    Host2 := Copy(URL, 8, Length(URL2));
+    Host2 := Copy(URL, HostStart, Length(URL2));
     n := PosEx('/', Host2, 1);
     if n = 0 then
     begin
@@ -187,18 +204,21 @@ begin
       begin
         // Set the port
         Port2 := Copy(URL2, n + 1, 100);
-        PortDetected := True;
+        Result.PortDetected := True;
         // Remove last slash and stupid stuff
         n := PosEx('/', Port2, 1);
         if n > 0 then
         begin
           Port2 := Copy(Port2, 0, Length(Port2) - n);
-          PortDetected := True;
+          Result.PortDetected := True;
         end;
       end else
       begin
         // Default to 80
-        Port2 := '80';
+        if Result.Secure then
+          Port2 := '443'
+        else
+          Port2 := '80';
       end;
     end else
     begin
@@ -208,14 +228,17 @@ begin
         i := PosEx('/', Host2, 1);
         Data2 := Copy(Host2, i, 1000);
         Port2 := Copy(Host2, n + 1, i - n - 1);
-        PortDetected := True;
+        Result.PortDetected := True;
         Host2 := Copy(Host2, 1, n - 1);
       end else
       begin
         n := PosEx('/', Host2, 1);
         Data2 := Copy(Host2, n, 1000);
         // No port - default to 80
-        Port2 := '80';
+        if Result.Secure then
+          Port2 := '443'
+        else
+          Port2 := '80';
         Host2 := Copy(Host2, 1, n - 1);
       end;
     end;
@@ -223,12 +246,12 @@ begin
 
   if (StrToIntDef(Port2, -1) <> -1) and (Host2 <> '') then
   begin
-    Host := Host2;
-    Port := StrToInt(Port2);
-    Data := Data2;
-    Result := True;
-    if Data = '' then
-      Data := '/';
+    Result.Host := Host2;
+    Result.Port := StrToInt(Port2);
+    Result.Data := Data2;
+    Result.Success := True;
+    if Result.Data = '' then
+      Result.Data := '/';
   end;
 end;
 

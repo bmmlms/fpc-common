@@ -83,7 +83,7 @@ type
     procedure WriteLog(Data: string);
   public
     constructor Create(Handle: Cardinal; Stream: TSocketStream); overload; override;
-    constructor Create(Host: string; Port: Integer; Stream: TSocketStream); overload; override;
+    constructor Create(Host: string; Port: Integer; Stream: TSocketStream; Secure: Boolean); overload; override;
     destructor Destroy; override;
 
     function SendCommand(Command: TCommand): Cardinal;
@@ -158,7 +158,7 @@ begin
 end;
 
 constructor TCommandThreadBase.Create(Host: string; Port: Integer;
-  Stream: TSocketStream);
+  Stream: TSocketStream; Secure: Boolean);
 begin
   inherited;
 
@@ -351,7 +351,7 @@ end;
 
 procedure TCommandClient.Start;
 begin
-  FThread := TCommandClientThread.Create(FHost, 6000, TClientStream.Create);
+  FThread := TCommandClientThread.Create(FHost, 6000, TClientStream.Create, False);
   FThread.OnConnected := ThreadConnected;
   FThread.OnBytesTransferred := ThreadBytesTransferred;
   FThread.OnCommandReceived := ThreadCommandReceived;

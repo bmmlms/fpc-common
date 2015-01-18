@@ -87,13 +87,12 @@ implementation
 
 procedure THTTPThread.SetSendParams;
 var
-  Host, Data: string;
-  SendData: AnsiString;
-  Port: Integer;
+  SendData: string;
+  Res: TParseURLRes;
 begin
-  ParseURL(FURL, Host, Port, Data);
+  Res := ParseURL(FURL);
 
-  FURLHost := Host;
+  FURLHost := Res.Host;     // TODO: der proxy funzt mit https nicht mehr oder? kann ganz raus, der support? testen.
 
   if FPostData <> '' then
     SendData := 'POST '
@@ -107,7 +106,7 @@ begin
     SendData := SendData + AnsiString(FURL) + ' HTTP/1.1'#13#10
   end else
   begin
-    SendData := SendData + AnsiString(Data) + ' HTTP/1.1'#13#10;
+    SendData := SendData + AnsiString(Res.Data) + ' HTTP/1.1'#13#10;
   end;
   SendData := SendData + 'Host: ' + AnsiString(Host) + #13#10;
   SendData := SendData + 'Accept: */*'#13#10;
@@ -138,13 +137,12 @@ end;
 
 constructor THTTPThread.Create(URL: string; Stream: TSocketStream);
 var
-  Host, Data: string;
-  Port: Integer;
+  Res: TParseURLRes;
 begin
   FURL := URL;
-  ParseURL(URL, Host, Port, Data);
+  Res := ParseURL(URL);
 
-  inherited Create(Host, Port, Stream);
+  inherited Create(Res.Host, Res.Port, Stream, Res.Secure);
   FTypedStream := THTTPStream(FRecvStream);
   FTypedStream.OnHeaderRemoved := StreamHeaderRemoved;
   FSpeed := 0;

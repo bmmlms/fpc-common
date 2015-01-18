@@ -558,6 +558,7 @@ begin
       end;
       FreeLibrary(FDLLHandle);
     end;
+
     if FBassDLLPath <> '' then
       DeleteFile(FBassDLLPath);
     if FBassAACDLLPath <> '' then

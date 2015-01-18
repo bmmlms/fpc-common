@@ -24,7 +24,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, SyncObjs, Winsock, ExtendedStream,
-  Generics.Collections, Logging;
+  Generics.Collections, Logging, IdSSLOpenSSLHeadersCustom, DynOpenSSL;
 
 type
   TSocketThread = class;
@@ -80,6 +80,7 @@ type
     FSocketHandle: TSocket;
     FHost: string;
     FPort: Integer;
+    FSecure: Boolean;
     FUseSynchronize: Boolean;
 
     FLogMsg: string;
@@ -94,6 +95,7 @@ type
     FOnException: TSocketEvent;
 
     function HostToAddress(Host: string): Integer;
+    function SSLErrorToText(Err: Integer): string;
   protected
     FRecvStream: TSocketStream;
     FSendStream: TExtendedStream;
@@ -129,11 +131,12 @@ type
     procedure DoException(E: Exception); virtual;
   public
     constructor Create(SocketHandle: Cardinal; Stream: TSocketStream); overload; virtual;
-    constructor Create(Host: string; Port: Integer; Stream: TSocketStream); overload; virtual;
+    constructor Create(Host: string; Port: Integer; Stream: TSocketStream; Secure: Boolean); overload; virtual;
     destructor Destroy; override;
 
     property Host: string read FHost write FHost;
     property Port: Integer read FPort write FPort;
+    property Secure: Boolean read FSecure write FSecure;
     property UseSynchronize: Boolean read FUseSynchronize write FUseSynchronize;
 
     property LogMsg: string read FLogMsg;
@@ -215,7 +218,7 @@ begin
 end;
 
 constructor TSocketThread.Create(Host: string; Port: Integer;
-  Stream: TSocketStream);
+  Stream: TSocketStream; Secure: Boolean);
 begin
   inherited Create(True);
   FreeOnTerminate := True;
@@ -228,6 +231,7 @@ begin
   FSendStream := TExtendedStream.Create;
   FSendLock := TCriticalSection.Create;
   FUseSynchronize := False;
+  FSecure := Secure;
 end;
 
 destructor TSocketThread.Destroy;
@@ -308,21 +312,32 @@ const
   BufSize = 65536;
 var
   Addr: sockaddr_in;
-  Res, RecvRes, SendRes: Integer;
+  Res, ErrRes, RecvRes, SendRes, Idx: Integer;
   readfds, writefds, exceptfds: TFdSet;
   timeout: TimeVal;
   Buf: array[0..BufSize - 1] of Byte;
-  Hostx: Integer;
+  HostAddress: Integer;
   NonBlock: Integer;
   Ticks, StartTime: Cardinal;
+
+  Method: PSSL_METHOD;
+  Ctx: PSSL_CTX;
+  SSL: PSSL;
+  Cert: PX509;
+  CBIO: PBIO;
+  SN: PX509_NAME;
+  NE: PX509_NAME_ENTRY;
 begin
+  Ctx := nil;
+  SSL := nil;
+
   try
     try
       if FSocketHandle = 0 then
       begin
         DoConnecting;
 
-        Hostx := HostToAddress(FHost);
+        HostAddress := HostToAddress(FHost);
 
         FSocketHandle := socket(AF_INET, SOCK_STREAM, 0);
         if FSocketHandle = SOCKET_ERROR then
@@ -334,7 +349,7 @@ begin
 
         Addr.sin_family := AF_INET;
         Addr.sin_port := htons(FPort);
-        Addr.sin_addr.S_addr := Hostx;
+        Addr.sin_addr.S_addr := HostAddress;
 
         connect(FSocketHandle, Addr, SizeOf(Addr));
 
@@ -361,6 +376,60 @@ begin
           if StartTime < Ticks - 5000 then
             raise Exception.Create('Timeout while connecting');
         end;
+      end;
+
+      if FSecure then
+      begin
+        Method := SSLv23_method();
+        Ctx := SSL_CTX_new(Method);
+
+        CBIO := BIO_new_mem_buf(@OpenSSL.Cert[1], Length(OpenSSL.Cert));
+        Cert := PEM_read_bio_X509(CBIO, nil, nil, nil);
+        BIO_free(CBIO);
+        X509_STORE_add_cert(Ctx.cert_store, Cert);
+
+        SSL := SSL_new(Ctx);
+        SSL_set_fd(SSL, FSocketHandle);
+
+        while True do
+        begin
+          Res := SSL_connect(SSL);
+          if Res = 1 then
+            Break
+          else if Res = 0 then
+          begin
+            ErrRes := SSL_get_error(SSL, Res);
+            raise EExceptionParams.CreateFmt('TLS handshake was not successful, error %s', [SSLErrorToText(ErrRes)]);
+          end else if Res < 0 then
+          begin
+            ErrRes := SSL_get_error(SSL, Res);
+            if (ErrRes <> SSL_ERROR_WANT_READ) and (ErrRes <> SSL_ERROR_WANT_WRITE) and (ErrRes <> SSL_ERROR_WANT_CONNECT) then
+              raise EExceptionParams.CreateFmt('TLS handshake was not successful, error %s', [SSLErrorToText(ErrRes)]);
+          end;
+          Sleep(10);
+        end;
+
+        Cert := SSL_get_peer_certificate(SSL);
+        if Cert <> nil then
+          X509_free(Cert)
+        else
+          raise Exception.Create('TLS handshake was not successful, no certificate received');
+
+        Res := SSL_get_verify_result(SSL);
+        if Res <> X509_V_OK then
+          raise Exception.Create('TLS handshake was not successful, certificate invalid');
+
+        SN := X509_get_subject_name(Cert);
+        if SN = nil then
+          raise Exception.Create('TLS handshake was not successful, certificate invalid');
+
+        Idx := X509_NAME_get_index_by_NID(SN, NID_commonName, 0);
+        NE := X509_NAME_get_entry(SN, Idx);
+        if NE = nil then
+          raise Exception.Create('TLS handshake was not successful, certificate invalid');
+
+        if NE.value.data <> 'streamwriter.org' then
+          raise Exception.Create('TLS handshake was not successful, certificate invalid');
       end;
 
       DoConnected;
@@ -391,7 +460,7 @@ begin
         Res := select(0, @readfds, @writefds, @exceptfds, @timeout);
 
         if Res = SOCKET_ERROR then
-          raise EExceptionParams.CreateFmt('Function select() returned error %d', [Res]);
+          raise EExceptionParams.CreateFmt('Function select() returned error %d', [WSAGetLastError]);
 
         if (Res > 0) and (FD_ISSET(FSocketHandle, exceptfds)) then
           raise Exception.Create('Function select() failed');
@@ -405,17 +474,27 @@ begin
 
         if FD_ISSET(FSocketHandle, readfds) then
         begin
-          RecvRes := recv(FSocketHandle, Buf, BufSize, 0);
+          if FSecure then
+            RecvRes := SSL_read(SSL, @Buf[0], BufSize)
+          else
+            RecvRes := recv(FSocketHandle, Buf, BufSize, 0);
 
           if RecvRes = 0 then
           begin
             // Verbindung wurde geschlossen
             FClosed := True;
             Break;
-          end else if RecvRes = SOCKET_ERROR then
+          //end else if RecvRes = SOCKET_ERROR then
+          end else if RecvRes < 0 then
           begin
             // Fehler
-            raise EExceptionParams.CreateFmt('Function recv() returned error %d', [WSAGetLastError]);
+            if FSecure then
+            begin
+              ErrRes := SSL_get_error(SSL, RecvRes);
+              if (ErrRes <> SSL_ERROR_WANT_READ) and (ErrRes <> SSL_ERROR_WANT_WRITE) then
+                raise EExceptionParams.CreateFmt('Function SSL_get_error() returned error %d', [ErrRes]);
+            end else
+              raise EExceptionParams.CreateFmt('Function recv() returned error %d', [WSAGetLastError]);
           end else if RecvRes > 0 then
           begin
             // Alles cremig
@@ -425,9 +504,6 @@ begin
             FRecvStream.WriteBuffer(Buf, RecvRes);
             FRecvStream.Process(RecvRes);
             DoReceivedData(@Buf[1], RecvRes);
-          end else
-          begin
-
           end;
         end;
 
@@ -435,18 +511,31 @@ begin
         begin
           FSendLock.Enter;
           try
-            SendRes := send(FSocketHandle, FSendStream.Memory^, FSendStream.Size, 0);
-            if SendRes = SOCKET_ERROR then
-              raise EExceptionParams.CreateFmt('Function send() returned error %d', [WSAGetLastError]);
-            if SendRes > 0 then
+            if FSecure then
+              SendRes := SSL_write(SSL, FSendStream.Memory, FSendStream.Size)
+            else
+              SendRes := send(FSocketHandle, FSendStream.Memory^, FSendStream.Size, 0);
+
+            if SendRes < 0 then
+            begin
+              if FSecure then
+              begin
+                ErrRes := SSL_get_error(SSL, SendRes);
+                if (ErrRes <> SSL_ERROR_WANT_READ) and (ErrRes <> SSL_ERROR_WANT_WRITE) then
+                  raise EExceptionParams.CreateFmt('Function SSL_get_error() returned error %d', [ErrRes]);
+              end else
+                raise EExceptionParams.CreateFmt('Function send() returned error %d', [WSAGetLastError]);
+            end else if SendRes > 0 then
             begin
               FLastTimeSent := GetTickCount;
               FSendStream.RemoveRange(0, SendRes);
             end;
-            if WSAGetLastError <> 0 then
-            begin
-              raise EExceptionParams.CreateFmt('Function send() returned error %d', [WSAGetLastError]);
-            end;
+
+            if not FSecure then
+              if WSAGetLastError <> 0 then
+              begin
+                raise EExceptionParams.CreateFmt('Function send() returned error %d', [WSAGetLastError]);
+              end;
           finally
             FSendLock.Leave;
           end;
@@ -464,6 +553,18 @@ begin
       end;
     end;
   finally
+    try
+      if SSL <> nil then      
+        SSL_free(SSL);
+    except
+    end;
+
+    try
+      if Ctx <> nil then
+        SSL_CTX_free(Ctx);    
+    except
+    end;
+
     try
       DoBeforeEndedEvent;
       DoEnded;
@@ -532,6 +633,16 @@ begin
   {$ENDIF}
 
   DoLog(Text, Data, Level);
+end;
+
+function TSocketThread.SSLErrorToText(Err: Integer): string;
+begin
+  Result := 'Unknown';
+  case Err of
+    1: Result := 'SSL_ERROR_SSL';
+    5: Result := 'SSL_ERROR_SYSCALL';
+    6: Result := 'SSL_ERROR_ZERO_RETURN';
+  end;
 end;
 
 procedure TSocketThread.StreamLog(Sender: TObject);
