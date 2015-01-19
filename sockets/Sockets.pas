@@ -648,7 +648,7 @@ end;
 
 function TSocketThread.SSLErrorToText(Err: Integer): string;
 begin
-  Result := 'Unknown';
+  Result := 'SSL_ERROR_UNKNOWN';
   case Err of
     1: Result := 'SSL_ERROR_SSL';
     5: Result := 'SSL_ERROR_SYSCALL';
