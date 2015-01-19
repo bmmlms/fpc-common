@@ -93,6 +93,7 @@ type
     FOnBeforeEnded: TSocketEvent;
     FOnEnded: TSocketEvent;
     FOnException: TSocketEvent;
+    FOnSecured: TSocketEvent;
 
     function HostToAddress(Host: string): Integer;
     function SSLErrorToText(Err: Integer): string;
@@ -129,6 +130,7 @@ type
     procedure DoEndedEvent;
     procedure DoReceivedData(Buf: Pointer; Len: Integer); virtual;
     procedure DoException(E: Exception); virtual;
+    procedure DoSecured; virtual;
   public
     constructor Create(SocketHandle: Cardinal; Stream: TSocketStream); overload; virtual;
     constructor Create(Host: string; Port: Integer; Stream: TSocketStream; Secure: Boolean); overload; virtual;
@@ -153,6 +155,7 @@ type
     property OnDisconnected: TSocketEvent read FOnDisconnected write FOnDisconnected;
     property OnBeforeEnded: TSocketEvent read FOnBeforeEnded write FOnBeforeEnded;
     property OnEnded: TSocketEvent read FOnEnded write FOnEnded;
+    property OnSecured: TSocketEvent read FOnSecured write FOnSecured;
   end;
 
   TSocketServerThread = class(TThread)
@@ -302,6 +305,12 @@ begin
     Sync(FOnLog);
 end;
 
+procedure TSocketThread.DoSecured;
+begin
+  if Assigned(FOnSecured) then
+    Sync(FOnSecured)
+end;
+
 procedure TSocketThread.DoStuff;
 begin
 
@@ -378,6 +387,8 @@ begin
         end;
       end;
 
+      DoConnected;
+
       if FSecure then
       begin
         Method := SSLv23_method();
@@ -432,7 +443,8 @@ begin
           raise Exception.Create('TLS handshake was not successful, certificate invalid');
       end;
 
-      DoConnected;
+      if FSecure then
+        DoSecured;
 
       FLastTimeReceived := GetTickCount;
       FLastTimeSent := GetTickCount;
@@ -491,7 +503,7 @@ begin
             begin
               ErrRes := SSL_get_error(SSL, RecvRes);
               if (ErrRes <> SSL_ERROR_WANT_READ) and (ErrRes <> SSL_ERROR_WANT_WRITE) then
-                raise EExceptionParams.CreateFmt('Function SSL_get_error() returned error %d', [ErrRes]);
+                raise EExceptionParams.CreateFmt('Function SSL_read() returned error %d', [ErrRes]);
             end else
               raise EExceptionParams.CreateFmt('Function recv() returned error %d', [WSAGetLastError]);
           end else if RecvRes > 0 then
@@ -521,7 +533,7 @@ begin
               begin
                 ErrRes := SSL_get_error(SSL, SendRes);
                 if (ErrRes <> SSL_ERROR_WANT_READ) and (ErrRes <> SSL_ERROR_WANT_WRITE) then
-                  raise EExceptionParams.CreateFmt('Function SSL_get_error() returned error %d', [ErrRes]);
+                  raise EExceptionParams.CreateFmt('Function SSL_write() returned error %d', [ErrRes]);
               end else
                 raise EExceptionParams.CreateFmt('Function send() returned error %d', [WSAGetLastError]);
             end else if SendRes > 0 then
