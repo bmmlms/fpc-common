@@ -402,6 +402,9 @@ begin
         SSL := SSL_new(Ctx);
         SSL_set_fd(SSL, FSocketHandle);
 
+        // SNI
+        SSL_set_tlsext_host_name(SSL, Host);
+
         while True do
         begin
           Res := SSL_connect(SSL);
