@@ -192,8 +192,6 @@ type
 
     property Port: Cardinal read FPort write FPort;
 
-    //property StreamType: TSocketStream read FStreamType write FStreamType;
-
     property OnClientConnected: TSocketEvent read FOnClientConnected write FOnClientConnected;
     property OnException: TNotifyEvent read FOnException write FOnException;
   end;
@@ -450,7 +448,7 @@ begin
         if NE = nil then
           raise ESSLException.Create('TLS handshake was not successful, certificate invalid');
 
-        if NE.value.data <> FHost + '1' then
+        if NE.value.data <> FHost then
           raise ESSLException.Create('TLS handshake was not successful, certificate invalid');
       end;
 
