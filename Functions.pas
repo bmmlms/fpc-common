@@ -110,9 +110,6 @@ begin
 end;
 
 function ValidURL(URL: string): Boolean;
-var
-  P: Integer;
-  H, D: string;
 begin
   Result := IsAnsi(URL);
   if Result then

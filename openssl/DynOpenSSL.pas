@@ -92,7 +92,6 @@ end;
 
 function TOpenSSLLoader.InitializeOpenSSL: Boolean;
 var
-  i: Integer;
   Res: TResourceStream;
 begin
   Result := False;
@@ -137,8 +136,6 @@ begin
 end;
 
 procedure TOpenSSLLoader.UninitializeOpenSSL;
-var
-  i: Integer;
 begin
   try
     Unload;

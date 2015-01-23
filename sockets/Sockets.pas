@@ -47,6 +47,9 @@ type
     property Args: TVarRecArray read FArgs;
   end;
 
+  ESSLException = class(Exception)
+  end;
+
   TSocketStream = class(TExtendedStream)
   private
     FDebugMsg, FDebugData: string;
@@ -106,6 +109,7 @@ type
 
     FReceived: UInt64;
     FError: Boolean;
+    FSSLError: Boolean;
     FClosed: Boolean;
 
     FProc: TSocketEvent;
@@ -146,6 +150,7 @@ type
     property LogLevel: TSocketLogLevel read FLogLevel;
     property Received: UInt64 read FReceived;
     property Error: Boolean read FError write FError;
+    property SSLError: Boolean read FSSLError write FSSLError;
 
     property SendLock: TCriticalSection read FSendLock;
     property SendStream: TExtendedStream read FSendStream;
@@ -155,6 +160,7 @@ type
     property OnDisconnected: TSocketEvent read FOnDisconnected write FOnDisconnected;
     property OnBeforeEnded: TSocketEvent read FOnBeforeEnded write FOnBeforeEnded;
     property OnEnded: TSocketEvent read FOnEnded write FOnEnded;
+    property OnException: TSocketEvent read FOnException write FOnException;
     property OnSecured: TSocketEvent read FOnSecured write FOnSecured;
   end;
 
@@ -287,6 +293,8 @@ end;
 procedure TSocketThread.DoException(E: Exception);
 begin
   FError := True;
+  if E is ESSLException then
+    FSSLError := True;
   if Assigned(FOnException) then
     Sync(FOnException);
 end;
@@ -427,23 +435,23 @@ begin
         if Cert <> nil then
           X509_free(Cert)
         else
-          raise Exception.Create('TLS handshake was not successful, no certificate received');
+          raise ESSLException.Create('TLS handshake was not successful, no certificate received');
 
         Res := SSL_get_verify_result(SSL);
         if Res <> X509_V_OK then
-          raise Exception.Create('TLS handshake was not successful, certificate invalid');
+          raise ESSLException.Create('TLS handshake was not successful, certificate invalid');
 
         SN := X509_get_subject_name(Cert);
         if SN = nil then
-          raise Exception.Create('TLS handshake was not successful, certificate invalid');
+          raise ESSLException.Create('TLS handshake was not successful, certificate invalid');
 
         Idx := X509_NAME_get_index_by_NID(SN, NID_commonName, 0);
         NE := X509_NAME_get_entry(SN, Idx);
         if NE = nil then
-          raise Exception.Create('TLS handshake was not successful, certificate invalid');
+          raise ESSLException.Create('TLS handshake was not successful, certificate invalid');
 
-        if NE.value.data <> 'streamwriter.org' then
-          raise Exception.Create('TLS handshake was not successful, certificate invalid');
+        if NE.value.data <> FHost + '1' then
+          raise ESSLException.Create('TLS handshake was not successful, certificate invalid');
       end;
 
       if FSecure then
@@ -562,9 +570,7 @@ begin
       DoDisconnectedEvent;
     except
       on E: Exception do
-      begin
         DoException(E);
-      end;
     end;
   finally
     try
