@@ -92,7 +92,7 @@ var
 begin
   Res := ParseURL(FURL);
 
-  FURLHost := Res.Host;     // TODO: der proxy funzt mit https nicht mehr oder? kann ganz raus, der support? testen.
+  FURLHost := Res.Host;
 
   if FPostData <> '' then
     SendData := 'POST '
