@@ -107,7 +107,7 @@ implementation
 
 constructor TUpdateThread.Create(Action: TUpdateAction; URL: string);
 begin
-  inherited Create(URL);
+  inherited Create(URL, AppGlobals.CheckCertificate);
 
   FUpdateAction := Action;
   FChangeLog := '';

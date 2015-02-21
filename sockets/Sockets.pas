@@ -84,7 +84,10 @@ type
     FHost: string;
     FPort: Integer;
     FSecure: Boolean;
+    FCheckCertificate: Boolean;
     FUseSynchronize: Boolean;
+    FSSLError: Boolean;
+    FRaisedException: Exception;
 
     FLogMsg: string;
     FLogData: string;
@@ -109,7 +112,6 @@ type
 
     FReceived: UInt64;
     FError: Boolean;
-    FSSLError: Boolean;
     FClosed: Boolean;
 
     FProc: TSocketEvent;
@@ -135,22 +137,24 @@ type
     procedure DoReceivedData(Buf: Pointer; Len: Integer); virtual;
     procedure DoException(E: Exception); virtual;
     procedure DoSecured; virtual;
+    procedure DoSSLError(Text: string); virtual;
   public
     constructor Create(SocketHandle: Cardinal; Stream: TSocketStream); overload; virtual;
-    constructor Create(Host: string; Port: Integer; Stream: TSocketStream; Secure: Boolean); overload; virtual;
+    constructor Create(Host: string; Port: Integer; Stream: TSocketStream; Secure, CheckCertificate: Boolean); overload; virtual;
     destructor Destroy; override;
 
     property Host: string read FHost write FHost;
     property Port: Integer read FPort write FPort;
     property Secure: Boolean read FSecure write FSecure;
+    property CheckCertificate: Boolean read FCheckCertificate write FCheckCertificate;
     property UseSynchronize: Boolean read FUseSynchronize write FUseSynchronize;
+    property RaisedException: Exception read FRaisedException;
 
     property LogMsg: string read FLogMsg;
     property LogData: string read FLogData;
     property LogLevel: TSocketLogLevel read FLogLevel;
     property Received: UInt64 read FReceived;
     property Error: Boolean read FError write FError;
-    property SSLError: Boolean read FSSLError write FSSLError;
 
     property SendLock: TCriticalSection read FSendLock;
     property SendStream: TExtendedStream read FSendStream;
@@ -207,6 +211,7 @@ var
   Addr: TSockAddrIn;
 begin
   inherited Create(True);
+
   FreeOnTerminate := True;
   FSocketHandle := SocketHandle;
   FRecvStream := Stream;
@@ -225,9 +230,10 @@ begin
 end;
 
 constructor TSocketThread.Create(Host: string; Port: Integer;
-  Stream: TSocketStream; Secure: Boolean);
+  Stream: TSocketStream; Secure, CheckCertificate: Boolean);
 begin
   inherited Create(True);
+
   FreeOnTerminate := True;
   FSocketHandle := 0;
   FHost := Host;
@@ -239,6 +245,7 @@ begin
   FSendLock := TCriticalSection.Create;
   FUseSynchronize := False;
   FSecure := Secure;
+  FCheckCertificate := CheckCertificate;
 end;
 
 destructor TSocketThread.Destroy;
@@ -290,9 +297,8 @@ end;
 
 procedure TSocketThread.DoException(E: Exception);
 begin
+  FRaisedException := E;
   FError := True;
-  if E is ESSLException then
-    FSSLError := True;
   if Assigned(FOnException) then
     Sync(FOnException);
 end;
@@ -315,6 +321,16 @@ procedure TSocketThread.DoSecured;
 begin
   if Assigned(FOnSecured) then
     Sync(FOnSecured)
+end;
+
+procedure TSocketThread.DoSSLError(Text: string);
+begin
+  FSSLError := True;
+
+  if FCheckCertificate then
+    raise ESSLException.Create(Text)
+  else
+    WriteLog(Text, slError);
 end;
 
 procedure TSocketThread.DoStuff;
@@ -429,30 +445,35 @@ begin
           Sleep(10);
         end;
 
+        //if Self.ClassName = 'TUpdateThread' then
+        //if Self.ClassName = 'THomeThread' then
+        //if Self.ClassName = 'TDownloadThread' then
+        //  DoSSLError('TLS handshake was not successful, no certificate received');
+
         Cert := SSL_get_peer_certificate(SSL);
         if Cert <> nil then
           X509_free(Cert)
         else
-          raise ESSLException.Create('TLS handshake was not successful, no certificate received');
+          DoSSLError('TLS handshake was not successful, no certificate received');
 
         Res := SSL_get_verify_result(SSL);
         if Res <> X509_V_OK then
-          raise ESSLException.Create('TLS handshake was not successful, certificate invalid');
+          DoSSLError('TLS handshake was not successful, certificate invalid');
 
         SN := X509_get_subject_name(Cert);
         if SN = nil then
-          raise ESSLException.Create('TLS handshake was not successful, certificate invalid');
+          DoSSLError('TLS handshake was not successful, certificate invalid');
 
         Idx := X509_NAME_get_index_by_NID(SN, NID_commonName, 0);
         NE := X509_NAME_get_entry(SN, Idx);
         if NE = nil then
-          raise ESSLException.Create('TLS handshake was not successful, certificate invalid');
+          DoSSLError('TLS handshake was not successful, certificate invalid');
 
         if NE.value.data <> FHost then
-          raise ESSLException.Create('TLS handshake was not successful, certificate invalid');
+          DoSSLError('TLS handshake was not successful, certificate invalid');
       end;
 
-      if FSecure then
+      if (not FSSLError) and FSecure then
         DoSecured;
 
       FLastTimeReceived := GetTickCount;
@@ -616,6 +637,7 @@ begin
     if (T <> nil) and (T^ <> nil) then
       Result := T^^.S_addr;
   end;
+
   if Result = 0 then
     raise EExceptionParams.CreateFmt('Host "%s" could not be resolved', [Host]);
 end;

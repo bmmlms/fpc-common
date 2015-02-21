@@ -64,8 +64,8 @@ type
     procedure DoDownloadProgress; virtual;
     procedure DoDownloadPercentProgress; virtual;
   public
-    constructor Create(URL: string); overload; virtual;
-    constructor Create(URL: string; Stream: TSocketStream); overload; virtual;
+    constructor Create(URL: string; CheckCertificate: Boolean); overload; virtual;
+    constructor Create(URL: string; Stream: TSocketStream; CheckCertificate: Boolean); overload; virtual;
     destructor Destroy; override;
 
     property RecvDataStream: TExtendedStream read FGetRecvDataStream;
@@ -130,19 +130,19 @@ begin
   FReceived := FTypedStream.Size;
 end;
 
-constructor THTTPThread.Create(URL: string);
+constructor THTTPThread.Create(URL: string; CheckCertificate: Boolean);
 begin
-  Create(URL, THTTPStream.Create);
+  Create(URL, THTTPStream.Create, CheckCertificate);
 end;
 
-constructor THTTPThread.Create(URL: string; Stream: TSocketStream);
+constructor THTTPThread.Create(URL: string; Stream: TSocketStream; CheckCertificate: Boolean);
 var
   Res: TParseURLRes;
 begin
   FURL := URL;
   Res := ParseURL(URL);
 
-  inherited Create(Res.Host, Res.Port, Stream, Res.Secure);
+  inherited Create(Res.Host, Res.Port, Stream, Res.Secure, CheckCertificate);
   FTypedStream := THTTPStream(FRecvStream);
   FTypedStream.OnHeaderRemoved := StreamHeaderRemoved;
   FSpeed := 0;

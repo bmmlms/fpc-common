@@ -47,7 +47,6 @@ type
 
     FProc: TCommandEvent;
 
-    FOnLog: TLogEvent;
     FOnCommandReceived: TCommandEvent;
     FOnBytesTransferred: TTransferProgressEvent;
 
@@ -67,7 +66,6 @@ type
 
     procedure SyncCommand(Proc: TCommandEvent; ID: Cardinal; CommandHeader: TCommandHeader; Command: TCommand);
     procedure SyncCommand2;
-    procedure SyncDebug;
     procedure SyncTransferred;
 
     procedure PacketManagerLog(Sender: TSocketThread; Data: string);
@@ -79,18 +77,15 @@ type
     procedure DoReceivedData(Buf: Pointer; Len: Integer); override;
     procedure DoReceivedCommand(ID: Cardinal; CommandHeader: TCommandHeader; Command: TCommand); virtual;
     procedure DoException(E: Exception); override;
-
-    procedure WriteLog(Data: string);
   public
     constructor Create(Handle: Cardinal; Stream: TSocketStream); overload; override;
-    constructor Create(Host: string; Port: Integer; Stream: TSocketStream; Secure: Boolean); overload; override;
+    constructor Create(Host: string; Port: Integer; Stream: TSocketStream; Secure, CheckCertificate: Boolean); overload; override;
     destructor Destroy; override;
 
     function SendCommand(Command: TCommand): Cardinal;
 
     property OnBytesTransferred: TTransferProgressEvent read FOnBytesTransferred write FOnBytesTransferred;
     property OnCommandReceived: TCommandEvent read FOnCommandReceived write FOnCommandReceived;
-    property OnLog: TLogEvent read FOnLog write FOnLog;
   end;
 
   TCommandSocketBase = class
@@ -119,6 +114,7 @@ type
   private
     FThread: TCommandThreadBase;
     FHost: string;
+    FCheckCertificate: Boolean;
 
     procedure ThreadBytesTransferred(Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal;
       CommandHeader: TCommandHeader; Transferred: UInt64);
@@ -132,6 +128,7 @@ type
 
     property Thread: TCommandThreadBase read FThread;
     property Host: string read FHost write FHost;
+    property CheckCertificate: Boolean read FCheckCertificate write FCheckCertificate;
   end;
 
   TCommandClientThread = class(TCommandThreadBase)
@@ -158,7 +155,7 @@ begin
 end;
 
 constructor TCommandThreadBase.Create(Host: string; Port: Integer;
-  Stream: TSocketStream; Secure: Boolean);
+  Stream: TSocketStream; Secure, CheckCertificate: Boolean);
 begin
   inherited;
 
@@ -282,7 +279,7 @@ end;
 procedure TCommandThreadBase.PacketManagerLog(Sender: TSocketThread;
   Data: string);
 begin
-  WriteLog(Data);
+  WriteLog(Data, slDebug);
 end;
 
 function TCommandThreadBase.SendCommand(Command: TCommand): Cardinal;
@@ -311,26 +308,11 @@ begin
   FProc(Self, FCommand);
 end;
 
-procedure TCommandThreadBase.SyncDebug;
-begin
-  if Assigned(FOnLog) then
-    FOnLog(Self, FDebugData);
-end;
-
 procedure TCommandThreadBase.SyncTransferred;
 begin
   if Assigned(FOnBytesTransferred) then
     FOnBytesTransferred(Self, FTransferredDirection, FTransferredCommandID, FTransferredCommandHeader,
       FTransferredTransferred);
-end;
-
-procedure TCommandThreadBase.WriteLog(Data: string);
-begin
-  FDebugData := Data;
-  if UseSynchronize then
-    Synchronize(SyncDebug)
-  else
-    SyncDebug;
 end;
 
 { TCommandBase }
@@ -351,7 +333,7 @@ end;
 
 procedure TCommandClient.Start;
 begin
-  FThread := TCommandClientThread.Create(FHost, 6000, TClientStream.Create, False);
+  FThread := TCommandClientThread.Create(FHost, 6000, TClientStream.Create, False, FCheckCertificate);
   FThread.OnConnected := ThreadConnected;
   FThread.OnBytesTransferred := ThreadBytesTransferred;
   FThread.OnCommandReceived := ThreadCommandReceived;
@@ -417,6 +399,4 @@ begin
 end;
 
 end.
-
-
 

@@ -78,7 +78,7 @@ implementation
 
 constructor TDownloadThread.Create(URL: string);
 begin
-  inherited Create(URL);
+  inherited Create(URL, AppGlobals.CheckCertificate);
 
 end;
 
