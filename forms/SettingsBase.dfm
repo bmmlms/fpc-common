@@ -157,32 +157,32 @@ object frmSettingsBase: TfrmSettingsBase
     Left = 100
     Top = 52
     Width = 337
-    Height = 317
+    Height = 357
     TabOrder = 3
     Visible = False
     DesignSize = (
       337
-      317)
+      357)
     object lblLanguage: TLabel
       Left = 4
-      Top = 24
+      Top = 0
       Width = 51
       Height = 13
       Caption = 'Language:'
     end
     object lblPortable: TLabel
       Left = 4
-      Top = 184
+      Top = 236
       Width = 321
       Height = 57
-      Anchors = [akLeft, akTop, akRight]
+      Anchors = [akLeft, akBottom]
       AutoSize = False
       Caption = '-'
       WordWrap = True
     end
     object lstLanguages: TComboBoxEx
       Left = 4
-      Top = 40
+      Top = 16
       Width = 165
       Height = 22
       ItemsEx = <>
@@ -192,7 +192,7 @@ object frmSettingsBase: TfrmSettingsBase
     end
     object chkAutoUpdateCheck: TCheckBox
       Left = 4
-      Top = 0
+      Top = 44
       Width = 301
       Height = 21
       Caption = 'Enable automatic search for updates'
@@ -200,16 +200,17 @@ object frmSettingsBase: TfrmSettingsBase
     end
     object btnCopyProfile: TButton
       Left = 4
-      Top = 244
+      Top = 296
       Width = 129
       Height = 27
+      Anchors = [akLeft, akBottom]
       Caption = '&Copy profile'
       TabOrder = 2
       OnClick = btnCopyProfileClick
     end
     object txtPort: TLabeledEdit
       Left = 20
-      Top = 152
+      Top = 176
       Width = 121
       Height = 21
       EditLabel.Width = 24
@@ -220,7 +221,7 @@ object frmSettingsBase: TfrmSettingsBase
     end
     object txtHost: TLabeledEdit
       Left = 20
-      Top = 108
+      Top = 132
       Width = 121
       Height = 21
       EditLabel.Width = 26
@@ -230,7 +231,7 @@ object frmSettingsBase: TfrmSettingsBase
     end
     object chkProxy: TCheckBox
       Left = 4
-      Top = 68
+      Top = 92
       Width = 245
       Height = 21
       Anchors = [akLeft, akTop, akRight]
@@ -240,30 +241,42 @@ object frmSettingsBase: TfrmSettingsBase
     end
     object btnDeleteProfile: TButton
       Left = 4
-      Top = 276
+      Top = 328
       Width = 129
       Height = 27
+      Anchors = [akLeft, akBottom]
       Caption = '&Delete profile'
       TabOrder = 6
       OnClick = btnDeleteProfileClick
     end
     object btnExportProfile: TButton
       Left = 140
-      Top = 244
+      Top = 296
       Width = 129
       Height = 27
+      Anchors = [akLeft, akBottom]
       Caption = '&Export profile'
       TabOrder = 7
       OnClick = btnExportProfileClick
     end
     object btnImportProfile: TButton
       Left = 140
-      Top = 276
+      Top = 328
       Width = 129
       Height = 27
+      Anchors = [akLeft, akBottom]
       Caption = '&Import profile'
       TabOrder = 8
       OnClick = btnImportProfileClick
+    end
+    object chkCheckCertificate: TCheckBox
+      Left = 4
+      Top = 68
+      Width = 284
+      Height = 21
+      Anchors = [akLeft, akTop, akRight]
+      Caption = 'Cancel connections on invalid certificate'
+      TabOrder = 9
     end
   end
 end

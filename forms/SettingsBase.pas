@@ -103,6 +103,7 @@ type
     btnDeleteProfile: TButton;
     btnExportProfile: TButton;
     btnImportProfile: TButton;
+    chkCheckCertificate: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
@@ -434,6 +435,7 @@ begin
 
     AppGlobals.Lock;
     try
+      AppGlobals.CheckCertificate := chkCheckCertificate.Checked;
       AppGlobals.ProxyEnabled := chkProxy.Checked;
       AppGlobals.ProxyHost := txtHost.Text;
       AppGlobals.ProxyPort := StrToIntDef(txtPort.Text, 8080);
@@ -459,6 +461,7 @@ var
 begin
   chkAutoUpdateCheck.Checked := AppGlobals.AutoUpdate;
 
+  chkCheckCertificate.Checked := AppGlobals.CheckCertificate;
   chkProxy.Checked := AppGlobals.ProxyEnabled;
   txtHost.Enabled := chkProxy.Checked;
   txtPort.Enabled := chkProxy.Checked;

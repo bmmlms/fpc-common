@@ -58,6 +58,7 @@ type
     FMainWidth: Integer;
     FMainHeight: Integer;
 
+    FCheckCertificate: Boolean;
     FProxyEnabled: Boolean;
     FProxyHost: string;
     FProxyPort: Integer;
@@ -125,6 +126,7 @@ type
     property MainWidth: Integer read FMainWidth write FMainWidth;
     property MainHeight: Integer read FMainHeight write FMainHeight;
 
+    property CheckCertificate: Boolean read FCheckCertificate write FCheckCertificate;
     property ProxyEnabled: Boolean read FProxyEnabled write FProxyEnabled;
     property ProxyHost: string read FProxyHost write FProxyHost;
     property ProxyPort: Integer read FProxyPort write FProxyPort;
@@ -348,6 +350,7 @@ begin
     FMainTop := -1;
   end;
 
+  FStorage.Read('CheckCertificate', FCheckCertificate, True);
   FStorage.Read('ProxyEnabled', FProxyEnabled, False);
   FStorage.Read('ProxyHost', FProxyHost, '');
   FStorage.Read('ProxyPort', FProxyPort, 8080);
@@ -381,6 +384,7 @@ begin
   FStorage.Write('MainLeft', FMainLeft);
   FStorage.Write('MainTop', FMainTop);
 
+  FStorage.Write('CheckCertificate', FCheckCertificate);
   FStorage.Write('ProxyEnabled', FProxyEnabled);
   FStorage.Write('ProxyHost', FProxyHost);
   FStorage.Write('ProxyPort', FProxyPort);
