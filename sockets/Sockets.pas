@@ -442,6 +442,8 @@ begin
             if (ErrRes <> SSL_ERROR_WANT_READ) and (ErrRes <> SSL_ERROR_WANT_WRITE) and (ErrRes <> SSL_ERROR_WANT_CONNECT) then
               raise EExceptionParams.CreateFmt('TLS handshake was not successful, error %s', [SSLErrorToText(ErrRes)]);
           end;
+          if Terminated then
+            Exit;
           Sleep(10);
         end;
 
