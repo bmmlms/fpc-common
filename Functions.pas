@@ -28,7 +28,7 @@ uses
 
 type
   TPatternReplace = record
-    C: Char;
+    C: string;
     Replace: string;
   end;
   TPatternReplaceArray = array of TPatternReplace;
@@ -77,6 +77,7 @@ function HashString(Value: string): Cardinal;
 function IsAnsi(const s: string): Boolean;
 function OccurenceCount(C: Char; Str: string): Integer;
 function PatternReplace(S: string; ReplaceList: TPatternReplaceArray): string;
+function PatternReplaceNew(S: string; ReplaceList: TPatternReplaceArray): string;
 function IsAdmin: LongBool;
 function HTML2Color(const HTML: string): Integer;
 function GetFileSize(const AFilename: string): Int64;
@@ -780,7 +781,49 @@ begin
     Result := Copy(Result, 1, TokenIndices[n] - 1) + Replace + Copy(Result, TokenIndices[n] + 2, Length(Result));
     for j := 0 to High(TokenIndices) do
       if TokenIndices[j] > TokenIndices[n] then
-          TokenIndices[j] := TokenIndices[j] + Length(Replace) - 2;
+        TokenIndices[j] := TokenIndices[j] + Length(Replace) - 2;
+  end;
+end;
+
+function PatternReplaceNew(S: string; ReplaceList: TPatternReplaceArray): string;
+var
+  C: Char;
+  i, n, j: Integer;
+  D: Integer;
+  Replace, Str: string;
+  TokenIndices: array of Integer;
+begin
+  Result := s;
+
+  SetLength(TokenIndices, 0);
+  for i := 1 to Length(Result) do
+    if Result[i] = '%' then
+    begin
+      SetLength(TokenIndices, Length(TokenIndices) + 1);
+      TokenIndices[High(TokenIndices)] := i;
+    end;
+
+  if Length(TokenIndices) < 2 then
+    Exit;
+
+  for i := 0 to High(TokenIndices) - 1 do
+  begin
+    if i mod 2 <> 0 then
+      Continue;
+
+    if TokenIndices[i + 1] - TokenIndices[i] > 1 then
+    begin
+      Str := LowerCase(Copy(Result, TokenIndices[i] + 1, TokenIndices[i + 1] - TokenIndices[i] - 1));
+      for n := 0 to High(ReplaceList) do
+        if LowerCase(ReplaceList[n].C) = Str then
+        begin
+          D := Length(Result);
+          Result := Copy(Result, 1, TokenIndices[i] - 1) + ReplaceList[n].Replace + Copy(Result, TokenIndices[i + 1] + 1, Length(Result));
+          for j := i + 2 to High(TokenIndices) do
+            TokenIndices[j] := TokenIndices[j] + Length(Result) - D;
+          Break;
+        end;
+    end;
   end;
 end;
 

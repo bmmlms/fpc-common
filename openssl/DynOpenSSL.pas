@@ -23,7 +23,7 @@ unit DynOpenSSL;
 interface
 
 uses
-  Windows, SysUtils, Classes, AppData, Generics.Collections,
+  Windows, SysUtils, Classes, Generics.Collections,
   IdSSLOpenSSLHeadersCustom;
 
 type
@@ -42,7 +42,7 @@ type
 
     constructor Create;
     destructor Destroy; override;
-    function InitializeOpenSSL: Boolean;
+    function InitializeOpenSSL(TempDir: string): Boolean;
   property
     Cert: AnsiString read FCert;
   end;
@@ -90,14 +90,14 @@ begin
   inherited;
 end;
 
-function TOpenSSLLoader.InitializeOpenSSL: Boolean;
+function TOpenSSLLoader.InitializeOpenSSL(TempDir: string): Boolean;
 var
   Res: TResourceStream;
 begin
   Result := False;
 
-  FLibEayDLLPath := AppGlobals.TempDir + 'libeay32.dll';
-  FSSLEayDLLPath := AppGlobals.TempDir + 'ssleay32.dll';
+  FLibEayDLLPath := TempDir + 'libeay32.dll';
+  FSSLEayDLLPath := TempDir + 'ssleay32.dll';
 
   Res := TResourceStream.Create(0, 'LIBEAY32', MakeIntResource(RT_RCDATA));
   try

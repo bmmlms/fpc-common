@@ -1,6 +1,6 @@
 {
     ------------------------------------------------------------------------
-    streamWriter
+    mistake.ws common application library
     Copyright (c) 2010-2015 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or

@@ -31,6 +31,8 @@ type
   TArrayElement = string;
   TArray = array of TArrayElement;
 
+  TLicense = (alGPL, alProprietary);
+
   TPortable = (poYes, poNo, poUndefined);
 
   EAlreadyRunning = class(Exception);
@@ -77,6 +79,8 @@ type
     FCommandLine: TCommandLine;
     FWebLanguages: TStringList;
 
+    FLicense: TLicense;
+
     FSkipSave: Boolean;
 
     procedure GetVersionInfo;
@@ -110,7 +114,7 @@ type
     procedure DoSave; virtual;
     procedure NotifyRunningInstance(Handle: Cardinal); virtual;
   public
-    constructor Create(AppName: String; OnlyOne: Boolean; DefWidth, DefHeight: Integer); reintroduce;
+    constructor Create(AppName: String; OnlyOne: Boolean; DefWidth, DefHeight: Integer; License: TLicense); reintroduce;
     destructor Destroy; override;
     procedure Load; virtual;
     procedure Save(Handle: Cardinal = 0);
@@ -165,17 +169,21 @@ type
     property Storage: TSettingsStorage read FStorage;
 
     property SkipSave: Boolean read FSkipSave write FSkipSave;
+
+    property License: TLicense read FLicense write FLicense;
   end;
 
 implementation
 
 { TAppDataBase }
 
-constructor TAppDataBase.Create(AppName: string; OnlyOne: Boolean; DefWidth, DefHeight: Integer);
+constructor TAppDataBase.Create(AppName: string; OnlyOne: Boolean; DefWidth, DefHeight: Integer; License: TLicense);
 begin
   FMainWidthDefault := DefWidth;
   FMainHeightDefault := DefHeight;
   FSkipSave := False;
+
+  FLicense := License;
 
   FCS := TCriticalSection.Create;
   FAppPath := IncludeTrailingBackslash(ExtractFilePath(ParamStr(0)));

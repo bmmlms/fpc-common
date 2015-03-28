@@ -23,7 +23,7 @@ unit Logging;
 interface
 
 uses
-  Windows, SysUtils, Classes, ShlObj, GUIFunctions;
+  Windows, SysUtils, Classes;
 
 type
   TLogger = class
