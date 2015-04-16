@@ -549,7 +549,8 @@ begin
           begin
             if LowerCase(Copy(Line, 1, 3)) = 'id=' then
               LangID := Copy(Line, 4, Length(Line) - 3)
-            else LangID := '';
+            else
+              LangID := '';
 
             if Length(LangID) = 2 then
             begin
