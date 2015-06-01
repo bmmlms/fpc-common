@@ -52,7 +52,7 @@ var
 
 implementation
 
-{ TBassLoader }
+{ TOpenSSLLoader }
 
 constructor TOpenSSLLoader.Create;
 begin
@@ -142,9 +142,13 @@ begin
   except
   end;
   
-  try  
+  try
     if FLibEayDLLPath <> '' then
       DeleteFile(FLibEayDLLPath);
+  except
+  end;
+
+  try
     if FSSLEayDLLPath <> '' then
       DeleteFile(FSSLEayDLLPath);
   except

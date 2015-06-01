@@ -787,10 +787,9 @@ end;
 
 function PatternReplaceNew(S: string; ReplaceList: TPatternReplaceArray): string;
 var
-  C: Char;
   i, n, j: Integer;
   D: Integer;
-  Replace, Str: string;
+  Str: string;
   TokenIndices: array of Integer;
 begin
   Result := s;
