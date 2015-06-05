@@ -789,7 +789,7 @@ begin
           Exit;
 
         if (Res > 0) and (FD_ISSET(FAcceptHandle, exceptfds)) then
-          raise Exception.Create('Function select() socket failed');
+          raise Exception.Create('Function select() failed');
 
         if (Res <> SOCKET_ERROR) and (FD_ISSET(FAcceptHandle, readfds)) then
         begin
