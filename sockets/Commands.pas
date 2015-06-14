@@ -24,7 +24,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Sockets, Generics.Collections, ExtendedStream,
-  zlib, RTTI;
+  RTTI, Functions;
 
 type
   TCommandTypes = (ctHandshake, ctHandshakeResponse,
@@ -206,16 +206,16 @@ end;
 
 procedure TCommand.LoadStream(Stream: TExtendedStream);
 var
-  DecompressStream: TExtendedStream;
+  DecompressedStream: TExtendedStream;
 begin
   if FStream <> nil then
     FStream.Free;
 
   if Stream.Position < Stream.Size then
   begin
-    DecompressStream := TExtendedStream.Create;
-    zlib.ZDecompressStream(Stream, DecompressStream);
-    FStream := DecompressStream;
+    DecompressedStream := TExtendedStream.Create;
+    DecompressStream(Stream, DecompressedStream);
+    FStream := DecompressedStream;
 
     FStream.Seek(0, soFromBeginning);
   end;

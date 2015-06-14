@@ -24,7 +24,7 @@ interface
 
 uses
   Windows, ShLwApi, SysUtils, Classes, StrUtils, Graphics, PerlRegEx,
-  DateUtils;
+  DateUtils, ZLib;
 
 type
   TPatternReplace = record
@@ -99,6 +99,8 @@ function RegExReplace(RegEx, ReplaceWith, Data: string): string;
 function ContainsRegEx(RegEx, Data: string): Boolean;
 function ExistsIconSize(const Name: string; const Size: Integer): Boolean;
 function LocalToUTC(DT: TDateTime): TDateTime;
+procedure CompressStream(InStream, OutStream: TStream; CompressionLevel: TZCompressionLevel);
+procedure DecompressStream(InStream, OutStream: TStream);
 
 function VerSetConditionMask(dwlConditionMask: LONGLONG; TypeBitMask: DWORD; ConditionMask: Byte): LONGLONG; stdcall;
   external 'kernel32.dll';
@@ -1426,6 +1428,41 @@ begin
     Res := GetTimeZoneInformation(TZI);
     if Res <> TIME_ZONE_ID_INVALID then
       Result := DT + (Minute * TZI.Bias)
+  end;
+end;
+
+procedure CompressStream(InStream, OutStream: TStream; CompressionLevel: TZCompressionLevel);
+var
+  ZStream: TCompressionStream;
+begin
+  ZStream := TCompressionStream.Create(OutStream, CompressionLevel);
+  try
+    ZStream.CopyFrom(InStream, 0);
+  finally
+    ZStream.Free;
+  end;
+end;
+
+procedure DecompressStream(InStream, OutStream: TStream);
+const
+  BufferSize = 32768;
+var
+  Count: Integer;
+  ZStream: TDecompressionStream;
+  Buffer: array[0..BufferSize - 1] of Byte;
+begin
+  ZStream := TDecompressionStream.Create(InStream);
+  try
+    while True do
+    begin
+      Count := ZStream.Read(Buffer, BufferSize);
+      if Count <> 0 then
+        OutStream.WriteBuffer(Buffer, Count)
+      else
+        Break;
+    end;
+  finally
+    ZStream.Free;
   end;
 end;
 
