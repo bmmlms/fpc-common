@@ -657,7 +657,7 @@ begin
     FAppVersion.Build := 0;
   end;
 
-  // test
+  // test1
 
   if (FAppVersion.Major = 0) and (FAppVersion.Minor = 0) and
      (FAppVersion.Revision = 0) and (FAppVersion.Build = 0) then
