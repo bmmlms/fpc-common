@@ -25,7 +25,8 @@ interface
 uses
   Windows, SysUtils, Classes, Messages, ComCtrls, ActiveX, Controls, Buttons,
   StdCtrls, Menus, VirtualTrees, DragDrop, DragDropFile, ShellApi, Types,
-  Themes, ImgList, GUIFunctions, LanguageObjects, Graphics, Forms;
+  Themes, ImgList, GUIFunctions, LanguageObjects, Graphics, Forms,
+  Generics.Collections;
 
 type
   TMTabSheet = class;
@@ -44,7 +45,7 @@ type
   TMPageControl = class(TPageControl)
   private
     FMaxTabWidth: Integer;
-    FLocked: Boolean;
+    FFocusList: TList<TMTabSheet>;
 
     procedure AlignButtons;
     procedure RemoveTab(Tab: TMTabSheet); virtual;
@@ -52,8 +53,6 @@ type
 
     procedure FSetActivePage(Value: TTabSheet);
     function FGetActivePage: TTabSheet;
-
-
   protected
     function CanChange: Boolean; override;
     procedure Change; override;
@@ -62,6 +61,9 @@ type
 
     procedure WndProc(var Message: TMessage); override;
   public
+    constructor Create(AOwner: TComponent); reintroduce;
+    destructor Destroy; override;
+
     procedure CloseTab(Idx: Integer);
     procedure CloseAll;
     procedure CloseAllButActive;
@@ -229,11 +231,15 @@ begin
 end;
 
 procedure TMPageControl.Change;
+var
+  i: Integer;
 begin
   inherited;
 
   if TMTabSheet(ActivePage).FFocusedControlBeforeChange <> nil then
     TMTabSheet(ActivePage).FFocusedControlBeforeChange.ApplyFocus;
+
+  FFocusList.Add(TMTabSheet(ActivePage));
 
   AlignButtons;
 end;
@@ -241,6 +247,20 @@ end;
 procedure TMPageControl.CloseTab(Idx: Integer);
 begin
   PostMessage(Handle, WM_USER + 1245, 0, Idx)
+end;
+
+constructor TMPageControl.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  FFocusList := TList<TMTabSheet>.Create;
+end;
+
+destructor TMPageControl.Destroy;
+begin
+  FFocusList.Free;
+
+  inherited;
 end;
 
 procedure TMPageControl.CloseAll;
@@ -270,17 +290,19 @@ end;
 procedure TMPageControl.FSetActivePage(Value: TTabSheet);
 begin
   inherited ActivePage := Value;
+
+  Change;
 end;
 
 procedure TMPageControl.RemoveTab(Tab: TMTabSheet);
 var
   Idx: Integer;
+  i: Integer;
 begin
   if not Tab.CanClose then
     Exit;
 
   LockWindowUpdate(Handle);
-  //FLocked := True;
   try
     if Assigned(TMTabSheet(Tab).FOnClosed) then
       TMTabSheet(Tab).FOnClosed(Tab);
@@ -304,14 +326,18 @@ begin
     if PageCount = 0 then
       Idx := -1;
 
+    for i := FFocusList.Count - 1 downto 0 do
+      if FFocusList[i] = Tab then
+        FFocusList.Delete(i);
+
     Tab.Parent := nil;
     TabClosed(TMTabSheet(Tab));
     Tab.Free;
 
+    if FFocusList.Count > 0 then
+      Idx := FFocusList[FFocusList.Count - 1].PageIndex;
     ActivePageIndex := Idx;
   finally
-    //FLocked := False;
-    //Refresh;
     LockWindowUpdate(0);
   end;
 end;
@@ -323,10 +349,10 @@ end;
 
 procedure TMPageControl.WndProc(var Message: TMessage);
 var
+  ActiveClosed: Boolean;
   i: Integer;
 begin
-  if ((Message.Msg = WM_PAINT) or (Message.Msg = WM_ERASEBKGND)) and (FLocked) then
-    Exit;
+  //ActiveClosed := False;
 
   if Message.Msg = WM_PAINT then
     AlignButtons;
@@ -335,19 +361,25 @@ begin
     case Message.WParam of
       0: // Aktives schlieﬂen
         begin
+          if ActivePage = TMTabSheet(Pages[Message.LParam]) then
+            ActiveClosed := True;
+
           RemoveTab(TMTabSheet(Pages[Message.LParam]));
         end;
       1: // Alle schlieﬂen
-        for i := PageCount - 1 downto 0 do
-          RemoveTab(TMTabSheet(Pages[i]));
+        begin
+          ActiveClosed := True;
+          for i := PageCount - 1 downto 0 do
+            RemoveTab(TMTabSheet(Pages[i]));
+        end;
       2: // Alle auﬂer aktivem schlieﬂen
         for i := PageCount - 1 downto 0 do
           if Pages[i] <> ActivePage then
             RemoveTab(TMTabSheet(Pages[i]));
     end;
 
-//    if Message.Msg = T then
-
+    //if ActiveClosed and (FFocusList.Count > 0) then
+    //  ActivePage := FFocusList[FFocusList.Count - 1];
 
     AlignButtons;
   end;
