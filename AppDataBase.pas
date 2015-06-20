@@ -657,10 +657,11 @@ begin
     FAppVersion.Build := 0;
   end;
 
+  // test
+
   if (FAppVersion.Major = 0) and (FAppVersion.Minor = 0) and
      (FAppVersion.Revision = 0) and (FAppVersion.Build = 0) then
   begin
-    // test
     raise Exception.Create(Format(_('The version of the application could not be determined.'#13#10 +
                                     'Please ask for support at %s.'#13#10 +
                                     'The application will be terminated.'), [FProjectForumLink]));
