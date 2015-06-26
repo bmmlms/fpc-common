@@ -82,6 +82,7 @@ type
   private
     class var FCommands: TList<TCommandRegistration>;
   protected
+    FVersion: Cardinal;
     FCommandType: TCommandTypes; // Wird nicht von hier versendet im Stream oder so!
                                  // analog zum commandtype hier drüber sollte hier auch noch die version gemirrort werden.
     FStream: TStream;
@@ -101,6 +102,7 @@ type
     function Process(ToStream: TExtendedStream): Boolean; virtual;
     procedure LoadStream(Stream: TExtendedStream);
 
+    property Version: Cardinal read FVersion;
     property CommandType: TCommandTypes read FCommandType;
     property CmdLength: Cardinal read FGetCmdLength;
     property Stream: TStream read FStream;
@@ -163,6 +165,7 @@ constructor TCommand.Create;
 begin
   inherited;
 
+  FVersion := 1;
 end;
 
 destructor TCommand.Destroy;

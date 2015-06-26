@@ -251,9 +251,9 @@ begin
     B := Command.Get;
 
     if Command.Stream = nil then
-      CommandHeader := TCommandHeader.Create(1, Length(B), Command.CommandType)
+      CommandHeader := TCommandHeader.Create(Command.Version, Length(B), Command.CommandType)
     else
-      CommandHeader := TCommandHeader.Create(1, Length(B) + Command.Stream.Size, Command.CommandType);
+      CommandHeader := TCommandHeader.Create(Command.Version, Length(B) + Command.Stream.Size, Command.CommandType);
 
     CS := TCommandStream.Create(PacketStreamID, CommandHeader);
 
