@@ -603,17 +603,18 @@ begin
           Started := GetTickCount;
         end;
 
-        if Started + Timeout < GetTickCount then
-        begin
-          if KillOnTimeout then
+        if Timeout < High(Cardinal) then
+          if Started + Timeout < GetTickCount then
           begin
-            TerminateProcess(Handle, 0);
-            Sleep(500); // Wichtig - manchmal sind nach TerminateProcess() scheinbar noch Handles offen
-          end;
+            if KillOnTimeout then
+            begin
+              TerminateProcess(Handle, 0);
+              Sleep(500); // Wichtig - manchmal sind nach TerminateProcess() scheinbar noch Handles offen
+            end;
 
-          Result := rpTimeout;
-          Exit;
-        end;
+            Result := rpTimeout;
+            Exit;
+          end;
       end;
 
       PeekNamedPipe(ReadPipeOut, nil, 0, nil, @Avail, nil);
