@@ -795,7 +795,7 @@ object frmUpdatedInfo: TfrmUpdatedInfo
     Padding.Top = 4
     Padding.Right = 4
     Padding.Bottom = 4
-    TabOrder = 1
+    TabOrder = 2
     object Bevel2: TBevel
       Left = 4
       Top = 4
@@ -828,6 +828,6 @@ object frmUpdatedInfo: TfrmUpdatedInfo
     Height = 19
     Anchors = [akLeft, akRight, akBottom]
     Caption = '&Don'#39't show this message again'
-    TabOrder = 2
+    TabOrder = 1
   end
 end

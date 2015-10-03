@@ -205,7 +205,7 @@ object frmSettingsBase: TfrmSettingsBase
       Height = 27
       Anchors = [akLeft, akBottom]
       Caption = '&Copy profile'
-      TabOrder = 2
+      TabOrder = 6
       OnClick = btnCopyProfileClick
     end
     object txtPort: TLabeledEdit
@@ -217,7 +217,7 @@ object frmSettingsBase: TfrmSettingsBase
       EditLabel.Height = 13
       EditLabel.Caption = 'Port:'
       NumbersOnly = True
-      TabOrder = 3
+      TabOrder = 5
     end
     object txtHost: TLabeledEdit
       Left = 20
@@ -236,7 +236,7 @@ object frmSettingsBase: TfrmSettingsBase
       Height = 21
       Anchors = [akLeft, akTop, akRight]
       Caption = 'Use HTTP proxy'
-      TabOrder = 5
+      TabOrder = 3
       OnClick = chkProxyClick
     end
     object btnDeleteProfile: TButton
@@ -246,7 +246,7 @@ object frmSettingsBase: TfrmSettingsBase
       Height = 27
       Anchors = [akLeft, akBottom]
       Caption = '&Delete profile'
-      TabOrder = 6
+      TabOrder = 7
       OnClick = btnDeleteProfileClick
     end
     object btnExportProfile: TButton
@@ -256,7 +256,7 @@ object frmSettingsBase: TfrmSettingsBase
       Height = 27
       Anchors = [akLeft, akBottom]
       Caption = '&Export profile'
-      TabOrder = 7
+      TabOrder = 8
       OnClick = btnExportProfileClick
     end
     object btnImportProfile: TButton
@@ -266,7 +266,7 @@ object frmSettingsBase: TfrmSettingsBase
       Height = 27
       Anchors = [akLeft, akBottom]
       Caption = '&Import profile'
-      TabOrder = 8
+      TabOrder = 9
       OnClick = btnImportProfileClick
     end
     object chkCheckCertificate: TCheckBox
@@ -276,7 +276,7 @@ object frmSettingsBase: TfrmSettingsBase
       Height = 21
       Anchors = [akLeft, akTop, akRight]
       Caption = 'Cancel connections on invalid certificate'
-      TabOrder = 9
+      TabOrder = 2
     end
   end
 end

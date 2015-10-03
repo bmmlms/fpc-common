@@ -39,7 +39,7 @@ object frmMsgDlg: TfrmMsgDlg
     Height = 21
     Anchors = [akLeft, akBottom]
     Caption = '&Don'#39't show this message again'
-    TabOrder = 0
+    TabOrder = 1
   end
   object txtText: TMemo
     Left = 48
@@ -51,7 +51,7 @@ object frmMsgDlg: TfrmMsgDlg
     Color = clBtnFace
     ReadOnly = True
     ScrollBars = ssVertical
-    TabOrder = 1
+    TabOrder = 0
   end
   object pnlNav: TPanel
     Left = 0
@@ -82,7 +82,7 @@ object frmMsgDlg: TfrmMsgDlg
       Height = 27
       Align = alRight
       Caption = '&Cancel'
-      TabOrder = 0
+      TabOrder = 1
       OnClick = cmdNoCancelClick
     end
     object cmdYesOK: TButton
@@ -92,7 +92,7 @@ object frmMsgDlg: TfrmMsgDlg
       Height = 27
       Align = alLeft
       Caption = '&OK'
-      TabOrder = 1
+      TabOrder = 0
       OnClick = cmdYesOKClick
     end
   end

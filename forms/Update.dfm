@@ -140,7 +140,6 @@ object frmUpdate: TfrmUpdate
     Padding.Right = 4
     Padding.Bottom = 4
     TabOrder = 1
-    ExplicitTop = 113
     object Bevel2: TBevel
       Left = 4
       Top = 4

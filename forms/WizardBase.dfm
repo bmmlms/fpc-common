@@ -79,7 +79,7 @@ object frmWizardBase: TfrmWizardBase
       DoubleBuffered = True
       Layout = blGlyphRight
       ParentDoubleBuffered = False
-      TabOrder = 0
+      TabOrder = 1
       OnClick = btnNextClick
       PngImage.Data = {
         89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
@@ -106,7 +106,7 @@ object frmWizardBase: TfrmWizardBase
       Caption = '&Cancel'
       DoubleBuffered = True
       ParentDoubleBuffered = False
-      TabOrder = 1
+      TabOrder = 0
       OnClick = btnBackClick
       PngImage.Data = {
         89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF

@@ -66,14 +66,10 @@ object frmAbout: TfrmAbout
     Height = 240
     ActivePage = tabAbout
     Anchors = [akLeft, akTop, akRight, akBottom]
-    TabOrder = 0
+    TabOrder = 1
     OnChange = pagAboutChange
     object tabAbout: TTabSheet
       Caption = 'About'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         405
         212)
@@ -885,10 +881,6 @@ object frmAbout: TfrmAbout
     object tabLicense: TTabSheet
       Caption = 'License'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         405
         212)
@@ -940,7 +932,7 @@ object frmAbout: TfrmAbout
     Padding.Top = 4
     Padding.Right = 4
     Padding.Bottom = 4
-    TabOrder = 1
+    TabOrder = 0
     OnClick = pnlNavClick
     object Bevel2: TBevel
       Left = 4

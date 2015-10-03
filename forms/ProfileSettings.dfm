@@ -43,7 +43,7 @@ object frmProfileSettings: TfrmProfileSettings
     Padding.Top = 4
     Padding.Right = 4
     Padding.Bottom = 4
-    TabOrder = 0
+    TabOrder = 6
     object Bevel2: TBevel
       Left = 4
       Top = 4
@@ -95,7 +95,7 @@ object frmProfileSettings: TfrmProfileSettings
     Padding.Top = 2
     Padding.Right = 4
     Padding.Bottom = 2
-    TabOrder = 1
+    TabOrder = 7
     object Shape1: TShape
       Left = 4
       Top = 2
@@ -141,7 +141,7 @@ object frmProfileSettings: TfrmProfileSettings
     Anchors = [akLeft, akTop, akRight]
     Caption = 'Use settings from registry/application data folder'
     Checked = True
-    TabOrder = 2
+    TabOrder = 0
     TabStop = True
   end
   object rbPortable: TRadioButton
@@ -159,7 +159,7 @@ object frmProfileSettings: TfrmProfileSettings
     Width = 81
     Height = 27
     Caption = 'Delete'
-    TabOrder = 4
+    TabOrder = 1
     OnClick = btnDeleteClick
   end
   object btnDelete2: TButton
@@ -168,7 +168,7 @@ object frmProfileSettings: TfrmProfileSettings
     Width = 81
     Height = 27
     Caption = 'Delete'
-    TabOrder = 5
+    TabOrder = 4
     OnClick = btnDeleteClick
   end
   object btnCopy: TButton
@@ -177,7 +177,7 @@ object frmProfileSettings: TfrmProfileSettings
     Width = 81
     Height = 27
     Caption = 'Copy'
-    TabOrder = 6
+    TabOrder = 2
     OnClick = btnCopyClick
   end
   object btnCopy2: TButton
@@ -186,7 +186,7 @@ object frmProfileSettings: TfrmProfileSettings
     Width = 81
     Height = 27
     Caption = 'Copy'
-    TabOrder = 7
+    TabOrder = 5
     OnClick = btnCopyClick
   end
 end
