@@ -26,7 +26,7 @@ uses
   Windows, SysUtils, Classes, SyncObjs, ShellApi, ComCtrls, Logging;
 
 type
-  TFileWatchEvent = procedure(Sender: TObject; Action: DWORD; OldName, NewName: string) of object;
+  TFileWatchEvent = procedure(Sender: TObject; Action: DWORD; RootDir, OldName, NewName: string) of object;
 
   TFileWatcher = class(TThread)
   private
@@ -179,7 +179,7 @@ end;
 procedure TFileWatcher.TriggerEvent;
 begin
   if Assigned(FOnEvent) then
-    FOnEvent(Self, FAction, FFilename, FFilenameNew);
+    FOnEvent(Self, FAction, FPath, FFilename, FFilenameNew);
 end;
 
 end.

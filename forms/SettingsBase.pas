@@ -635,7 +635,7 @@ begin
 
   TreeOptions.SelectionOptions := [toDisableDrawSelection, toFullRowSelect];
   TreeOptions.PaintOptions := [toThemeAware, toHideFocusRect];
-  TreeOptions.MiscOptions := TreeOptions.MiscOptions - [toAcceptOLEDrop] + [toFullRowDrag];
+  TreeOptions.MiscOptions := TreeOptions.MiscOptions - [toAcceptOLEDrop] + [toFullRowDrag, toVariableNodeHeight];
 end;
 
 function TPageTree.DoCollapsing(Node: PVirtualNode): Boolean;
