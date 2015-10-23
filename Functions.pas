@@ -443,21 +443,17 @@ end;
 
 function DiskSpaceOkay(Path: string; MinSpaceGB: Int64): Boolean;
 var
-  S1, S2, S3: Int64;
-  SetMin: TLargeInteger;
+  Res: Int64;
 begin
-  if Path = '' then
+  Path := LowerCase(Path);
+  if (Length(Path) = 0) or (not (Path[1] in ['a'..'z'])) then
     Exit(True);
 
-  Result := False;
-  if Pos('\', Path) > 0 then
-    Path := Copy(Path, 1, Pos('\', Path));
-  if GetDiskFreeSpaceEx(PChar(Path), S1, S2, @S3) then
-  begin
-    SetMin := MinSpaceGB * 1073741824;
-    if S1 > SetMin then
-      Result := True;
-  end;
+  Res := DiskFree(Byte(Path[1]) - 96);
+  if Res = -1 then
+    Exit(True);
+
+  Result := Res < MinSpaceGB * 1073741824;
 end;
 
 procedure FindFiles(PathPattern: string; Files: TStringList; SubDirs: Boolean = False;

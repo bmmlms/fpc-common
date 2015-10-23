@@ -231,8 +231,6 @@ begin
 end;
 
 procedure TMPageControl.Change;
-var
-  i: Integer;
 begin
   inherited;
 
