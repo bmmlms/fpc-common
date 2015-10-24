@@ -427,6 +427,7 @@ begin
         // SNI
         SSL_set_tlsext_host_name(SSL, Host);
 
+        StartTime := GetTickCount;
         while True do
         begin
           Res := SSL_connect(SSL);
@@ -444,6 +445,8 @@ begin
           end;
           if Terminated then
             Exit;
+          if StartTime < Ticks - 5000 then
+            raise Exception.Create('TLS handshake timed out');      // TODO: übersetzen.
           Sleep(10);
         end;
 
