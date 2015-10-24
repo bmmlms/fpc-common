@@ -453,7 +453,7 @@ begin
   if Res = -1 then
     Exit(True);
 
-  Result := Res < MinSpaceGB * 1073741824;
+  Result := Res > MinSpaceGB * 1073741824;
 end;
 
 procedure FindFiles(PathPattern: string; Files: TStringList; SubDirs: Boolean = False;
