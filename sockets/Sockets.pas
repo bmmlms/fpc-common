@@ -100,6 +100,7 @@ type
     FOnEnded: TSocketEvent;
     FOnException: TSocketEvent;
     FOnSecured: TSocketEvent;
+    FOnCommunicationEstablished: TSocketEvent;
 
     function HostToAddress(Host: string): Integer;
     function SSLErrorToText(Err: Integer): string;
@@ -137,6 +138,7 @@ type
     procedure DoReceivedData(Buf: Pointer; Len: Integer); virtual;
     procedure DoException(E: Exception); virtual;
     procedure DoSecured; virtual;
+    procedure DoCommunicationEstablished; virtual;
     procedure DoSSLError(Text: string); virtual;
   public
     constructor Create(SocketHandle: Cardinal; Stream: TSocketStream); overload; virtual;
@@ -166,6 +168,7 @@ type
     property OnEnded: TSocketEvent read FOnEnded write FOnEnded;
     property OnException: TSocketEvent read FOnException write FOnException;
     property OnSecured: TSocketEvent read FOnSecured write FOnSecured;
+    property OnCommunicationEstablished: TSocketEvent read FOnCommunicationEstablished write FOnCommunicationEstablished;
   end;
 
   TSocketServerThread = class(TThread)
@@ -254,6 +257,12 @@ begin
   FSendStream.Free;
   FSendLock.Free;
   inherited;
+end;
+
+procedure TSocketThread.DoCommunicationEstablished;
+begin
+  if Assigned(FOnCommunicationEstablished) then
+    Sync(FOnCommunicationEstablished);
 end;
 
 procedure TSocketThread.DoConnected;
@@ -445,8 +454,8 @@ begin
           end;
           if Terminated then
             Exit;
-          if StartTime < Ticks - 5000 then
-            raise Exception.Create('TLS handshake timed out');      // TODO: übersetzen.
+          if StartTime < GetTickCount - 10000 then
+            raise Exception.Create('TLS handshake timed out');
           Sleep(10);
         end;
 
@@ -480,6 +489,8 @@ begin
 
       if (not FSSLError) and FSecure then
         DoSecured;
+
+      DoCommunicationEstablished;
 
       FLastTimeReceived := GetTickCount;
       FLastTimeSent := GetTickCount;
