@@ -356,8 +356,7 @@ var
   readfds, writefds, exceptfds: TFdSet;
   timeout: TimeVal;
   Buf: array[0..BufSize - 1] of Byte;
-  HostAddress: Integer;
-  NonBlock: Integer;
+  i, HostAddress, NonBlock: Integer;
   Ticks, StartTime: Cardinal;
 
   Method: PSSL_METHOD;
@@ -425,10 +424,15 @@ begin
         Method := SSLv23_method();
         Ctx := SSL_CTX_new(Method);
 
-        CBIO := BIO_new_mem_buf(@OpenSSL.Cert[1], Length(OpenSSL.Cert));
-        Cert := PEM_read_bio_X509(CBIO, nil, nil, nil);
-        BIO_free(CBIO);
-        X509_STORE_add_cert(Ctx.cert_store, Cert);
+        for i := 0 to OpenSSL.Certs.Count - 1 do
+        begin
+          CBIO := BIO_new_mem_buf(@AnsiString(OpenSSL.Certs[i])[1], Length(OpenSSL.Certs[i]));
+          Cert := PEM_read_bio_X509(CBIO, nil, nil, nil);
+          if Cert = nil then
+            raise Exception.Create('');
+          BIO_free(CBIO);
+          X509_STORE_add_cert(Ctx.cert_store, Cert);
+        end;
 
         SSL := SSL_new(Ctx);
         SSL_set_fd(SSL, FSocketHandle);
@@ -478,12 +482,21 @@ begin
         if SN = nil then
           DoSSLError('TLS handshake was not successful, certificate invalid');
 
-        Idx := X509_NAME_get_index_by_NID(SN, NID_commonName, 0);
-        NE := X509_NAME_get_entry(SN, Idx);
-        if NE = nil then
-          DoSSLError('TLS handshake was not successful, certificate invalid');
+        NE := nil;
+        Idx := X509_NAME_get_index_by_NID(SN, NID_commonName, -1);
+        while Idx <> -1 do
+        begin
+          NE := X509_NAME_get_entry(SN, Idx);
+          if NE = nil then
+            DoSSLError('TLS handshake was not successful, certificate invalid');
 
-        if NE.value.data <> FHost then
+          if NE.value.data <> FHost then
+            DoSSLError('TLS handshake was not successful, certificate invalid');
+
+          Idx := X509_NAME_get_index_by_NID(SN, NID_commonName, Idx);
+        end;
+
+        if NE = nil then
           DoSSLError('TLS handshake was not successful, certificate invalid');
       end;
 
