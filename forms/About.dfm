@@ -112,7 +112,7 @@ object frmAbout: TfrmAbout
         Top = 56
         Width = 228
         Height = 13
-        Caption = 'Copyright (c) 2010-2015 Alexander Nottelmann'
+        Caption = 'Copyright (c) 2010-2016 Alexander Nottelmann'
       end
       object lblHomepage: TLabel
         Left = 4
@@ -909,16 +909,11 @@ object frmAbout: TfrmAbout
         ReadOnly = True
         ScrollBars = ssVertical
         TabOrder = 0
-        ExplicitHeight = 153
       end
     end
     object tabThanks: TTabSheet
       Caption = 'Thanks'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
     end
   end
   object pnlNav: TPanel
