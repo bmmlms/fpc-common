@@ -159,6 +159,8 @@ begin
               if FocusWasSet then
               begin
                 if FadeOutWaitStart = High(Cardinal) then
+                begin
+                  Sleep(200);
                   if FadeoutWait then
                   begin
                     FadeOutWaitStart := TC;
@@ -167,6 +169,7 @@ begin
                     State := stFadeOut;
                     AnimationStart := TC;
                   end;
+                end;
 
                 if (FadeOutWaitStart <> High(Cardinal)) and (TC - FadeOutWaitStart > FADE_WAIT_TIME) then
                 begin
@@ -224,7 +227,7 @@ begin
 
   FResourceName := ResourceName;
 
-  FVersion := _('Version') + ' ' + Version;
+  FVersion := '© 2010-2016 Alexander Nottelmann et al, V' + Version;
   if (Build > 0) and (Codename <> '') then
     FVersion := FVersion + ' ''' + Codename + ''' ' + Format(_('build %d'), [Build])
   else if Build > 0 then
