@@ -134,7 +134,7 @@ begin
   case AppGlobals.License of
     alGPL:
       txtAbout.Text := Format(_('%s'#13#10 +
-                                'Copyright © 2010-2016 Alexander Nottelmann'#13#10#13#10 +
+                                'Copyright © 2010-2016 Alexander Nottelmann et al.'#13#10#13#10 +
                                 'This program is free software: you can redistribute it and/or modify ' +
                                 'it under the terms of the GNU General Public License as published by ' +
                                 'the Free Software Foundation, either version 3 of the License, or ' +

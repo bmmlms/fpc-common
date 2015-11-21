@@ -227,7 +227,7 @@ begin
 
   FResourceName := ResourceName;
 
-  FVersion := '© 2010-2016 Alexander Nottelmann et al, V' + Version;
+  FVersion := '© 2010-2016 Alexander Nottelmann et al. - V' + Version;
   if (Build > 0) and (Codename <> '') then
     FVersion := FVersion + ' ''' + Codename + ''' ' + Format(_('build %d'), [Build])
   else if Build > 0 then

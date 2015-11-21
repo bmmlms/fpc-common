@@ -110,9 +110,9 @@ object frmAbout: TfrmAbout
       object lblCopyright: TLabel
         Left = 4
         Top = 56
-        Width = 225
+        Width = 253
         Height = 13
-        Caption = 'Copyright '#169' 2010-2016 Alexander Nottelmann'
+        Caption = 'Copyright '#169' 2010-2016 Alexander Nottelmann et al.'
       end
       object lblHomepage: TLabel
         Left = 4
@@ -881,10 +881,6 @@ object frmAbout: TfrmAbout
     object tabLicense: TTabSheet
       Caption = 'License'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         405
         212)
