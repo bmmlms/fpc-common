@@ -347,11 +347,8 @@ end;
 
 procedure TMPageControl.WndProc(var Message: TMessage);
 var
-  ActiveClosed: Boolean;
   i: Integer;
 begin
-  //ActiveClosed := False;
-
   if Message.Msg = WM_PAINT then
     AlignButtons;
   if Message.Msg = WM_USER + 1245 then
@@ -359,14 +356,10 @@ begin
     case Message.WParam of
       0: // Aktives schlieﬂen
         begin
-          if ActivePage = TMTabSheet(Pages[Message.LParam]) then
-            ActiveClosed := True;
-
           RemoveTab(TMTabSheet(Pages[Message.LParam]));
         end;
       1: // Alle schlieﬂen
         begin
-          ActiveClosed := True;
           for i := PageCount - 1 downto 0 do
             RemoveTab(TMTabSheet(Pages[i]));
         end;
@@ -375,9 +368,6 @@ begin
           if Pages[i] <> ActivePage then
             RemoveTab(TMTabSheet(Pages[i]));
     end;
-
-    //if ActiveClosed and (FFocusList.Count > 0) then
-    //  ActivePage := FFocusList[FFocusList.Count - 1];
 
     AlignButtons;
   end;
