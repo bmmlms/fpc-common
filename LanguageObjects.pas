@@ -445,14 +445,13 @@ type
     fsIgnoreFiles, fsLanguages, fsEntries);
 var
   Section: TFileSections;
-  i, LastNL, NL: Integer;
+  LastNL, NL: Integer;
   PriLang, LangID, Line: string;
-  n: Integer;
-  j: Integer;
+  i, j, n: Integer;
   LangFound, AlreadyExists: Boolean;
   Entry: TEntry;
   Occurence: TOccurence;
-  xx: Integer;
+  BOM: Array[0..1] of Byte;
 begin
   FChanged := False;
   FImportDir := '';
@@ -469,6 +468,16 @@ begin
   FEntries := TEntryList.Create;
   FLanguages := TLanguageList.Create;
   Entry := nil;
+
+  if Stream.Size >= 2 then
+  begin
+    Stream.ReadBuffer(BOM[0], 2);
+    if (Bom[0] = 255) and (Bom[1] = 254) then
+    begin
+      LastNL := 2;
+    end;
+  end;
+
   try
     NL := PosInStream(Stream, #13#00#10#00, LastNL);
     while NL > -1 do
@@ -727,7 +736,11 @@ procedure TProject.Save(Stream: TMemoryStream; SaveMeta: Boolean);
   end;
 var
   i, n: Integer;
+const
+  BOM: Array[0..1] of Byte = (255, 254);
 begin
+  Stream.Write(BOM[0], 2);
+
   WriteToStream('[settings]', Stream);
   WriteToStream('version=1', Stream);
   WriteToStream('name=' + FName, Stream);
