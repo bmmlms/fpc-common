@@ -97,6 +97,8 @@ type
 
     function CanClose: Boolean; virtual;
 
+    function ProcessShortCut(Msg: TWMKey): Boolean; virtual;
+
     property Caption: string read FGetCaption write FSetCaption;
     property MaxWidth: Integer read FMaxWidth write FSetMaxWidth;
     property ShowCloseButton: Boolean read FShowCloseButton write FSetShowCloseButton;
@@ -459,6 +461,11 @@ procedure TMTabSheet.FSetShowCloseButton(Value: Boolean);
 begin
   FShowCloseButton := Value;
   AlignButton;
+end;
+
+function TMTabSheet.ProcessShortCut(Msg: TWMKey): Boolean;
+begin
+  Result := False;
 end;
 
 procedure TMTabSheet.SetCaptionInternal(Value: string);
