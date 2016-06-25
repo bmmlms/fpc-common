@@ -102,7 +102,7 @@ type
     FOnSecured: TSocketEvent;
     FOnCommunicationEstablished: TSocketEvent;
 
-    function HostToAddress(Host: string): Integer;
+    function HostToAddress(Host: string): u_long;
     function SSLErrorToText(Err: Integer): string;
   protected
     FRecvStream: TSocketStream;
@@ -356,8 +356,9 @@ var
   readfds, writefds, exceptfds: TFdSet;
   timeout: TimeVal;
   Buf: array[0..BufSize - 1] of Byte;
-  i, HostAddress, NonBlock: Integer;
+  i, NonBlock: Integer;
   Ticks, StartTime: Cardinal;
+  HostAddress: u_long;
 
   Method: PSSL_METHOD;
   Ctx: PSSL_CTX;
@@ -648,7 +649,7 @@ begin
   end;
 end;
 
-function TSocketThread.HostToAddress(Host: string): Integer;
+function TSocketThread.HostToAddress(Host: string): u_long;
 type
   PPInAddr = ^PInAddr;
 var
@@ -657,7 +658,7 @@ var
 begin
   T := nil;
   Result := inet_addr(PAnsiChar(AnsiString(Host)));
-  if Result = Integer(INADDR_NONE) then
+  if Result = u_long(INADDR_NONE) then
   begin
     Result := 0;
     HostInfo := gethostbyname(PAnsiChar(AnsiString(Host)));
