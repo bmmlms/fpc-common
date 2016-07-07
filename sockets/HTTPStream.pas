@@ -32,6 +32,7 @@ type
   private
     FResponseCode: Integer;
     FContentType: string;
+    FContentEncoding: string;
     FTransferEncoding: TTransferEncoding;
     FContentLength: Integer;
     FRedirURL: string;
@@ -62,6 +63,7 @@ type
     property HeaderType: string read FHeaderType;
     property ResponseCode: Integer read FResponseCode;
     property ContentType: string read FContentType;
+    property ContentEncoding: string read FContentEncoding;
     property TransferEncoding: TTransferEncoding read FTransferEncoding;
     property ContentLength: Integer read FContentLength;
     property RedirURL: string read FRedirURL;
@@ -206,11 +208,21 @@ begin
   begin
     FHeader := string(ToString(0, i));
     WriteLog('Header received', FHeader, slDebug);
+
     GetResponseCode;
     GetHeaderType;
+
     FContentType := LowerCase(GetHeaderData('content-type'));
+
+    if (Pos(';', FContentType) > 0) then
+    begin
+      FContentEncoding := Trim(Copy(FContentType, Pos(';', FContentType) + 1, Length(FContentType)));
+      FContentType := Trim(Copy(FContentType, 1, Pos(';', FContentType) - 1));
+    end;
+
     FContentLength := StrToIntDef(GetHeaderData('content-length'), -1);
     FRedirURL := GetHeaderData('location');
+
     if LowerCase(GetHeaderData('transfer-encoding')) = 'chunked' then
       FTransferEncoding := teChunked;
 
