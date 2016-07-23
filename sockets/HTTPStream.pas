@@ -100,6 +100,7 @@ begin
   begin
     if (FTransferEncoding = teChunked) and (Size > 0) then
     begin
+      FDeChunkedStream.Seek(0, soFromEnd);
       RemoveTo := 0;
       Seek(0, soFromBeginning);
       repeat
