@@ -414,6 +414,7 @@ begin
   MS := TMemoryStream.Create;
   try
     Save(MS, True);
+    MS.Position := 0;
     Result := TProject.Create(MS);
     Result.Filename := Filename;
   finally
