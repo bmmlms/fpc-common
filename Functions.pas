@@ -89,7 +89,7 @@ function IsVersionNewer(const Current, Found: TAppVersion): Boolean;
 //procedure GetBitmap(const Resname: string; const NumGlyphs: Integer; Bmp: TBitmap);
 function BuildPattern(const s: string; var Hash: Cardinal; var NumChars: Integer; AlwaysAlter: Boolean): string;
 function CryptStr(const s: string): string;
-function TryRelativePath(const s: string; IsFile: Boolean): string;
+function TryRelativePath(const s: string; IsFile: Boolean; OnlyIfRemovable: Boolean): string;
 function TryUnRelativePath(const s: string): string;
 function FixPathName(Path: string): string;
 function GetFileVersion(Filename: string): TAppVersion;
@@ -1111,22 +1111,26 @@ begin
     Result[i] := Chr(Ord(s[i]) xor $45);
 end;
 
-function TryRelativePath(const s: string; IsFile: Boolean): string;
+function TryRelativePath(const s: string; IsFile: Boolean; OnlyIfRemovable: Boolean): string;
 var
   From: string;
   T: Integer;
   OutData: array[0..MAX_PATH - 1] of Char;
 begin
-  if IsFile then
-    T := FILE_ATTRIBUTE_NORMAL
-  else
-    T := FILE_ATTRIBUTE_DIRECTORY;
+  if (not OnlyIfRemovable) or (GetDriveType(PChar(IncludeTrailingPathDelimiter(ExtractFileDrive(s)))) = DRIVE_REMOVABLE) then
+  begin
+    if IsFile then
+      T := FILE_ATTRIBUTE_NORMAL
+    else
+      T := FILE_ATTRIBUTE_DIRECTORY;
 
-  From := IncludeTrailingBackslash(ExtractFilePath(ParamStr(0)));
+    From := IncludeTrailingBackslash(ExtractFilePath(ParamStr(0)));
 
-  if PathRelativePathTo(@OutData[0], PChar(From), T, PChar(s), 0) then
-    Result := OutData
-  else
+    if PathRelativePathTo(@OutData[0], PChar(From), T, PChar(s), 0) then
+      Result := OutData
+    else
+      Result := s;
+  end else
     Result := s;
 end;
 
