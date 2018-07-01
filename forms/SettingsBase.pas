@@ -65,11 +65,9 @@ type
     FColName: TVirtualTreeColumn;
     FPages: TPageList;
   protected
-    procedure DoGetText(Node: PVirtualNode; Column: TColumnIndex;
-      TextType: TVSTTextType; var Text: string); override;
-    function DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind;
-      Column: TColumnIndex; var Ghosted: Boolean;
-      var Index: Integer): TCustomImageList; override;
+    procedure DoGetText(var pEventArgs: TVSTGetCellTextEventArgs); override;
+    function DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
+      var Ghosted: Boolean; var Index: TImageIndex): TCustomImageList; override;
     procedure DoInitNode(Parent: PVirtualNode; Node: PVirtualNode;
       var InitStates: TVirtualNodeInitStates); override;
     procedure Resize; override;
@@ -643,9 +641,8 @@ begin
   Result := False;
 end;
 
-function TPageTree.DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind;
-  Column: TColumnIndex; var Ghosted: Boolean;
-  var Index: Integer): TCustomImageList;
+function TPageTree.DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
+  var Ghosted: Boolean; var Index: TImageIndex): TCustomImageList;
 var
   i: Integer;
 begin
@@ -658,17 +655,16 @@ begin
           Index := FPages[i].ImageIndex;
 end;
 
-procedure TPageTree.DoGetText(Node: PVirtualNode; Column: TColumnIndex;
-  TextType: TVSTTextType; var Text: string);
+procedure TPageTree.DoGetText(var pEventArgs: TVSTGetCellTextEventArgs);
 var
   i: Integer;
 begin
   inherited;
 
-  if Column = 0 then
+  if pEventArgs.Column = 0 then
     for i := 0 to FPages.Count - 1 do
-      if FPages[i].Node = Node then
-        Text := FPages[i].Caption;
+      if FPages[i].Node = pEventArgs.Node then
+        pEventArgs.CellText := FPages[i].Caption;
 end;
 
 procedure TPageTree.DoInitNode(Parent, Node: PVirtualNode;
