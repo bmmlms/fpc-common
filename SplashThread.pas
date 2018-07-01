@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2017 Alexander Nottelmann
+    Copyright (c) 2010-2018 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -227,7 +227,7 @@ begin
 
   FResourceName := ResourceName;
 
-  FVersion := '© 2010-2017 Alexander Nottelmann et al. - V' + Version;
+  FVersion := '© 2010-2018 Alexander Nottelmann et al. - V' + Version;
   if (Build > 0) and (Codename <> '') then
     FVersion := FVersion + ' ''' + Codename + ''' ' + Format(_('build %d'), [Build])
   else if Build > 0 then
