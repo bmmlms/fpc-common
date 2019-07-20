@@ -112,7 +112,7 @@ object frmAbout: TfrmAbout
         Top = 56
         Width = 253
         Height = 13
-        Caption = 'Copyright '#169' 2010-2018 Alexander Nottelmann et al.'
+        Caption = 'Copyright '#169' 2010-2019 Alexander Nottelmann et al.'
       end
       object lblHomepage: TLabel
         Left = 4
