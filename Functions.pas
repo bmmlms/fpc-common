@@ -99,7 +99,7 @@ function RegExReplace(RegEx, ReplaceWith, Data: string): string;
 function ContainsRegEx(RegEx, Data: string): Boolean;
 function ExistsIconSize(const Name: string; const Size: Integer): Boolean;
 function LocalToUTC(DT: TDateTime): TDateTime;
-procedure CompressStream(InStream, OutStream: TStream; CompressionLevel: TZCompressionLevel);
+procedure CompressStream(InStream, OutStream: TStream; CompressionLevel: TCompressionLevel);
 procedure DecompressStream(InStream, OutStream: TStream);
 
 function VerSetConditionMask(dwlConditionMask: LONGLONG; TypeBitMask: DWORD; ConditionMask: Byte): LONGLONG; stdcall;
@@ -1432,11 +1432,11 @@ begin
   end;
 end;
 
-procedure CompressStream(InStream, OutStream: TStream; CompressionLevel: TZCompressionLevel);
+procedure CompressStream(InStream, OutStream: TStream; CompressionLevel: TCompressionLevel);
 var
   ZStream: TCompressionStream;
 begin
-  ZStream := TCompressionStream.Create(OutStream, CompressionLevel);
+  ZStream := TCompressionStream.Create(CompressionLevel, OutStream);
   try
     ZStream.CopyFrom(InStream, 0);
   finally

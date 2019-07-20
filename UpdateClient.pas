@@ -220,7 +220,7 @@ end;
 
 procedure TUpdateClient.RunUpdate(Handle: Cardinal);
 var
-  osvi: _OSVERSIONINFOW;
+  osvi: _OSVERSIONINFOEXW;
   ConditionMask: DWORDLONG;
   op: Integer;
   SEI: TShellExecuteInfo;
