@@ -354,6 +354,7 @@ var
   Addr: sockaddr_in;
   Res, ErrRes, RecvRes, SendRes, Idx: Integer;
   readfds, writefds, exceptfds: TFdSet;
+  SSLWildcardValid: Boolean;
   timeout: TimeVal;
   Buf: array[0..BufSize - 1] of Byte;
   i, NonBlock: Integer;
@@ -464,11 +465,6 @@ begin
           Sleep(10);
         end;
 
-        //if Self.ClassName = 'TUpdateThread' then
-        //if Self.ClassName = 'THomeThread' then
-        //if Self.ClassName = 'TDownloadThread' then
-        //  DoSSLError('TLS handshake was not successful, no certificate received');
-
         Cert := SSL_get_peer_certificate(SSL);
         if Cert <> nil then
           X509_free(Cert)
@@ -491,7 +487,11 @@ begin
           if NE = nil then
             DoSSLError('TLS handshake was not successful, certificate invalid');
 
-          if NE.value.data <> FHost then
+          SSLWildcardValid := False;
+          if (Length(NE.value.data) > 2) and (NE.value.data[0] = '*') then
+            SSLWildcardValid := FHost.EndsWith(Copy(NE.value.data, 2), True);
+
+          if (LowerCase(NE.value.data) <> LowerCase(FHost)) and (not SSLWildcardValid) then
             DoSSLError('TLS handshake was not successful, certificate invalid');
 
           Idx := X509_NAME_get_index_by_NID(SN, NID_commonName, Idx);
