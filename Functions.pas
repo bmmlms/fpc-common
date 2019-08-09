@@ -24,7 +24,7 @@ interface
 
 uses
   Windows, ShLwApi, SysUtils, Classes, StrUtils, Graphics, PerlRegEx,
-  DateUtils, ZLib;
+  DateUtils, ZLib, IdURI;
 
 type
   TPatternReplace = record
@@ -55,7 +55,7 @@ type
 function MsgBox(Handle: HWND; Text, Title: string; uType: Cardinal): Integer;
 function ValidURL(URL: string): Boolean;
 function StripURL(URL: string): string;
-function ParseURL(URL: string): TParseURLRes; overload;
+function ParseURL(URL: string): TParseURLRes;
 function GetSystemDir: string;
 function GetTempDir: string;
 function ExtractLastDirName(s: string): string;
@@ -135,123 +135,39 @@ end;
 
 function ParseURL(URL: string): TParseURLRes;
 var
-  i, n, HostStart: Integer;
-  Host2, Port2, Data2: string;
-  URL2: string;
+  U: TIdURI;
 begin
-  Result.URL := URL;
-  Result.Host := '';
-  Result.Port := 0;
-  Result.Data := '';
-  Result.PortDetected := False;
-  Result.Secure := False;
-  Result.Success := False;
+  U := TIdURI.Create(URL);
+  try
+    Result.URL := U.URI;
+    Result.Host := U.Host;
+    Result.Data := U.Path + U.Document;
+    if Length(U.Params) > 0 then
+      Result.Data := Result.Data + '?' + U.Params;
+    Result.Secure := U.Protocol = 'https';
 
-  URL := Trim(URL);
-  URL2 := LowerCase(URL);
-
-  if (Copy(URL2, 0, 7) <> 'http://') and (Copy(URL2, 0, 8) <> 'https://') then
-  begin
-    URL2 := 'http://' + URL2;
-    URL := 'http://' + URL;
-  end;
-
-  if Copy(URL2, 0, 8) = 'https://' then
-    Result.Secure := True;
-
-  HostStart := PosEx('://', URL2) + 3;
-
-  Host2 := ''; Port2 := ''; Data2 := '';
-  i := PosEx('/', URL2, HostStart);
-  if i = 0 then
-  begin
-    // No get-data because no further slash
-    Host2 := Copy(URL, HostStart, 100);
-    n := PosEx(':', Host2, 1);
-    if n = 0 then
+    Result.Port := 0;
+    if Length(U.Port) > 0 then
     begin
-      // No port, set default
-      if Result.Secure then
-        Port2 := '443'
-      else
-        Port2 := '80';
-    end else
-    begin
-      Port2 := Copy(Host2, n + 1, 10);
-      Host2 := Copy(Host2, 1, n - 1);
-      Result.PortDetected := True;
-      {
-      if n > 1 then
-      begin
-        n := n + 8;
-        if URL[n - 1] <> '/' then
-          URL := Copy(URL, 1, n - 2) + '/' + Copy(URL, n - 1, Length(URL));
-      end;
-      }
-    end;
-    if URL[Length(URL)] <> '/' then
-      URL := URL + '/';
-    Data2 := '';
-  end else
-  begin
-    Host2 := Copy(URL, HostStart, Length(URL2));
-    n := PosEx('/', Host2, 1);
-    if n = 0 then
-    begin
-      // No more slashes => No getdata, check for port..
-      n := PosEx(':', URL2, i);
-      if n > 0 then
-      begin
-        // Set the port
-        Port2 := Copy(URL2, n + 1, 100);
-        Result.PortDetected := True;
-        // Remove last slash and stupid stuff
-        n := PosEx('/', Port2, 1);
-        if n > 0 then
-        begin
-          Port2 := Copy(Port2, 0, Length(Port2) - n);
-          Result.PortDetected := True;
-        end;
-      end else
-      begin
-        // Default to 80
-        if Result.Secure then
-          Port2 := '443'
-        else
-          Port2 := '80';
+      try
+        Result.Port := StrToInt(U.Port);
+      except
+        Result.PortDetected := False;
       end;
     end else
-    begin
-      n := PosEx(':', Host2, 1);
-      if n > 0 then
-      begin
-        i := PosEx('/', Host2, 1);
-        Data2 := Copy(Host2, i, 1000);
-        Port2 := Copy(Host2, n + 1, i - n - 1);
-        Result.PortDetected := True;
-        Host2 := Copy(Host2, 1, n - 1);
-      end else
-      begin
-        n := PosEx('/', Host2, 1);
-        Data2 := Copy(Host2, n, 1000);
-        // No port - default to 80
-        if Result.Secure then
-          Port2 := '443'
-        else
-          Port2 := '80';
-        Host2 := Copy(Host2, 1, n - 1);
-      end;
-    end;
-  end;
+      Result.PortDetected := False;
 
-  if (StrToIntDef(Port2, -1) <> -1) and (Host2 <> '') then
-  begin
-    Result.Host := Host2;
-    Result.Port := StrToInt(Port2);
-    Result.Data := Data2;
-    Result.Success := True;
-    if Result.Data = '' then
-      Result.Data := '/';
+    if not Result.PortDetected then
+    begin
+      if U.Protocol = 'http' then
+        Result.Port := 80
+      else if U.Protocol = 'https' then
+        Result.Port := 443;
+    end;
+
+    Result.Success := (Length(Result.Host) > 0) and (Result.Port > 0);
+  finally
+    U.Free;
   end;
 end;
 
