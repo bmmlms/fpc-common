@@ -26,7 +26,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, LanguageObjects, StdCtrls, AppData, ExtCtrls, ShellAPI, ComCtrls,
   Buttons, AppDataBase, jpeg, Functions, GUIFunctions, pngimage, Math,
-  PngFunctions;
+  PngFunctions, System.UITypes;
 
 type
   TScrollText = class(TGraphicControl)

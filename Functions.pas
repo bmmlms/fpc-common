@@ -446,7 +446,7 @@ var
   Res: Int64;
 begin
   Path := LowerCase(Path);
-  if (Length(Path) = 0) or (not (Path[1] in ['a'..'z'])) then
+  if (Length(Path) = 0) or (not CharInSet(Path[1], ['a'..'z'])) then
     Exit(True);
 
   Res := DiskFree(Byte(Path[1]) - 96);

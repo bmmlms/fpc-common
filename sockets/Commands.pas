@@ -47,7 +47,8 @@ type
     ctStreamAnalyzationData,
     ctGenerateAuthToken, ctGenerateAuthTokenResponse,
     ctPing, ctPingResponse,
-    ctConvertManualToAutomatic, ctConvertManualToAutomaticResponse);
+    ctConvertManualToAutomatic, ctConvertManualToAutomaticResponse,
+    ctGetStreamData, ctGetStreamDataResponse);
 
   TReadRes = (rrOk, rrBadPacket, rrMoreBytesNeeded);
   TBytes = array of Byte;

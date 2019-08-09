@@ -24,7 +24,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Sockets, Protocol, Commands, Generics.Collections,
-  ExtendedStream;
+  ExtendedStream, System.SyncObjs;
 
 type
   TDynStringArray = array of string;
@@ -49,8 +49,6 @@ type
 
     FOnCommandReceived: TCommandEvent;
     FOnBytesTransferred: TTransferProgressEvent;
-
-    FDebugData: string;
 
     // Für CommandReceived-Event
     FID: Cardinal;

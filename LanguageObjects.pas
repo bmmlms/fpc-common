@@ -32,7 +32,7 @@ unit LanguageObjects;
 interface
 
 uses
-  Windows, SysUtils, Classes, StrUtils, TypInfo;
+  Windows, SysUtils, Classes, StrUtils, TypInfo, System.Types;
 
 type
   TOccurence = class;

@@ -24,7 +24,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, PngImage, MultiMon,
-  Functions, LanguageObjects;
+  Functions, LanguageObjects, System.Types;
 
 type
   TStates = (stFadeIn, stWaiting, stFadeOut);
