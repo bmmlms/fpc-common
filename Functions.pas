@@ -140,7 +140,7 @@ begin
   Result.URL := '';
   Result.Host := '';
   Result.Port := 0;
-  Result.Data := 0;
+  Result.Data := '';
   Result.PortDetected := False;
   Result.Secure := False;
   Result.Success := False;
