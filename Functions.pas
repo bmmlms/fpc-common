@@ -137,7 +137,20 @@ function ParseURL(URL: string): TParseURLRes;
 var
   U: TIdURI;
 begin
-  U := TIdURI.Create(URL);
+  Result.URL := '';
+  Result.Host := '';
+  Result.Port := 0;
+  Result.Data := 0;
+  Result.PortDetected := False;
+  Result.Secure := False;
+  Result.Success := False;
+
+  try
+    U := TIdURI.Create(URL);
+  except
+    Exit;
+  end;
+
   try
     Result.URL := U.URI;
     Result.Host := U.Host;
