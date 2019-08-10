@@ -145,40 +145,41 @@ begin
   Result.Secure := False;
   Result.Success := False;
 
-  try
-    U := TIdURI.Create(URL);
-  except
-    Exit;
-  end;
+  if (Copy(LowerCase(URL), 0, 7) <> 'http://') and (Copy(LowerCase(URL), 0, 8) <> 'https://') then
+    URL := 'http://' + URL;
 
+  U := TIdURI.Create(URL);
   try
-    Result.URL := U.URI;
-    Result.Host := U.Host;
-    Result.Data := U.Path + U.Document;
-    if Length(U.Params) > 0 then
-      Result.Data := Result.Data + '?' + U.Params;
-    Result.Secure := U.Protocol = 'https';
+    try
+      Result.URL := U.URI;
+      Result.Host := U.Host;
+      Result.Data := U.Path + U.Document;
+      if Length(U.Params) > 0 then
+        Result.Data := Result.Data + '?' + U.Params;
+      Result.Secure := U.Protocol = 'https';
 
-    Result.Port := 0;
-    if Length(U.Port) > 0 then
-    begin
-      try
-        Result.Port := StrToInt(U.Port);
-      except
+      Result.Port := 0;
+      if Length(U.Port) > 0 then
+      begin
+        try
+          Result.Port := StrToInt(U.Port);
+        except
+          Result.PortDetected := False;
+        end;
+      end else
         Result.PortDetected := False;
+
+      if not Result.PortDetected then
+      begin
+        if U.Protocol = 'http' then
+          Result.Port := 80
+        else if U.Protocol = 'https' then
+          Result.Port := 443;
       end;
-    end else
-      Result.PortDetected := False;
 
-    if not Result.PortDetected then
-    begin
-      if U.Protocol = 'http' then
-        Result.Port := 80
-      else if U.Protocol = 'https' then
-        Result.Port := 443;
+      Result.Success := (Length(Result.Host) > 0) and (Result.Port > 0);
+    except
     end;
-
-    Result.Success := (Length(Result.Host) > 0) and (Result.Port > 0);
   finally
     U.Free;
   end;
