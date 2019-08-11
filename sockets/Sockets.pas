@@ -339,7 +339,7 @@ begin
   if FCheckCertificate then
     raise ESSLException.Create(Text)
   else
-    WriteLog(Text, slError);
+    WriteLog(Text, slWarning);
 end;
 
 procedure TSocketThread.DoStuff;
