@@ -163,11 +163,10 @@ begin
       begin
         try
           Result.Port := StrToInt(U.Port);
+          Result.PortDetected := True;
         except
-          Result.PortDetected := False;
         end;
-      end else
-        Result.PortDetected := False;
+      end;
 
       if not Result.PortDetected then
       begin
