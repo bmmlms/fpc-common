@@ -1274,6 +1274,7 @@ end;
 function RegExReplace(RegEx, ReplaceWith, Data: string): string;
 var
   R: TPerlRegEx;
+  LastSubject: string;
 begin
   Result := '';
   R := TPerlRegEx.Create;
@@ -1284,7 +1285,10 @@ begin
     R.Replacement := ReplaceWith;
     try
       // Das muss so. Sonst wird z.B. aus 'ft. ft. ft. ft.' ein 'Feat. ft. Feat. ft.'
-      repeat until not R.ReplaceAll;
+      repeat
+        LastSubject := R.Subject;
+        R.ReplaceAll;
+      until LastSubject = R.Subject;
       Result := R.Subject;
     except end;
   finally
