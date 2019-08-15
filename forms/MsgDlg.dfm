@@ -76,21 +76,21 @@ object frmMsgDlg: TfrmMsgDlg
       ExplicitWidth = 396
     end
     object cmdNoCancel: TButton
-      Left = 4
-      Top = 9
-      Width = 97
-      Height = 27
-      Align = alLeft
-      Caption = '&Cancel'
-      TabOrder = 1
-      OnClick = cmdNoCancelClick
-    end
-    object cmdYesOK: TButton
       Left = 320
       Top = 9
       Width = 97
       Height = 27
       Align = alRight
+      Caption = '&Cancel'
+      TabOrder = 1
+      OnClick = cmdNoCancelClick
+    end
+    object cmdYesOK: TButton
+      Left = 4
+      Top = 9
+      Width = 97
+      Height = 27
+      Align = alLeft
       Caption = '&OK'
       TabOrder = 0
       OnClick = cmdYesOKClick
