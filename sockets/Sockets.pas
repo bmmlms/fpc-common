@@ -109,7 +109,7 @@ type
     FSendStream: TExtendedStream;
     FSendLock: TCriticalSection;
     FDataTimeout: Cardinal;
-    FLastTimeReceived, FLastTimeSent: Cardinal;
+    FLastTimeReceived, FLastTimeSent: UInt64;
 
     FReceived: UInt64;
     FError: Boolean;
@@ -350,6 +350,8 @@ end;
 procedure TSocketThread.Execute;
 const
   BufSize = 65536;
+  ConnectTimeout = 5000;
+  TLSTimeout = 10000;
 var
   Addr: sockaddr_in;
   Res, ErrRes, RecvRes, SendRes, Idx: Integer;
@@ -358,7 +360,7 @@ var
   timeout: TimeVal;
   Buf: array[0..BufSize - 1] of Byte;
   i, NonBlock: Integer;
-  Ticks, StartTime: Cardinal;
+  Ticks, StartTime: UInt64;
   HostAddress: u_long;
 
   Method: PSSL_METHOD;
@@ -394,15 +396,15 @@ begin
 
         connect(FSocketHandle, Addr, SizeOf(Addr));
 
-        StartTime := GetTickCount;
+        StartTime := GetTickCount64;
         while True do
         begin
           if Terminated then
             Exit;
 
-          Ticks := GetTickCount;
+          Ticks := GetTickCount64;
           timeout.tv_sec := 0;
-          timeout.tv_usec := 100;
+          timeout.tv_usec := 100000; // 100ms
           FD_ZERO(writefds);
           FD_ZERO(exceptfds);
           FD_SET(FSocketHandle, writefds);
@@ -414,7 +416,7 @@ begin
             raise Exception.Create('Error while connecting');
           if (Res > 0) and (FD_ISSET(FSocketHandle, writefds)) then
             Break;
-          if StartTime < Ticks - 5000 then
+          if (Ticks > ConnectTimeout) and (StartTime < Ticks - ConnectTimeout) then
             raise Exception.Create('Timeout while connecting');
         end;
       end;
@@ -442,9 +444,13 @@ begin
         // SNI
         SSL_set_tlsext_host_name(SSL, Host);
 
-        StartTime := GetTickCount;
+        StartTime := GetTickCount64;
         while True do
         begin
+          if Terminated then
+            Exit;
+
+          Ticks := GetTickCount64;
           Res := SSL_connect(SSL);
           if Res = 1 then
             Break
@@ -458,9 +464,7 @@ begin
             if (ErrRes <> SSL_ERROR_WANT_READ) and (ErrRes <> SSL_ERROR_WANT_WRITE) and (ErrRes <> SSL_ERROR_WANT_CONNECT) then
               raise EExceptionParams.CreateFmt('TLS handshake was not successful, error %s', [SSLErrorToText(ErrRes)]);
           end;
-          if Terminated then
-            Exit;
-          if StartTime < GetTickCount - 10000 then
+          if (Ticks > TLSTimeout) and (StartTime < Ticks - TLSTimeout) then
             raise Exception.Create('TLS handshake timed out');
           Sleep(10);
         end;
@@ -506,15 +510,15 @@ begin
 
       DoCommunicationEstablished;
 
-      FLastTimeReceived := GetTickCount;
-      FLastTimeSent := GetTickCount;
+      FLastTimeReceived := GetTickCount64;
+      FLastTimeSent := GetTickCount64;
 
       while True do
       begin
         DoStuff;
 
         timeout.tv_sec := 0;
-        timeout.tv_usec := 200000; // 200ms
+        timeout.tv_usec := 100000; // 100ms
 
         FD_ZERO(readfds);
         FD_ZERO(writefds);
@@ -537,9 +541,11 @@ begin
         if (Res > 0) and (FD_ISSET(FSocketHandle, exceptfds)) then
           raise Exception.Create('Function select() failed');
 
-        if FDataTimeout > 0 then
-          if (FLastTimeReceived < GetTickCount - FDataTimeout) and
-             (FLastTimeSent < GetTickCount - FDataTimeout) then
+        Ticks := GetTickCount64;
+
+        if (FDataTimeout > 0) and (Ticks > FDataTimeout) then
+          if (FLastTimeReceived < Ticks - FDataTimeout) and
+             (FLastTimeSent < Ticks - FDataTimeout) then
           begin
             raise EExceptionParams.CreateFmt('No data received/sent for more than %d seconds', [FDataTimeout div 1000]);
           end;
@@ -570,7 +576,7 @@ begin
           begin
             // Alles cremig
             FReceived := FReceived + RecvRes;
-            FLastTimeReceived := GetTickCount;
+            FLastTimeReceived := Ticks;
             FRecvStream.Seek(0, soFromEnd);
             FRecvStream.WriteBuffer(Buf, RecvRes);
             FRecvStream.Process(RecvRes);
@@ -598,7 +604,7 @@ begin
                 raise EExceptionParams.CreateFmt('Function send() returned error %d', [WSAGetLastError]);
             end else if SendRes > 0 then
             begin
-              FLastTimeSent := GetTickCount;
+              FLastTimeSent := Ticks;
               FSendStream.RemoveRange(0, SendRes);
             end;
 
