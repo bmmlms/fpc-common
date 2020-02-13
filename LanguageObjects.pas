@@ -190,6 +190,7 @@ type
     destructor Destroy; override;
     procedure UpdateFrom(Entry: TEntry);
     procedure SetOccurences(FromEntry: TEntry);
+    function IsTranslated(Language: TLanguage): Boolean;
     property Occurences: TOccurenceList read FOccurences;
     property Hash: Cardinal read FHash;
     property Name: string read FName write FName;
@@ -368,6 +369,22 @@ begin
       Result := False;
       Break;
     end;
+end;
+
+function TEntry.IsTranslated(Language: TLanguage): Boolean;
+var
+  i: Integer;
+begin
+  if FProject = nil then
+  begin
+    Result := False;
+    Exit;
+  end;
+  Result := True;
+
+  for i := 0 to Translations.Count - 1 do
+    if (Translations[i].Language = Language) and (Translations[i].Translation = Name) then
+      Exit(False);
 end;
 
 procedure TEntry.SetOccurences(FromEntry: TEntry);
