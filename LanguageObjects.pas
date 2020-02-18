@@ -383,7 +383,7 @@ begin
   Result := True;
 
   for i := 0 to Translations.Count - 1 do
-    if (Translations[i].Language = Language) and (Translations[i].Translation = Name) then
+    if (Translations[i].Language = Language) and (Translations[i].Translation = '') then
       Exit(False);
 end;
 
