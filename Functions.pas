@@ -67,7 +67,7 @@ function DownCase(ch: Char): Char;
 function MakeSize(Size: UInt64): string;
 function DiskSpaceOkay(Path: string; MinSpaceGB: Int64): Boolean;
 procedure FindFiles(PathPattern: string; Files: TStringList; SubDirs: Boolean = False; TerminateFlag: PBoolean = nil);
-function RunProcess(Filename, WorkingDir: string; Timeout: Cardinal; var Output: AnsiString;
+function RunProcess(Filename, WorkingDir: string; Timeout: UInt64; var Output: AnsiString;
   var ExitCode: DWORD; TerminateFlag: PBoolean; KillOnTimeout: Boolean; ReadCallback: TReadCallback = nil): TRunProcessResults; overload;
 function RunProcess(Filename: string; var Handle: Cardinal; Hide: Boolean = False): Boolean; overload;
 function RunProcess(Filename: string; Hide: Boolean = False): Boolean; overload;
@@ -442,7 +442,7 @@ begin
   end;
 end;
 
-function RunProcess(Filename, WorkingDir: string; Timeout: Cardinal; var Output: AnsiString;
+function RunProcess(Filename, WorkingDir: string; Timeout: UInt64; var Output: AnsiString;
   var ExitCode: DWORD; TerminateFlag: PBoolean; KillOnTimeout: Boolean; ReadCallback: TReadCallback = nil): TRunProcessResults; overload;
 var
   OK: Boolean;
@@ -457,7 +457,7 @@ var
   ReadCount: DWORD;
   Avail: DWORD;
   Tmp: AnsiString;
-  Started: Cardinal;
+  Started: UInt64;
 begin
   Result := rpFail;
   Output := '';
@@ -501,7 +501,7 @@ begin
 
       Result := rpWin;
 
-      Started := GetTickCount;
+      Started := GetTickCount64;
       while WaitForSingleObject(Handle, 100) = WAIT_TIMEOUT do
       begin
         try
@@ -525,11 +525,11 @@ begin
 
           Output := Output + Tmp;
 
-          Started := GetTickCount;
+          Started := GetTickCount64;
         end;
 
         if Timeout < High(Cardinal) then
-          if Started + Timeout < GetTickCount then
+          if Started + Timeout < GetTickCount64 then
           begin
             if KillOnTimeout then
             begin

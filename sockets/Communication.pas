@@ -43,7 +43,7 @@ type
     FPacketSender: TPacketManager;
     FPacketReader: TPacketManager;
 
-    FLastSyncedTransfer: Cardinal;
+    FLastSyncedTransfer: UInt64;
 
     FProc: TCommandEvent;
 
@@ -227,7 +227,7 @@ begin
     FSendLock.Leave;
   end;
 
-  if FLastSyncedTransfer < GetTickCount - 500 then
+  if FLastSyncedTransfer < GetTickCount64 - 500 then
   begin
     if FPacketSender.SendCache.Count > 0 then
       for i := 0 to FPacketSender.SendCache.Count - 1 do
@@ -243,7 +243,7 @@ begin
           FPacketReader.RecvCache[i].CommandHeader, FPacketReader.RecvCache[i].Transferred);
       end;
 
-    FLastSyncedTransfer := GetTickCount;
+    FLastSyncedTransfer := GetTickCount64;
   end;
 end;
 

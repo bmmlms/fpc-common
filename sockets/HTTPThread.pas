@@ -31,7 +31,7 @@ type
   private
     FSpeed: Integer;
     FSpeedReceived: Integer;
-    FLastReceivedUpdate: Cardinal;
+    FLastReceivedUpdate: UInt64;
     procedure StreamHeaderRemoved(Sender: TObject); virtual;
   protected
     FTypedStream: THTTPStream;
@@ -215,10 +215,10 @@ begin
   inherited;
 
   if (not Terminated) and (FTypedStream.HeaderRemoved) and
-     (FLastReceivedUpdate + 1000 < GetTickCount) then
+     (FLastReceivedUpdate + 1000 < GetTickCount64) then
   begin
     FSpeed := Received - FSpeedReceived;
-    FLastReceivedUpdate := GetTickCount;
+    FLastReceivedUpdate := GetTickCount64;
     DoSpeedChange;
     FSpeedReceived := Received;
   end;

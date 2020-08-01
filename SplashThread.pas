@@ -56,7 +56,7 @@ var
   StartPosLeft, StartPosTop, StartPosWidth, StartPosHeight: Integer;
   Monitors: array of TRect;
   Killed: Boolean;
-  AnimationStart: Cardinal;
+  AnimationStart: UInt64;
   EnumFoundWindow: Cardinal;
   FadeOutWaitStart: Cardinal;
   FocusWasSet: Boolean;
@@ -121,7 +121,7 @@ end;
 function WindowProc(hwn, msg, wpr, lpr: Longint): Longint; stdcall;
 var
   Val: Cardinal;
-  TC: Cardinal;
+  TC: UInt64;
 begin
   if Killed then
   begin
@@ -135,9 +135,9 @@ begin
         if not FocusWasSet then
           FocusFoundWindow;
 
-        TC := GetTickCount;
+        TC := GetTickCount64;
         if AnimationStart = 0 then
-          AnimationStart := GetTickCount;
+          AnimationStart := GetTickCount64;
 
         case State of
           stFadeIn:
