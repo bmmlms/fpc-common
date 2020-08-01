@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2019 Alexander Nottelmann
+    Copyright (c) 2010-2020 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -134,7 +134,7 @@ begin
   case AppGlobals.License of
     alGPL:
       txtAbout.Text := Format(_('%s'#13#10 +
-                                'Copyright © 2010-2019 Alexander Nottelmann et al.'#13#10#13#10 +
+                                'Copyright © 2010-2020 Alexander Nottelmann et al.'#13#10#13#10 +
                                 'This program is free software: you can redistribute it and/or modify ' +
                                 'it under the terms of the GNU General Public License as published by ' +
                                 'the Free Software Foundation, either version 3 of the License, or ' +
@@ -148,7 +148,7 @@ begin
     alProprietary:
       begin
         txtAbout.Text := Format(_('%s'#13#10 +
-                                  'Copyright © 2010-2019 Alexander Nottelmann'), [AppGlobals.AppName]);
+                                  'Copyright © 2010-2020 Alexander Nottelmann'), [AppGlobals.AppName]);
         lblGPL.Visible := False;
         txtAbout.Height := txtAbout.Height + lblGPL.Height + (txtAbout.Top - lblGPL.Top - lblGPL.Height);
         txtAbout.Top := lblGPL.Top;
