@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2020 Alexander Nottelmann
+    Copyright (c) 2010-2021 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -85,6 +85,9 @@ var
   EventArray: array [0..1] of THandle;
   FileEvent: TEvent;
 begin
+  // TODO: This thread consumes max cpu, needs to be fixed
+  Exit;
+
   try
     WatchHandle := CreateFile(PChar(FPath), FILE_LIST_DIRECTORY or GENERIC_READ,
       FILE_SHARE_READ or FILE_SHARE_WRITE or FILE_SHARE_DELETE, nil,
@@ -94,12 +97,12 @@ begin
       Exit;
 
     FileEvent := TEvent.Create(nil, False, False, '');
-    Overlap.hEvent := FileEvent.Handle;
+    Overlap.hEvent := THANDLE(FileEvent.Handle);
 
     FTermEvent := TEvent.Create(nil, False, False, '');
 
-    EventArray[0] := FileEvent.Handle;
-    EventArray[1] := FTermEvent.Handle;
+    EventArray[0] := THANDLE(FileEvent.Handle);
+    EventArray[1] := THANDLE(FTermEvent.Handle);
 
     BufLen := 65535;
     Buffer := AllocMem(BufLen);
@@ -128,6 +131,7 @@ begin
 
                   // Die letzte Bedingung ist für MusicBee. Da wird die Datei umbenannt und dann neu angelegt,
                   // das ignorieren wir dann.
+                  {
                   if (((FAction = FILE_ACTION_REMOVED) and (not FileExists(FPath + WideCharLenToString(@Info.FileName, NameLen div 2)))) or
                        (FAction <> FILE_ACTION_REMOVED) and
                       not ((FAction = FILE_ACTION_ADDED) and (FPath + WideCharLenToString(@Info.FileName, NameLen div 2) = FFilename))) then
@@ -140,6 +144,7 @@ begin
                     if Assigned(FOnEvent) then
                       Synchronize(TriggerEvent);
                   end;
+                  }
 
                   Info := Pointer(Int64(Info) + NextOffset);
 

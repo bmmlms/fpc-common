@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2020 Alexander Nottelmann
+    Copyright (c) 2010-2021 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -23,7 +23,7 @@ unit ExtendedStream;
 interface
 
 uses
-  SysUtils, Windows, Classes;
+  SysUtils, Windows, Classes, lazutf16;
 
 type
   TExtendedStream = class(TMemoryStream)
@@ -43,6 +43,7 @@ type
     procedure Read(var Value: Cardinal); overload;
     procedure Read(var Value: Boolean); overload;
     procedure Read(var Value: UnicodeString); overload;
+    procedure Read(var Value: AnsiString); overload;
     procedure Read(var Value: TDateTime); overload;
     procedure Read(var Value: UInt64); overload;
     procedure Read(var Value: Byte); overload;
@@ -88,23 +89,18 @@ end;
 procedure TExtendedStream.Write(Value: string);
 var
   Len: Integer;
-  {$IF CompilerVersion < 18.5}
+  Len2: SizeInt;
   P: Pointer;
-  {$IFEND}
 begin
   Len := Length(Value) * 2;
   WriteBuffer(Len, SizeOf(Len));
-  {$IF CompilerVersion >= 18.5}
-  WriteBuffer(Value[1], Len);
-  {$ELSE}
   if Len > 0 then
   begin
-    P := GetMemory(Len);
-    StringToWideChar(s, P, Len);
-    Stream.WriteBuffer(P^, Len);
-    FreeMemory(P);
+    P := GetMem(Len + 1);
+    StringToWideChar(Value, P, Len + 1);
+    WriteBuffer(P^, Len);
+    FreeMem(P);
   end;
-  {$IFEND}
 end;
 
 procedure TExtendedStream.Write(Value: Cardinal);
@@ -143,6 +139,25 @@ begin
 end;
 
 procedure TExtendedStream.Read(var Value: UnicodeString);
+var
+  Len: Integer;
+  P: PWideChar;
+begin
+  Value := '';
+  Read(Len);
+  if Len > Size then
+    raise Exception.Create('Len > Size');
+  if Len > 0 then
+  begin
+    P := GetMemory(Len + 2);
+    ZeroMemory(P, Len + 2);
+    ReadBuffer(P^, Len);
+    Value := WideCharToString(P);
+    FreeMemory(P);
+  end;
+end;
+
+procedure TExtendedStream.Read(var Value: AnsiString);
 var
   Len: Integer;
   P: PWideChar;

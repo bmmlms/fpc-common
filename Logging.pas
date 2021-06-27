@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2020 Alexander Nottelmann
+    Copyright (c) 2010-2021 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -37,8 +37,8 @@ var
 
 implementation
 
-var
-  CS: _RTL_CRITICAL_SECTION;
+//var
+//  CS: _RTL_CRITICAL_SECTION;
 
 { TLogger }
 
@@ -57,7 +57,7 @@ begin
   if LoggingFile = '' then
     Exit;
 
-  EnterCriticalSection(CS);
+//  EnterCriticalSection(CS);
   try
     H := CreateFile(PChar(LoggingFile), FILE_APPEND_DATA, FILE_SHARE_READ or FILE_SHARE_WRITE, nil, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     if H = INVALID_HANDLE_VALUE then
@@ -73,12 +73,12 @@ begin
       FileClose(H);
     end;
   finally
-    LeaveCriticalSection(CS);
+//    LeaveCriticalSection(CS);
   end;
 end;
 
 initialization
   LoggingFile := '';
-  InitializeCriticalSection(CS);
+//  InitializeCriticalSection(CS);
 
 end.

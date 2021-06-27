@@ -1,0 +1,217 @@
+object frmWizardBase: TfrmWizardBase
+  Left = 0
+  Height = 300
+  Top = 0
+  Width = 430
+  BorderIcons = [biSystemMenu, biMinimize]
+  Caption = 'Setup wizard'
+  ClientHeight = 300
+  ClientWidth = 430
+  Color = clBtnFace
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  OnClose = FormClose
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnKeyDown = FormKeyDown
+  OnShow = FormShow
+  LCLVersion = '2.0.12.0'
+  object pnlLanguage: TPanel
+    Left = 4
+    Height = 213
+    Top = 96
+    Width = 393
+    Align = alCustom
+    BevelOuter = bvNone
+    ClientHeight = 213
+    ClientWidth = 393
+    TabOrder = 0
+    object lblLanguageList: TLabel
+      Left = 8
+      Height = 13
+      Top = 4
+      Width = 51
+      Caption = 'Language:'
+      ParentColor = False
+    end
+    object lstLanguages: TComboBoxEx
+      Left = 8
+      Height = 22
+      Top = 20
+      Width = 165
+      ItemHeight = 0
+      ItemsEx = <>
+      OnSelect = lstLanguagesSelect
+      Style = csExDropDownList
+      TabOrder = 0
+    end
+  end
+  object pnlNav: TPanel
+    Left = 0
+    Height = 40
+    Top = 260
+    Width = 430
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 40
+    ClientWidth = 430
+    TabOrder = 1
+    object Bevel2: TBevel
+      Left = 4
+      Height = 5
+      Top = 4
+      Width = 422
+      Align = alTop
+      Shape = bsTopLine
+    end
+    object btnNext: TBitBtn
+      Left = 329
+      Height = 27
+      Top = 9
+      Width = 97
+      Align = alRight
+      Caption = '&Next'
+      Default = True
+      Layout = blGlyphLeft
+      OnClick = btnNextClick
+      TabOrder = 1
+    end
+    object btnBack: TBitBtn
+      Left = 4
+      Height = 27
+      Top = 9
+      Width = 97
+      Align = alLeft
+      Caption = '&Cancel'
+      OnClick = btnBackClick
+      TabOrder = 0
+    end
+  end
+  object pnlStorage: TPanel
+    Left = 408
+    Height = 241
+    Top = 96
+    Width = 393
+    BevelOuter = bvNone
+    ClientHeight = 241
+    ClientWidth = 393
+    TabOrder = 2
+    object lblAppData: TLabel
+      Left = 24
+      Height = 53
+      Top = 20
+      Width = 361
+      AutoSize = False
+      Caption = '-'
+      ParentColor = False
+      WordWrap = True
+      OnClick = lblAppDataClick
+    end
+    object lblPortable: TLabel
+      Left = 24
+      Height = 53
+      Top = 100
+      Width = 361
+      AutoSize = False
+      Caption = '-'
+      ParentColor = False
+      WordWrap = True
+      OnClick = lblPortableClick
+    end
+    object optAppData: TRadioButton
+      Left = 8
+      Height = 21
+      Top = 0
+      Width = 353
+      Caption = 'Save data to registry/application data folder'
+      TabOrder = 0
+    end
+    object optPortable: TRadioButton
+      Left = 8
+      Height = 21
+      Top = 80
+      Width = 353
+      Caption = 'Save data to application path'
+      TabOrder = 1
+    end
+  end
+  object pnlUpdates: TPanel
+    Left = 4
+    Height = 213
+    Top = 316
+    Width = 393
+    BevelOuter = bvNone
+    ClientHeight = 213
+    ClientWidth = 393
+    TabOrder = 3
+    object chkAutoUpdate: TCheckBox
+      Left = 8
+      Height = 21
+      Top = 0
+      Width = 341
+      Caption = 'Enable automatic search for updates'
+      TabOrder = 0
+    end
+  end
+  object pnlHeader: TPanel
+    Left = 0
+    Height = 33
+    Top = 0
+    Width = 430
+    Align = alTop
+    BevelOuter = bvNone
+    ClientHeight = 33
+    ClientWidth = 430
+    TabOrder = 4
+    object Shape1: TShape
+      Left = 4
+      Height = 29
+      Top = 2
+      Width = 422
+      Align = alClient
+      Brush.Color = clActiveCaption
+      Pen.Color = clActiveBorder
+    end
+    object lblTop: TLabel
+      Left = 7
+      Height = 23
+      Top = 5
+      Width = 416
+      Align = alClient
+      AutoSize = False
+      Caption = 'Welcome'
+      Color = clActiveCaption
+      Font.Color = clWhite
+      Font.Height = -16
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      Layout = tlCenter
+      ParentColor = False
+      ParentFont = False
+      Transparent = False
+    end
+  end
+  object pnlDesc: TPanel
+    Left = 0
+    Height = 48
+    Top = 33
+    Width = 430
+    Align = alTop
+    BevelOuter = bvNone
+    ClientHeight = 48
+    ClientWidth = 430
+    TabOrder = 5
+    object lblDesc: TLabel
+      Left = 8
+      Height = 45
+      Top = 4
+      Width = 413
+      Anchors = [akTop, akLeft, akRight, akBottom]
+      AutoSize = False
+      ParentColor = False
+      WordWrap = True
+    end
+  end
+end

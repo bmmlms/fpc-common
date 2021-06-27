@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2020 Alexander Nottelmann
+    Copyright (c) 2010-2021 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -24,7 +24,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Buttons, ExtCtrls, AppData, pngimage, LanguageObjects,
+  Dialogs, StdCtrls, Buttons, ExtCtrls, AppData, LanguageObjects,
   ShellAPI, MControls;
 
 type
@@ -45,13 +45,13 @@ type
     procedure FormResize(Sender: TObject);
   private
   protected
-    procedure CreateParams(var Params: TCreateParams); override;
+    //procedure CreateParams(var Params: TCreateParams); override;
   public
   end;
 
 implementation
 
-{$R *.dfm}
+{$R *.lfm}
 
 procedure TfrmUpdatedInfo.btnCloseClick(Sender: TObject);
 begin
@@ -65,7 +65,7 @@ begin
   AppGlobals.SuppressUpdatedInfo := chkNotShowAgain.Checked;
   Close;
 end;
-
+              {
 procedure TfrmUpdatedInfo.CreateParams(var Params: TCreateParams);
 begin
   inherited;
@@ -75,7 +75,7 @@ begin
   Params.ExStyle := Params.ExStyle and WS_EX_APPWINDOW;
   Params.WndParent := 0;
 end;
-
+          }
 procedure TfrmUpdatedInfo.FormCreate(Sender: TObject);
 begin
   Language.Translate(Self);

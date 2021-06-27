@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2020 Alexander Nottelmann
+    Copyright (c) 2010-2021 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -91,7 +91,7 @@ type
 
   TPacketManager = class
   private
-    FLock: RTL_CRITICAL_SECTION;
+    FLock: TCRITICALSECTION;
 
     FLastPacketStreamID: Cardinal;
     FSendCache: TCommandStreamList;
@@ -258,7 +258,8 @@ begin
     CS := TCommandStream.Create(PacketStreamID, CommandHeader);
 
     CommandHeader.Write(CS.FCommandStream);
-    CS.FCommandStream.Write(B[0], Length(B));
+    if Length(B) > 0 then
+      CS.FCommandStream.Write(B[0], Length(B));
     CS.FCommand := Command;
 
     FSendCache.Add(CS);

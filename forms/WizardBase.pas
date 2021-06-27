@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2020 Alexander Nottelmann
+    Copyright (c) 2010-2021 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -25,7 +25,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Buttons, ExtCtrls, LanguageObjects, AppData, MControls,
-  Functions, ComCtrls, AppDataBase, SettingsStorage, ListActns, PngBitBtn;
+  Functions, ComCtrls, AppDataBase, SettingsStorage, ComboEx;
 
 type
   TStep = class
@@ -67,8 +67,8 @@ type
     lblPortable: TLabel;
     pnlDesc: TPanel;
     lblDesc: TLabel;
-    btnNext: TPngBitBtn;
-    btnBack: TPngBitBtn;
+    btnNext: TBitBtn;
+    btnBack: TBitBtn;
     procedure FormDestroy(Sender: TObject);
     procedure btnBackClick(Sender: TObject);
     procedure btnNextClick(Sender: TObject);
@@ -95,7 +95,7 @@ type
     procedure Finish; virtual;
     function IsValid(Step: TStep): Boolean; virtual;
     procedure InitStep(Step: TStep); virtual;
-    procedure CreateParams(var Params: TCreateParams); override;
+//    procedure CreateParams(var Params: TCreateParams); override;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -104,7 +104,7 @@ type
 
 implementation
 
-{$R *.dfm}
+{$R *.lfm}
 
 procedure TfrmWizardBase.btnBackClick(Sender: TObject);
 begin
@@ -130,6 +130,7 @@ begin
   Language.Translate(Self);
 end;
 
+{
 procedure TfrmWizardBase.CreateParams(var Params: TCreateParams);
 begin
   inherited;
@@ -139,6 +140,7 @@ begin
   Params.ExStyle := Params.ExStyle and WS_EX_APPWINDOW;
   Params.WndParent := 0;
 end;
+}
 
 procedure TfrmWizardBase.Finish;
 begin

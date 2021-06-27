@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2020 Alexander Nottelmann
+    Copyright (c) 2010-2021 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -349,7 +349,7 @@ begin
         Continue;
 
       DT := dtString;
-      SV := Reg.GetDataAsString(Values[n], False);
+//      SV := Reg.GetDataAsString(Values[n], False);
       if SV <> '' then
       begin
         try
@@ -1053,8 +1053,8 @@ var
   Name, Section: string;
 begin
   Stream.Read(T);
-  Stream.Read(Name);
-  Stream.Read(Section);
+//  Stream.Read(Name);
+//  Stream.Read(Section);
 
   case T of
     0:
@@ -1101,7 +1101,7 @@ end;
 
 procedure TDataString.Load(Stream: TExtendedStream);
 begin
-  Stream.Read(FValue);
+//  Stream.Read(FValue);
 end;
 
 procedure TDataString.Save(Stream: TExtendedStream);
@@ -1175,7 +1175,7 @@ procedure TSettingsList.Save(Stream: TExtendedStream);
 var
   i: Integer;
 begin
-  Stream.Write(Count);
+//  Stream.Write(Count);
   for i := 0 to Count - 1 do
     Items[i].Save(Stream);
 end;

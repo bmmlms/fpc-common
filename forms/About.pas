@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2020 Alexander Nottelmann
+    Copyright (c) 2010-2021 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -25,8 +25,8 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, LanguageObjects, StdCtrls, AppData, ExtCtrls, ShellAPI, ComCtrls,
-  Buttons, AppDataBase, jpeg, Functions, GUIFunctions, pngimage, Math,
-  PngFunctions, System.UITypes;
+  Buttons, AppDataBase, Functions, GUIFunctions, Math,
+  UITypes;
 
 type
   TScrollText = class(TGraphicControl)
@@ -50,11 +50,13 @@ type
     procedure Start;
   end;
 
+  { TfrmAbout }
+
   TfrmAbout = class(TForm)
     pagAbout: TPageControl;
+    pbLogo: TPaintBox;
     tabAbout: TTabSheet;
     lblAbout: TLabel;
-    imgLogo: TImage;
     tabLicense: TTabSheet;
     txtAbout: TMemo;
     pnlNav: TPanel;
@@ -76,19 +78,20 @@ type
     procedure pagAboutChange(Sender: TObject);
     procedure btnDonateEnClick(Sender: TObject);
     procedure FormResize(Sender: TObject);
+    procedure pbLogoPaint(Sender: TObject);
     procedure pnlNavClick(Sender: TObject);
   private
     FScrollText: TScrollText;
     FIsMainWindow: Boolean;
   protected
-    procedure CreateParams(var Params: TCreateParams); override;
+   // procedure CreateParams(var Params: TCreateParams); override;
   public
     constructor Create(AOwner: TComponent; Caption: string; IsMainWindow: Boolean); reintroduce;
   end;
 
 implementation
 
-{$R *.dfm}
+{$R *.lfm}
 
 procedure TfrmAbout.btnCloseClick(Sender: TObject);
 begin
@@ -109,7 +112,9 @@ constructor TfrmAbout.Create(AOwner: TComponent; Caption: string; IsMainWindow: 
 var
   TransparentRight, TransparentTop: Integer;
   Icon: TIcon;
-  PNG, PNGCropped: TPngImage;
+  PNG, PNGCropped: TImage;
+  ResStream: TResourceStream;
+  P: TPortableNetworkGraphic;
 begin
   FIsMainWindow := IsMainWindow;
 
@@ -134,7 +139,7 @@ begin
   case AppGlobals.License of
     alGPL:
       txtAbout.Text := Format(_('%s'#13#10 +
-                                'Copyright © 2010-2020 Alexander Nottelmann et al.'#13#10#13#10 +
+                                'Copyright © 2010-2021 Alexander Nottelmann et al.'#13#10#13#10 +
                                 'This program is free software: you can redistribute it and/or modify ' +
                                 'it under the terms of the GNU General Public License as published by ' +
                                 'the Free Software Foundation, either version 3 of the License, or ' +
@@ -148,7 +153,7 @@ begin
     alProprietary:
       begin
         txtAbout.Text := Format(_('%s'#13#10 +
-                                  'Copyright © 2010-2020 Alexander Nottelmann'), [AppGlobals.AppName]);
+                                  'Copyright © 2010-2021 Alexander Nottelmann'), [AppGlobals.AppName]);
         lblGPL.Visible := False;
         txtAbout.Height := txtAbout.Height + lblGPL.Height + (txtAbout.Top - lblGPL.Top - lblGPL.Height);
         txtAbout.Top := lblGPL.Top;
@@ -168,31 +173,6 @@ begin
     lblProjectLink.Visible := False;
   end;
   }
-
-  Icon := TIcon.Create;
-  try
-    if ExistsIconSize('A', 96) then
-      Icon.Handle := LoadImage(HInstance, 'A', IMAGE_ICON, 96, 96, LR_LOADTRANSPARENT)
-    else
-      Icon.LoadFromResourceName(HInstance, 'A');
-
-    ConvertToPNG(Icon, PNG);
-    try
-      GetMaxTransparent(PNG, TransparentTop, TransparentRight);
-      PNGCropped := CropPNG(PNG, 0, TransparentTop, Icon.Width - (Icon.Width - TransparentRight), Icon.Height - TransparentTop);
-      try
-        imgLogo.Picture.Assign(PNGCropped);
-      finally
-        PNGCropped.Free;
-      end;
-    finally
-      PNG.Free;
-    end;
-
-    imgLogo.Left := tabAbout.ClientWidth - imgLogo.Width - lblVersion.Left;
-  finally
-    Icon.Free;
-  end;
 
   if AppGlobals.ProjectDonateLink <> '' then
   begin
@@ -214,6 +194,7 @@ begin
   pagAbout.ActivePageIndex := 0;
 end;
 
+{
 procedure TfrmAbout.CreateParams(var Params: TCreateParams);
 begin
   inherited;
@@ -226,6 +207,7 @@ begin
     Params.WndParent := 0;
   end;
 end;
+}
 
 procedure TfrmAbout.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
@@ -241,6 +223,24 @@ procedure TfrmAbout.FormResize(Sender: TObject);
 begin
   btnDonateDe.Left := tabAbout.ClientWidth div 2 - btnDonateDe.Width div 2;
   btnDonateEn.Left := tabAbout.ClientWidth div 2 - btnDonateEn.Width div 2;
+end;
+
+procedure TfrmAbout.pbLogoPaint(Sender: TObject);
+var
+  TransparentRight, TransparentTop: Integer;
+  Icon: TIcon;
+begin
+  Icon := TIcon.Create;
+  try
+    Icon.SetSize(96, 96);
+    Icon.LoadFromResourceName(HINSTANCE, 'MAINICON');
+
+    GetMaxTransparent(Icon, TransparentTop, TransparentRight);
+
+    DrawIconEx(pbLogo.Canvas.Handle, pbLogo.ClientWidth - TransparentRight, -TransparentTop, Icon.Handle, 96, 96, 0, 0, DI_NORMAL);
+  finally
+    Icon.Free;
+  end;
 end;
 
 procedure TfrmAbout.lblHomepageClick(Sender: TObject);
@@ -365,6 +365,9 @@ end;
 
 procedure TScrollText.BuildBitmap;
   procedure DistortArea(Percent, YFrom, YTo: Integer);
+  type
+    TRGBLine = array[word] of TRGBTriple;
+     pRGBLine = ^TRGBLine;
   var
     Y, X, Rnd: Integer;
     Pixels: PRGBLine;
@@ -374,12 +377,12 @@ procedure TScrollText.BuildBitmap;
       Pixels := FBmp.ScanLine[Y];
       for X := 0 to FBmp.Width - 1 do
       begin
-        Rnd := Random(100);
-        if Percent > Rnd then
+        //Rnd := Random(100);
+        //if Percent > Rnd then
         begin
-          Pixels^[X].rgbtBlue := 0;
-          Pixels^[X].rgbtGreen := 0;
-          Pixels^[X].rgbtRed := 0;
+          Pixels^[X].rgbtBlue := 100;
+          Pixels^[X].rgbtGreen := 100;
+          Pixels^[X].rgbtRed := 200;
         end;
       end;
     end;

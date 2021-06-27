@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2020 Alexander Nottelmann
+    Copyright (c) 2010-2021 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -63,7 +63,7 @@ type
 
 implementation
 
-{$R *.dfm}
+{$R *.lfm}
 
 procedure TfrmUpdate.cmdCancelClick(Sender: TObject);
 begin
@@ -85,7 +85,7 @@ begin
           lblState.Caption := _('Downloading update...');
           ProgressBar1.Tag := -1;
           ProgressBar1.Position := 0;
-          ProgressBar1.State := pbsNormal;
+        //  ProgressBar1.State := pbsNormal;
           Updater.Start(uaUpdate, True);
         end else
         begin
@@ -187,7 +187,7 @@ end;
 procedure TfrmUpdate.UpdaterError(Sender: TObject);
 begin
   lblState.Caption := _('Error');
-  ProgressBar1.State := pbsError;
+  //ProgressBar1.State := pbsError;
   case Updater.Action of
     uaVersion:
     begin

@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2020 Alexander Nottelmann
+    Copyright (c) 2010-2021 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -88,6 +88,7 @@ begin
   end;
 
   // Gibt manchmal bei ALT-GR eine Exception. Die möchten wir nicht.
+  {
   Patch.Call := $E8;
   Patch.Proc := Pointer(Integer(Pointer(@PatchedIsAltGRPressed)) - Integer(Pointer(@IsAltGRPressed)) - 5);
   Patch.Ret := $C3;
@@ -97,7 +98,7 @@ begin
     finally
       VirtualProtect(@IsAltGRPressed, SizeOf(TPatch), OldProtect, OldProtect);
     end;
-
+                 }
   if TSettingsInstalled.Active(AppGlobals.AppName) and
      TSettingsPortable.Active(AppGlobals.AppName) then
   begin

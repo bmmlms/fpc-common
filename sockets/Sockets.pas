@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2020 Alexander Nottelmann
+    Copyright (c) 2010-2021 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -23,7 +23,7 @@ unit Sockets;
 interface
 
 uses
-  Windows, SysUtils, Classes, SyncObjs, Winsock, ExtendedStream,
+  Windows, SysUtils, Classes, SyncObjs, Winsock2, ExtendedStream,
   Generics.Collections, Logging, IdSSLOpenSSLHeadersCustom, DynOpenSSL;
 
 type
@@ -359,9 +359,9 @@ var
   SSLWildcardValid: Boolean;
   timeout: TimeVal;
   Buf: array[0..BufSize - 1] of Byte;
-  i, NonBlock: Integer;
+  i: Integer;
   Ticks, StartTime: UInt64;
-  HostAddress: u_long;
+  HostAddress, NonBlock: u_long;
 
   Method: PSSL_METHOD;
   Ctx: PSSL_CTX;
@@ -387,7 +387,7 @@ begin
           raise Exception.Create('Function socket() failed');
 
         NonBlock := 1;
-        if ioctlsocket(FSocketHandle, FIONBIO, NonBlock) = SOCKET_ERROR then
+        if ioctlsocket(FSocketHandle, LongInt(FIONBIO), NonBlock) = SOCKET_ERROR then
           raise Exception.Create('Function ioctlsocket() failed');
 
         Addr.sin_family := AF_INET;
@@ -543,12 +543,14 @@ begin
 
         Ticks := GetTickCount64;
 
+        {
         if (FDataTimeout > 0) and (Ticks > FDataTimeout) then
           if (FLastTimeReceived < Ticks - FDataTimeout) and
              (FLastTimeSent < Ticks - FDataTimeout) then
           begin
             raise EExceptionParams.CreateFmt('No data received/sent for more than %d seconds', [FDataTimeout div 1000]);
           end;
+        }
 
         if FD_ISSET(FSocketHandle, readfds) then
         begin
@@ -778,7 +780,7 @@ var
   FAcceptHandle: Integer;
   FSocketHandle: Integer;
   Addr: sockaddr_in;
-  NonBlock: Integer;
+  NonBlock: u_long;
   timeout: TimeVal;
   readfds, exceptfds: TFdSet;
   Res: Integer;
@@ -791,7 +793,7 @@ begin
   try
     try
       NonBlock := 1;
-      if ioctlsocket(FAcceptHandle, FIONBIO, NonBlock) = SOCKET_ERROR then
+      if ioctlsocket(FAcceptHandle, LongInt(FIONBIO), NonBlock) = SOCKET_ERROR then
         raise Exception.Create('Function ioctlsocket() failed');
 
       Addr.sin_family := AF_INET;

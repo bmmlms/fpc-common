@@ -1,0 +1,90 @@
+object frmProfileSettings: TfrmProfileSettings
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsSingle
+  Caption = 'Manage profiles'
+  ClientHeight = 290
+  ClientWidth = 400
+  Color = clBtnFace
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  OnClose = FormClose
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  object lblProfiles: TLabel
+    AutoSize = False
+    Caption = '-'
+    ParentColor = False
+    WordWrap = True
+  end
+  object pnlNav: TPanel
+    Align = alBottom
+    BevelOuter = bvNone
+    TabOrder = 6
+    object Bevel2: TBevel
+      Align = alTop
+      Shape = bsTopLine
+    end
+    object btnOk: TBitBtn
+      Align = alRight
+      Caption = '&OK'
+      Default = True
+      Layout = blGlyphLeft
+      OnClick = btnOkClick
+      TabOrder = 0
+    end
+  end
+  object pnlHeader: TPanel
+    Align = alTop
+    BevelOuter = bvNone
+    object Shape1: TShape
+      Align = alClient
+      Brush.Color = clActiveCaption
+      Pen.Color = clActiveBorder
+    end
+    object lblTop: TLabel
+      Align = alClient
+      AutoSize = False
+      Caption = 'Select profile'
+      Color = clActiveCaption
+      Font.Color = clWhite
+      Font.Height = -16
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      Layout = tlCenter
+      ParentColor = False
+      ParentFont = False
+      Transparent = False
+    end
+  end
+  object rbInstalled: TRadioButton
+    Caption = 'Use settings from registry/application data folder'
+    Checked = True
+    TabOrder = 0
+    TabStop = True
+  end
+  object rbPortable: TRadioButton
+    Caption = 'Use settings from application path (portable)'
+    TabOrder = 3
+  end
+  object btnDelete: TButton
+    Caption = 'Delete'
+    OnClick = btnDeleteClick
+    TabOrder = 1
+  end
+  object btnDelete2: TButton
+    Caption = 'Delete'
+    OnClick = btnDeleteClick
+    TabOrder = 4
+  end
+  object btnCopy: TButton
+    Caption = 'Copy'
+    OnClick = btnCopyClick
+    TabOrder = 2
+  end
+  object btnCopy2: TButton
+    Caption = 'Copy'
+    OnClick = btnCopyClick
+    TabOrder = 5
+  end
+end

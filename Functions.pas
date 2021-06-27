@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2020 Alexander Nottelmann
+    Copyright (c) 2010-2021 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -23,8 +23,8 @@ unit Functions;
 interface
 
 uses
-  Windows, ShLwApi, SysUtils, Classes, StrUtils, Graphics, PerlRegEx,
-  DateUtils, ZLib, IdURI;
+  Windows, ShLwApi, SysUtils, Classes, StrUtils, Graphics, RegExpr,
+  DateUtils, PasZLib, IdURI, FileUtil, ZStream;
 
 type
   TPatternReplace = record
@@ -66,9 +66,9 @@ function Like(AString, APattern: string): Boolean;
 function DownCase(ch: Char): Char;
 function MakeSize(Size: UInt64): string;
 function DiskSpaceOkay(Path: string; MinSpaceGB: Int64): Boolean;
-procedure FindFiles(PathPattern: string; Files: TStringList; SubDirs: Boolean = False; TerminateFlag: PBoolean = nil);
+procedure FindFiles(PathPattern: string; Files: TStringList; SubDirs: Boolean = False; TerminateFlag: PByteBool = nil);
 function RunProcess(Filename, WorkingDir: string; Timeout: UInt64; var Output: AnsiString;
-  var ExitCode: DWORD; TerminateFlag: PBoolean; KillOnTimeout: Boolean; ReadCallback: TReadCallback = nil): TRunProcessResults; overload;
+  var ExitCode: DWORD; TerminateFlag: PByteBool; KillOnTimeout: Boolean; ReadCallback: TReadCallback = nil): TRunProcessResults; overload;
 function RunProcess(Filename: string; var Handle: Cardinal; Hide: Boolean = False): Boolean; overload;
 function RunProcess(Filename: string; Hide: Boolean = False): Boolean; overload;
 function GetCPUCount: DWord;
@@ -86,9 +86,7 @@ function CmpUInt64(const A, B: UInt64; R: Boolean = False): Integer;
 function ParseVersion(const Version: string): TAppVersion; overload;
 function ParseVersion(const Major, Minor, Revision, Build: Cardinal): TAppVersion; overload;
 function IsVersionNewer(const Current, Found: TAppVersion): Boolean;
-//procedure GetBitmap(const Resname: string; const NumGlyphs: Integer; Bmp: TBitmap);
 function BuildPattern(const s: string; var Hash: Cardinal; var NumChars: Integer; AlwaysAlter: Boolean): string;
-function CryptStr(const s: string): string;
 function TryRelativePath(const s: string; IsFile: Boolean; OnlyIfRemovable: Boolean): string;
 function TryUnRelativePath(const s: string): string;
 function FixPathName(Path: string): string;
@@ -97,8 +95,6 @@ function ShortenString(Str: string; Len: Integer): string;
 procedure Explode(const Separator, S: string; Lst: TStringList);
 function RegExReplace(RegEx, ReplaceWith, Data: string): string;
 function ContainsRegEx(RegEx, Data: string): Boolean;
-function ExistsIconSize(const Name: string; const Size: Integer): Boolean;
-function LocalToUTC(DT: TDateTime): TDateTime;
 procedure CompressStream(InStream, OutStream: TStream; CompressionLevel: TCompressionLevel);
 procedure DecompressStream(InStream, OutStream: TStream);
 
@@ -385,8 +381,7 @@ begin
   Result := Res > MinSpaceGB * 1073741824;
 end;
 
-procedure FindFiles(PathPattern: string; Files: TStringList; SubDirs: Boolean = False;
-  TerminateFlag: PBoolean = nil);
+procedure FindFiles(PathPattern: string; Files: TStringList; SubDirs: Boolean = False; TerminateFlag: PByteBool = nil);
 var
   SR: TSearchRec;
   Dir, Pattern: string;
@@ -394,7 +389,7 @@ var
 begin
   Files.Clear;
 
-  Dir := IncludeTrailingBackslash(ExtractFilePath(PathPattern));
+  Dir := ExtractFilePath(PathPattern);
   Pattern := ExtractFileName(PathPattern);
   Dirs := TStringList.Create;
   try
@@ -404,13 +399,13 @@ begin
         Exit;
       end;
 
-      if FindFirst(Dir + Pattern, faAnyFile, SR) = 0 then
+      if FindFirst(ConcatPaths([Dir, Pattern]), faAnyFile, SR) = 0 then
       begin
         repeat
           if (SR.Name <> '.') and (SR.Name <> '..') and (not (SR.Attr and faDirectory = faDirectory)) then
           begin
             if SubDirs then
-              Files.Add(Dir + SR.Name)
+              Files.Add(ConcatPaths([Dir, SR.Name]))
             else
               Files.Add(SR.Name);
           end;
@@ -420,11 +415,11 @@ begin
 
       if SubDirs then
       begin
-        if FindFirst(Dir + '*', faDirectory, SR) = 0 then
+        if FindFirst(ConcatPaths([Dir, '*']), faDirectory, SR) = 0 then
         begin
           repeat
             if (SR.Name <> '.') and (SR.Name <> '..') and (SR.Attr and faDirectory = faDirectory) then
-              Dirs.Add(Dir + SR.Name + '\')
+              Dirs.Add(ConcatPaths([Dir, SR.Name]));
           until FindNext(SR) <> 0;
           FindClose(SR);
         end;
@@ -443,7 +438,7 @@ begin
 end;
 
 function RunProcess(Filename, WorkingDir: string; Timeout: UInt64; var Output: AnsiString;
-  var ExitCode: DWORD; TerminateFlag: PBoolean; KillOnTimeout: Boolean; ReadCallback: TReadCallback = nil): TRunProcessResults; overload;
+  var ExitCode: DWORD; TerminateFlag: PByteBool; KillOnTimeout: Boolean; ReadCallback: TReadCallback = nil): TRunProcessResults; overload;
 var
   OK: Boolean;
   Handle: Cardinal;
@@ -650,6 +645,9 @@ var
   s2: AnsiString;
   i: Integer;
 begin
+  // TODO: ...
+  Exit(True);
+
   Result := True;
   SetLength(s2, Length(s));
   Move(s[1], s2[1], Length(s));
@@ -922,58 +920,6 @@ begin
             (MajorEq and MinorEq and RevisionEq and (Found.Build > Current.Build));
 end;
 
-{
-procedure GetBitmap(const ResName: string; const NumGlyphs: Integer; Bmp: TBitmap);
-var
-  i, j, k: Integer;
-  Grayshade, Red, Green, Blue: Byte;
-  PixelColor: Longint;
-  Icon: TIcon;
-  B: TBitmap;
-begin
-  Icon := TIcon.Create;
-  try
-    Icon.LoadFromResourceName(HInstance, ResName);
-
-    Bmp.Width := 16 * NumGlyphs;
-    Bmp.Height := 16;
-
-    for i := 0 to NumGlyphs - 1 do
-    begin
-      B := TBitmap.Create;
-      B.Width := 32;
-      B.Height := 32;
-
-      B.Canvas.Draw(0, 0, Icon);
-      B.Canvas.StretchDraw(Rect(0, 0, 16, 16), B);
-      B.Width := 16;
-      B.Height := 16;
-
-      if i = 1 then
-        for j := 0 to B.Width - 1 do
-          for k := 0 to B.Height - 1 do
-          begin
-            PixelColor := ColorToRGB(B.Canvas.Pixels[j, k]);
-            Red := PixelColor;
-            Green := PixelColor shr 8;
-            Blue := PixelColor shr 16;
-
-            Grayshade := Round(0.3 * Red + 0.6 * Green + 0.1 * Blue);
-            B.Canvas.Pixels[j, k] := RGB(Grayshade, Grayshade, Grayshade);
-          end;
-
-      Bmp.Canvas.Draw(i * 16, 0, B);
-
-      FreeAndNil(B);
-    end;
-
-    Bmp.PixelFormat := pf24bit;
-  finally
-    Icon.Free;
-  end;
-end;
-}
-
 function TrimChars(const s: string; const c: Char): string;
 var
   n, Counter: Integer;
@@ -1029,17 +975,6 @@ begin
   Hash := HashString(Result);
 end;
 
-function CryptStr(const s: string): string;
-var
-  i: Integer;
-begin
-  SetLength(Result, Length(s));
-  if Length(s) = 0 then
-    Exit;
-  for i := 1 to Length(s) do
-    Result[i] := Chr(Ord(s[i]) xor $45);
-end;
-
 function TryRelativePath(const s: string; IsFile: Boolean; OnlyIfRemovable: Boolean): string;
 var
   From: string;
@@ -1055,7 +990,7 @@ begin
 
     From := IncludeTrailingBackslash(ExtractFilePath(ParamStr(0)));
 
-    if PathRelativePathTo(@OutData[0], PChar(From), T, PChar(s), 0) then
+    if PathRelativePathToA(@OutData[0], PChar(From), T, PChar(s), 0) then
       Result := OutData
     else
       Result := s;
@@ -1073,7 +1008,7 @@ begin
   begin
     From := IncludeTrailingBackslash(ExtractFilePath(ParamStr(0)));
 
-    if PathCanonicalize(@OutData[0], PChar(From + s)) then
+    if PathCanonicalizeA(@OutData[0], PChar(From + s)) then
       Result := OutData
     else
       Result := s;
@@ -1273,33 +1208,31 @@ end;
 
 function RegExReplace(RegEx, ReplaceWith, Data: string): string;
 var
-  R: TPerlRegEx;
-  LastSubject: string;
+  R: TRegExpr;
+  LastResult: string;
 begin
-  Result := '';
-  R := TPerlRegEx.Create;
+  Result := Data;
   try
-    R.Options := R.Options + [preCaseLess];
-    R.Subject := Data;
-    R.RegEx := RegEx;
-    R.Replacement := ReplaceWith;
+    R := TRegExpr.Create(RegEx);
+    R.ModifierI := True;
     try
       // Das muss so. Sonst wird z.B. aus 'ft. ft. ft. ft.' ein 'Feat. ft. Feat. ft.'
       repeat
-        LastSubject := R.Subject;
-        R.ReplaceAll;
-      until LastSubject = R.Subject;
-      Result := R.Subject;
-    except end;
-  finally
-    R.Free;
+        LastResult := Result;
+        Result := R.Replace(Result, ReplaceWith, True);
+      until LastResult = Result;
+    finally
+      R.Free;
+    end;
+  except
   end;
 end;
 
 function ContainsRegEx(RegEx, Data: string): Boolean;
-var
-  R: TPerlRegEx;
+//var
+//  R: TPerlRegEx;
 begin
+  {
   Result := False;
   R := TPerlRegEx.Create;
   try
@@ -1312,57 +1245,7 @@ begin
   finally
     R.Free;
   end;
-end;
-
-function ExistsIconSize(const Name: string; const Size: Integer): Boolean;
-var
-  R: TResourceStream;
-  Width, Height: Byte;
-  IconCount: WORD;
-  i: Integer;
-begin
-  Result := False;
-
-  try
-    R := TResourceStream.Create(HInstance, Name, RT_GROUP_ICON);
-  except
-    Exit(False);
-  end;
-
-  try
-    R.Seek(SizeOf(WORD) * 2, soFromCurrent);
-    R.ReadBuffer(IconCount, SizeOf(IconCount));
-    for i := 0 to IconCount - 1 do
-    begin
-      R.ReadBuffer(Width, SizeOf(Width));
-      R.ReadBuffer(Height, SizeOf(Height));
-
-      if (Width = Size) and (Height = Size) then
-        Exit(True);
-
-      R.Seek(SizeOf(Byte) * 2 + SizeOf(WORD) * 3 + SizeOf(DWORD), soFromCurrent);
-    end;
-  finally
-    R.Free;
-  end;
-end;
-
-function LocalToUTC(DT: TDateTime): TDateTime;
-var
-  Res: Cardinal;
-  TZI: TTimeZoneInformation;
-const
-  Minute = (1 / 24) / 60;
-begin
-  Result := DT;
-  try
-    // Exception unter Vista und Wine manchmal... also so gelöst!
-    Result := TTimeZone.Local.ToUniversalTime(Now)
-  except
-    Res := GetTimeZoneInformation(TZI);
-    if Res <> TIME_ZONE_ID_INVALID then
-      Result := DT + (Minute * TZI.Bias)
-  end;
+  }
 end;
 
 procedure CompressStream(InStream, OutStream: TStream; CompressionLevel: TCompressionLevel);

@@ -6,8 +6,8 @@ uses
   Windows;
 
 type
-  TShutdownBlockReasonCreate = function(HWND: HWND; LPCWSTR: string): Boolean; stdcall;
-  TShutdownBlockReasonDestroy = function(HWND: HWND): Boolean; stdcall;
+  TShutdownBlockReasonCreate = function(hWnd: HWND; pwszReason: LPCWSTR): BOOL; stdcall;
+  TShutdownBlockReasonDestroy = function(hWnd: HWND): BOOL; stdcall;
 
 var
   ShutdownBlockReasonCreate: TShutdownBlockReasonCreate;

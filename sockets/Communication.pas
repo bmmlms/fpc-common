@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2020 Alexander Nottelmann
+    Copyright (c) 2010-2021 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -24,7 +24,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Sockets, Protocol, Commands, Generics.Collections,
-  ExtendedStream, System.SyncObjs;
+  ExtendedStream, SyncObjs;
 
 type
   TDynStringArray = array of string;

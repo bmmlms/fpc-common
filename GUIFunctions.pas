@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2020 Alexander Nottelmann
+    Copyright (c) 2010-2021 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -24,7 +24,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Graphics, ShellAPI, ShlObj, ActiveX,
-  ComObj, Types, pngimage;
+  ComObj, Types;
 
 type
   TAccessCanvas = class(TCanvas);
@@ -38,8 +38,7 @@ function Recycle(Handle: Cardinal; Filename: string): Boolean; overload;
 function GetUserDir: string;
 function ResizeBitmap(Bitmap: TBitmap; MaxSize: Integer): TBitmap;
 function CreateLink(Executable, Dest, Name, Args: string; Delete: Boolean): Boolean;
-function CropPNG(Source: TPngImage; Left, Top, Width, Height: Integer): TPngImage;
-procedure GetMaxTransparent(PNG: TPngImage; var Top, Right: Integer);
+procedure GetMaxTransparent(Icon: TIcon; var Top, Right: Integer);
 
 implementation
 
@@ -54,7 +53,7 @@ begin
   try
     Canvas.Handle := GetDC(GetDesktopWindow);
     SelectObject(Canvas.Handle, Font.Handle);
-    GetTextExtentPoint32W(Canvas.Handle, Text, Length(Text), Size2);
+    GetTextExtentPoint32A(Canvas.Handle, PChar(Text), Length(Text), Size2);
     Result := Size2;
     ReleaseDC(GetDesktopWindow, Canvas.Handle);
   finally
@@ -75,7 +74,7 @@ begin
 
     if MaxWidth > -1 then
     begin
-      GetTextExtentPoint32W(Canvas.Handle, Text, Length(Text), Size2);
+      GetTextExtentPoint32A(Canvas.Handle, PChar(Text), Length(Text), Size2);
       w := Size2.cx;
       if w > MaxWidth then
       begin
@@ -83,7 +82,7 @@ begin
         Text := Text + '...';
       end;
 
-      GetTextExtentPoint32W(Canvas.Handle, Text, Length(Text), Size2);
+      GetTextExtentPoint32A(Canvas.Handle, PChar(Text), Length(Text), Size2);
       w := Size2.cx;
       while w > MaxWidth do
       begin
@@ -93,7 +92,7 @@ begin
           Text := '';
           Break;
         end;
-        GetTextExtentPoint32W(Canvas.Handle, Text, Length(Text), Size2);
+        GetTextExtentPoint32A(Canvas.Handle, PChar(Text), Length(Text), Size2);
         w := Size2.cx;
       end;
     end;
@@ -139,7 +138,7 @@ begin
   sei.lpFile := PChar(Filename);
   sei.lpVerb := 'properties';
   sei.fMask  := SEE_MASK_INVOKEIDLIST;
-  ShellExecuteEx(@sei);
+  //ShellExecuteEx(@sei);
 end;
 
 function GetShellFolder(CSIDL: Integer): string;
@@ -245,75 +244,30 @@ begin
     ISLink.SetWorkingDirectory(PChar(ExtractFilePath(Executable)));
     ISLink.SetArguments(PChar(Args));
 
-    LinkName := Dest + Name + '.lnk';
-    Result := IPFile.Save(PChar(LinkName), False) = S_OK;
+    // TODO:
+    //LinkName := Dest + Name + '.lnk';
+    //Result := IPFile.Save(PChar(LinkName), False) = S_OK;
   end;
 end;
 
-function CropPNG(Source: TPngImage; Left, Top, Width, Height: Integer): TPngImage;
-  function ColorToTriple(Color: TColor): TRGBTriple;
-  begin
-    Color := ColorToRGB(Color);
-    Result.rgbtBlue := Color shr 16 and $FF;
-    Result.rgbtGreen := Color shr 8 and $FF;
-    Result.rgbtRed := Color and $FF;
-  end;
-var
-  X, Y: Integer;
-  Bitmap: TBitmap;
-  BitmapLine: PRGBLine;
-  AlphaLineA, AlphaLineB: pngimage.PByteArray;
-begin
-  if (Source.Width < (Left + Width)) or (Source.Height < (Top + Height)) then
-    raise Exception.Create('Invalid position/size');
-
-  Bitmap := TBitmap.Create;
-  try
-    Bitmap.Width := Width;
-    Bitmap.Height := Height;
-    Bitmap.PixelFormat := pf24bit;
-
-    for Y := 0 to Bitmap.Height - 1 do begin
-      BitmapLine := Bitmap.Scanline[Y];
-      for X := 0 to Bitmap.Width - 1 do
-        BitmapLine^[X] := ColorToTriple(Source.Pixels[Left + X, Top + Y]);
-    end;
-
-    Result := TPNGObject.Create;
-    Result.Assign(Bitmap);
-  finally
-    Bitmap.Free;
-  end;
-
-  if Source.Header.ColorType in [COLOR_GRAYSCALEALPHA, COLOR_RGBALPHA] then begin
-    Result.CreateAlpha;
-    for Y := 0 to Result.Height - 1 do begin
-      AlphaLineA := Source.AlphaScanline[Top + Y];
-      AlphaLineB := Result.AlphaScanline[Y];
-      for X := 0 to Result.Width - 1 do
-        AlphaLineB^[X] := AlphaLineA^[X + Left];
-    end;
-  end;
-end;
-
-procedure GetMaxTransparent(PNG: TPngImage; var Top, Right: Integer);
+procedure GetMaxTransparent(Icon: TIcon; var Top, Right: Integer);
 var
   i, n: Integer;
   C: TColor;
 begin
-  Top := PNG.Height;
+  Top := Icon.Height;
   Right := -1;
 
-  C := PNG.Canvas.Pixels[0, 0];
-  for i := 0 to PNG.Height - 1 do
-    for n := 0 to PNG.Width - 1 do
-      if PNG.Canvas.Pixels[n, i] <> C then
+  C := Icon.Canvas.Pixels[0, 0];
+  for i := 0 to Icon.Height - 1 do
+    for n := 0 to Icon.Width - 1 do
+      if Icon.Canvas.Pixels[n, i] <> C then
         if n > Right then
           Right := n;
 
-  for i := PNG.Height - 1 downto 0 do
-    for n := 0 to PNG.Width - 1 do
-      if PNG.Canvas.Pixels[n, i] <> C then
+  for i := Icon.Height - 1 downto 0 do
+    for n := 0 to Icon.Width - 1 do
+      if Icon.Canvas.Pixels[n, i] <> C then
         if i < Top then
           Top := i;
 end;

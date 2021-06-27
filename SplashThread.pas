@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2020 Alexander Nottelmann
+    Copyright (c) 2010-2021 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -23,8 +23,8 @@ unit SplashThread;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, PngImage, MultiMon,
-  Functions, LanguageObjects, System.Types;
+  jwawinuser, Windows, Messages, SysUtils, Classes, Graphics, MultiMon,
+  Functions, LanguageObjects, Types;
 
 type
   TStates = (stFadeIn, stWaiting, stFadeOut);
@@ -227,7 +227,7 @@ begin
 
   FResourceName := ResourceName;
 
-  FVersion := '© 2010-2020 Alexander Nottelmann et al. - V' + Version;
+  FVersion := '© 2010-2021 Alexander Nottelmann et al. - V' + Version;
   if (Build > 0) and (Codename <> '') then
     FVersion := FVersion + ' ''' + Codename + ''' ' + Format(_('build %d'), [Build])
   else if Build > 0 then
@@ -244,14 +244,12 @@ procedure TSplashThread.Execute;
 var
   i: Integer;
   Msg: TMsg;
-  PngImage: TPngImage;
+  PngImage: TPortableNetworkGraphic;
   WndClass: TWndClassEx;
   ResStream: TResourceStream;
   Monitor: Integer;
   DummyRect: TRect;
 begin
-  inherited;
-
   // Falls direkt was passiert, keinen Splash zeigen.
   Sleep(200);
   if GetWindow then
@@ -293,25 +291,24 @@ begin
   WndClass.lpszMenuName := nil;
   WndClass.lpszClassName := 'mistakeSplashScreen';
   WndClass.hIconSm := 0;
-
   RegisterClassEx(WndClass);
 
   SplashBitmap := TBitmap.Create;
-  PngImage := TPngImage.Create;
+  PngImage := TPortableNetworkGraphic.Create;
   ResStream := TResourceStream.Create(HInstance, FResourceName, RT_RCDATA);
   try
     PngImage.LoadFromStream(ResStream);
 
-    PngImage.Canvas.Font.Name := 'Arial';
-    PngImage.Canvas.Font.Color := clWhite;
-    SetBkMode(PngImage.Canvas.Handle, TRANSPARENT);
-
-    PngImage.Canvas.TextOut(PngImage.Width - PngImage.Canvas.TextWidth(FVersion) - 25,
-      PngImage.Height - PngImage.Canvas.TextHeight(FVersion) - 20, FVersion);
-
     SplashBitmap.Assign(PngImage);
 
     PremultiplyBitmap(SplashBitmap);
+
+    SplashBitmap.Canvas.Font.Name := 'Tahoma';
+    SplashBitmap.Canvas.Font.Color := clWhite;
+    SplashBitmap.Canvas.Font.Size := 11;
+    SetBkMode(SplashBitmap.Canvas.Handle, TRANSPARENT);
+    SplashBitmap.Canvas.TextOut(SplashBitmap.Width - SplashBitmap.Canvas.TextWidth(FVersion) - 25,
+      SplashBitmap.Height - SplashBitmap.Canvas.TextHeight(FVersion) - 20, FVersion);
 
     SplashBitmapPos := Point(0, 0);
     BitmapSize.cx := SplashBitmap.Width;
@@ -362,7 +359,7 @@ begin
   begin
     Col := Bitmap.Width;
     P := Bitmap.ScanLine[Row];
-    while (Col > 0) do
+    while Col > 0 do
     begin
       P.rgbBlue := PreMult[P.rgbReserved, P.rgbBlue];
       P.rgbGreen := PreMult[P.rgbReserved, P.rgbGreen];

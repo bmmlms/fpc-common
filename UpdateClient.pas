@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2020 Alexander Nottelmann
+    Copyright (c) 2010-2021 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -152,7 +152,7 @@ begin
             FFoundVersion := ParseVersion(Version);
             FUpdateURL := string(GetValue(Data, 'updateurl'));
             CL := AnsiString(StringReplace(string(GetValue(Data, 'changelog')), '\r', #13#10, [rfReplaceAll]));
-            FChangeLog := UTF8ToUnicodeString(CL);
+         //   FChangeLog := UTF8ToUnicodeString(CL);
             if FUpdateURL = '' then
               raise Exception.Create('-');
             Sync(FOnVersionFound);
@@ -220,7 +220,7 @@ end;
 
 procedure TUpdateClient.RunUpdate(Handle: Cardinal);
 var
-  osvi: _OSVERSIONINFOEXW;
+//  osvi: _OSVERSIONINFOEXW;
   ConditionMask: DWORDLONG;
   op: Integer;
   SEI: TShellExecuteInfo;
@@ -229,23 +229,23 @@ const
 begin
   op := VER_GREATER_EQUAL;
 
-  ZeroMemory(@osvi, SizeOf(_OSVERSIONINFOW));
-  osvi.dwOSVersionInfoSize := SizeOf(_OSVERSIONINFOW);
-  osvi.dwMajorVersion := 6;
-  osvi.dwMinorVersion := 0;
+  //ZeroMemory(@osvi, SizeOf(_OSVERSIONINFOW));
+  //osvi.dwOSVersionInfoSize := SizeOf(_OSVERSIONINFOW);
+  //osvi.dwMajorVersion := 6;
+  //osvi.dwMinorVersion := 0;
 
   ConditionMask := 0;
-  ConditionMask := VerSetConditionMask(ConditionMask, VER_MAJORVERSION, op);
-  ConditionMask := VerSetConditionMask(ConditionMask, VER_MINORVERSION, op);
+ // ConditionMask := VerSetConditionMask(ConditionMask, VER_MAJORVERSION, op);
+ // ConditionMask := VerSetConditionMask(ConditionMask, VER_MINORVERSION, op);
 
   // Bei >= Vista gehts über das Manifest, ansonsten 'runas'...
   if IsAdmin then
     RunProcess('"' + FUpdateFile + '" /NOICONS /SP /SILENT /UPDATE /RUN /PATH="' + AppGlobals.AppPath + '"')
   else
   begin
-    if VerifyVersionInfo(osvi, VER_MAJORVERSION or VER_MINORVERSION, ConditionMask) then
-      RunProcess('"' + FUpdateFile + '" /NOICONS /SP /SILENT /UPDATE /PATH="' + AppGlobals.AppPath + '"')
-    else
+  //  if VerifyVersionInfo(osvi, VER_MAJORVERSION or VER_MINORVERSION, ConditionMask) then
+   //   RunProcess('"' + FUpdateFile + '" /NOICONS /SP /SILENT /UPDATE /PATH="' + AppGlobals.AppPath + '"')
+   // else
     begin
       MsgBox(Handle, _('You do not have administrative rights.'#13#10'Please enter the credentials of a user with administrative rights now.'), _('Info'), MB_ICONINFORMATION);
 
@@ -257,7 +257,7 @@ begin
       SEI.lpFile := PChar(FUpdateFile);
       SEI.lpParameters := PChar('/NOICONS /SP /SILENT /UPDATE /PATH="' + AppGlobals.AppPath + '"');
       SEI.nShow := SW_SHOWNORMAL;
-      ShellExecuteEx(@SEI);
+//      ShellExecuteEx(@SEI);
     end;
   end;
 end;

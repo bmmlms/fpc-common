@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2020 Alexander Nottelmann
+    Copyright (c) 2010-2021 Alexander Nottelmann
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -46,7 +46,7 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    function CreateIcon(ID: string): TIcon;
+//    function CreateIcon(ID: string): TIcon;
     function GetIconIndex(ID: string): Integer;
     property List: TCustomImageList read FList;
   end;
@@ -58,34 +58,16 @@ implementation
 constructor TLanguageIcons.Create;
 var
   i, Idx: Integer;
-  HIco: Cardinal;
-  Ico: TIcon;
 begin
   FList := TCustomImageList.Create(nil);
-  try
-    FList.Width := 16;
-    FList.Height := 16;
-    FLanguageIcons := TList.Create;
-    for i := 0 to LanguageList.Count - 1 do
-    begin
-      try
-        Ico := TIcon.Create;
-        try
-          HIco := LoadIcon(HInstance, PChar(LanguageList[i].ID));
-          if HIco > 0 then
-          begin
-            Ico.Handle := HIco;
-            Idx := FList.AddIcon(Ico);
-            FLanguageIcons.Add(TLanguageIcon.Create(LanguageList[i].ID, Idx));
-          end;
-        finally
-          Ico.Free;
-        end;
-      except
-      end;
+  FLanguageIcons := TList.Create;
+  for i := 0 to LanguageList.Count - 1 do
+  begin
+    try
+      Idx := FList.AddResourceName(HINSTANCE, 'FLAG_%s'.Format([LanguageList[i].ID]));
+      FLanguageIcons.Add(TLanguageIcon.Create(LanguageList[i].ID, Idx));
+    except
     end;
-  except
-
   end;
 end;
 
@@ -100,6 +82,7 @@ begin
   inherited;
 end;
 
+{
 function TLanguageIcons.CreateIcon(ID: string): TIcon;
 var
   i: Integer;
@@ -115,6 +98,7 @@ begin
       Break;
     end;
 end;
+}
 
 function TLanguageIcons.GetIconIndex(ID: string): Integer;
 var

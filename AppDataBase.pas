@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2020 Alexander Nottelmann
+    Copyright (c) 2010-2021 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -240,7 +240,7 @@ begin
 
   // Don't free it, let windows clean it up when we really exited
   //if FMutexHandle > 0 then
-  //  CloseHandle(FMutexHandle);
+  //  ReleaseMutex(FMutexHandle);
 
   if FStorage <> nil then
     FStorage.Free;

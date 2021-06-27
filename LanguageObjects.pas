@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2020 Alexander Nottelmann
+    Copyright (c) 2010-2021 Alexander Nottelmann
 
     Fixed/Enhanced by:
     Thomas Benz
@@ -32,7 +32,7 @@ unit LanguageObjects;
 interface
 
 uses
-  Windows, SysUtils, Classes, StrUtils, TypInfo, System.Types;
+  Windows, SysUtils, Classes, StrUtils, TypInfo, Types;
 
 type
   TOccurence = class;
@@ -731,20 +731,20 @@ procedure TProject.Save(Stream: TMemoryStream; SaveMeta: Boolean);
   procedure WriteToStream(s: string; Stream: TStream);
   var
     Len: Integer;
-    {$IF CompilerVersion < 18.5}
+//    {$IF CompilerVersion < 18.5}
     P: Pointer;
-    {$IFEND}
+//    {$IFEND}
   begin
     s := s + #13#10;
     Len := Length(s) * 2;
-    {$IF CompilerVersion >= 18.5}
+//    {$IF CompilerVersion >= 18.5}
     Stream.WriteBuffer(s[1], Len);
-    {$ELSE}
-    P := GetMemory(Len);
-    StringToWideChar(s, P, Len);
-    Stream.WriteBuffer(P^, Len);
-    FreeMemory(P);
-    {$IFEND}
+//    {$ELSE}
+//    P := GetMemory(Len);
+//    StringToWideChar(s, P, Len);
+//    Stream.WriteBuffer(P^, Len);
+//    FreeMemory(P);
+//    {$IFEND}
   end;
   function MakeSafe(const s: string): string;
   begin
@@ -1303,10 +1303,10 @@ procedure TLanguageManager.TranslateProperty(C: TObject; Owner: TComponent; Prop
         Result := GetStrProp(C, Name);
       tkWString:
         Result := GetWideStrProp(C, Name);
-      {$IF CompilerVersion > 18.5}
+//      {$IF CompilerVersion > 18.5}
       tkUString:
         Result := GetUnicodeStrProp(C, Name);
-      {$IFEND}
+//      {$IFEND}
     end;
   end;
 var
@@ -1315,11 +1315,11 @@ begin
   if Prop.SetProc <> nil then
   begin
     case Prop.PropType^.Kind of
-      {$IF CompilerVersion > 18.5}
+//      {$IF CompilerVersion > 18.5}
       tkString, tkLString, tkWString, tkUString:
-      {$ELSE}
-      tkString, tkLString, tkWString:
-      {$IFEND}
+//      {$ELSE}
+//      tkString, tkLString, tkWString:
+//      {$IFEND}
         begin
           OldValue := ReadString(C, Prop);
           NewValue := TranslateString(C, Owner, string(Prop.Name), OldValue);
@@ -1409,22 +1409,22 @@ begin
   if C is TComponent then
     Owner := TComponent(C);
 
-  {$IF CompilerVersion > 18.5}
-  Count := GetPropList(PTypeInfo(C.ClassInfo), [tkClass, tkString, tkLString, tkWString, tkUString], @PropList);
-  {$ELSE}
+//  {$IF CompilerVersion > 18.5}
+//  Count := GetPropList(PTypeInfo(C.ClassInfo), [tkClass, tkString, tkLString, tkWString, tkUString], @PropList);
+//  {$ELSE}
   Count := GetPropList(PTypeInfo(C.ClassInfo), [tkClass, tkString, tkLString, tkWString], @PropList);
-  {$IFEND}
+//  {$IFEND}
 
   for i := 0 to Count - 1 do
   begin
     PropInfo := PropList[i];
 
     case PropInfo^.PropType^.Kind of
-      {$IF CompilerVersion > 18.5}
-      tkString, tkLString, tkWString, tkUString:
-      {$ELSE}
-      tkString, tkLString, tkWString:
-      {$IFEND}
+//      {$IF CompilerVersion > 18.5}
+//      tkString, tkLString, tkWString, tkUString:
+//      {$ELSE}
+      tkString, tkLString, tkAString, tkWString:
+//      {$IFEND}
         begin
           if (PropInfo^.Name = 'Caption') or (PropInfo^.Name = 'Hint')
              or (PropInfo^.Name = 'Title')  or (PropInfo^.Name = 'Description') // Steffen: ToolTip Komponente

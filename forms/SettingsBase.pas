@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2020 Alexander Nottelmann
+    Copyright (c) 2010-2021 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -23,11 +23,11 @@ unit SettingsBase;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Windows, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Buttons, ComCtrls, LanguageObjects,
-  AppData, AppDataBase, SettingsStorage, Functions, ListActns, pngimage,
-  PngImageList, ImgList, VirtualTrees, ExtendedStream, GUIFunctions,
-  MControls;
+  AppData, AppDataBase, SettingsStorage, Functions, ComboEx,
+  ImgList, VirtualTrees, ExtendedStream, GUIFunctions,
+  MControls, Generics.Collections;
 
 type
   TPage = class
@@ -36,27 +36,21 @@ type
     FOriginalCaption: string;
     FPanel: TPanel;
     FNode: PVirtualNode;
-    FResName: string;
     FImageIndex: Integer;
     FParent: TPage;
   protected
   public
-    constructor Create(OriginalCaption: string; Panel: TPanel; ResName: string); overload;
-    constructor Create(OriginalCaption: string; Panel: TPanel; ResName: string; Parent: TPage); overload;
+    constructor Create(OriginalCaption: string; Panel: TPanel; ImageIndex: Integer); overload;
+    constructor Create(OriginalCaption: string; Panel: TPanel; ImageIndex: Integer; Parent: TPage); overload;
     property Caption: string read FCaption;
     property Panel: TPanel read FPanel;
     property Node: PVirtualNode read FNode write FNode;
-    property ResName: string read FResName;
     property ImageIndex: Integer read FImageIndex write FImageIndex;
     property Parent: TPage read FParent;
   end;
 
-  TPageList = class(TList)
-  private
-    function Get2(Index: Integer): TPage;
-    procedure Put2(Index: Integer; Item: TPage);
+  TPageList = class(TList<TPage>)
   public
-    property Items[Index: Integer]: TPage read Get2 write Put2; default;
     function Find(P: TPanel): TPage;
   end;
 
@@ -65,9 +59,8 @@ type
     FColName: TVirtualTreeColumn;
     FPages: TPageList;
   protected
-    procedure DoGetText(var pEventArgs: TVSTGetCellTextEventArgs); override;
-    function DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
-      var Ghosted: Boolean; var Index: TImageIndex): TCustomImageList; override;
+    procedure DoGetText(Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var Text: string); override;
+    function DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var Index: Integer): TCustomImageList; override;
     procedure DoInitNode(Parent: PVirtualNode; Node: PVirtualNode;
       var InitStates: TVirtualNodeInitStates); override;
     procedure Resize; override;
@@ -80,6 +73,8 @@ type
       UserData: Pointer = nil): PVirtualNode; override;
     procedure Setup;
   end;
+
+  { TfrmSettingsBase }
 
   TfrmSettingsBase = class(TForm)
     pnlHeader: TPanel;
@@ -116,7 +111,6 @@ type
     procedure btnImportProfileClick(Sender: TObject);
   private
     FSaveSettings: Boolean;
-    FShowGeneral: Boolean;
     FTreeView: TPageTree;
     FImportFilename: string;
 
@@ -126,10 +120,11 @@ type
   protected
     FPageList: TPageList;
     FActivePage: TPage;
-    FTreeImages: TPngImageList;
+    FImages: TImageList;
     procedure SetPage(Page: TPage); overload; virtual;
     procedure SetPage(Panel: TPanel); overload; virtual;
     procedure RegisterPages; virtual;
+    procedure RegisterGeneralPage(ImageIndex: Integer); virtual;
     procedure Finish; virtual;
     function CanFinish: Boolean; virtual;
     procedure PreTranslate; virtual;
@@ -138,7 +133,7 @@ type
     procedure GetExportData(Stream: TExtendedStream); virtual;
     function CheckImportFile(Filename: string): Boolean; virtual;
   public
-    constructor Create(AOwner: TComponent; ShowGeneral: Boolean); reintroduce;
+    constructor Create(AOwner: TComponent; Images: TImageList; ShowGeneral: Boolean); reintroduce;
 
     property SaveSettings: Boolean read FSaveSettings;
     property ImportFilename: string read FImportFilename;
@@ -148,23 +143,23 @@ type
 
 implementation
 
-{$R *.dfm}
+{$R *.lfm}
 
 { TPage }
 
-constructor TPage.Create(OriginalCaption: string; Panel: TPanel; ResName: string);
+constructor TPage.Create(OriginalCaption: string; Panel: TPanel; ImageIndex: Integer);
 begin
   inherited Create;
 
   FOriginalCaption := OriginalCaption;
   FCaption := _(FOriginalCaption);
   FPanel := Panel;
-  FResName := ResName;
+  FImageIndex := ImageIndex;
 end;
 
-constructor TPage.Create(OriginalCaption: string; Panel: TPanel; ResName: string; Parent: TPage);
+constructor TPage.Create(OriginalCaption: string; Panel: TPanel; ImageIndex: Integer; Parent: TPage);
 begin
-  Create(OriginalCaption, Panel, ResName);
+  Create(OriginalCaption, Panel, ImageIndex);
 
   FParent := Parent;
 end;
@@ -182,16 +177,6 @@ begin
       Result := Items[i];
       Break;
     end;
-end;
-
-function TPageList.Get2(Index: Integer): TPage;
-begin
-  Result := TPage(inherited Get(Index));
-end;
-
-procedure TPageList.Put2(Index: Integer; Item: TPage);
-begin
-  inherited Put(Index, Item);
 end;
 
 { TfrmSettingsBase }
@@ -337,24 +322,24 @@ end;
 
 function TfrmSettingsBase.CanFinish: Boolean;
 begin
-  if FShowGeneral then
+  Result := True;
+
+  if not Assigned(FPageList.Find(pnlGeneral)) then
+    Exit;
+
+  if chkProxy.Checked then
   begin
-    Result := False;
-    if chkProxy.Checked then
+    if (Trim(txtHost.Text) = '') or (Trim(txtPort.Text) = '') or (StrToIntDef(txtPort.Text, 0) <= 0) then
     begin
-      if (Trim(txtHost.Text) = '') or (Trim(txtPort.Text) = '') or (StrToIntDef(txtPort.Text, 0) <= 0) then
-      begin
-        MsgBox(Handle, _('You need to supply a host and a port (must be a positive number) to connect to if the use of a HTTP proxy is enabled.'), _('Info'), MB_ICONINFORMATION);
-        SetPage(FPageList.Find(TPanel(txtHost.Parent)));
-        if Trim(txtHost.Text) = '' then
-          txtHost.ApplyFocus
-        else
-          txtPort.ApplyFocus;
-        Exit;
-      end;
+      MsgBox(Handle, _('You need to supply a host and a port (must be a positive number) to connect to if the use of a HTTP proxy is enabled.'), _('Info'), MB_ICONINFORMATION);
+      SetPage(FPageList.Find(TPanel(txtHost.Parent)));
+      if Trim(txtHost.Text) = '' then
+        txtHost.ApplyFocus
+      else
+        txtPort.ApplyFocus;
+      Exit(False);
     end;
   end;
-  Result := True;
 end;
 
 function TfrmSettingsBase.CheckImportFile(Filename: string): Boolean;
@@ -368,23 +353,22 @@ begin
   txtPort.Enabled := chkProxy.Checked;
 end;
 
-constructor TfrmSettingsBase.Create(AOwner: TComponent; ShowGeneral: Boolean);
+constructor TfrmSettingsBase.Create(AOwner: TComponent; Images: TImageList; ShowGeneral: Boolean);
 var
   i: Integer;
   Res: TResourceStream;
-  Png: TPngImage;
+  Png: TPortableNetworkGraphic;
 begin
   inherited Create(AOwner);
+
+  FImages := Images;;
 
   // Alle Panels verstecken
   for i := 0 to ControlCount - 1 do
     if Controls[i].InheritsFrom(TPanel) and (Controls[i] <> pnlHeader) and (Controls[i] <> pnlLeft) and (Controls[i] <> pnlNav) then
       Controls[i].Visible := False;
 
-  FShowGeneral := ShowGeneral;
   FActivePage := nil;
-
-  FTreeImages := TPngImageList.Create(Self);
 
   FPageList := TPageList.Create;
 
@@ -394,28 +378,13 @@ begin
 
   FTreeView := TPageTree.Create(pnlLeft, FPageList);
   FTreeView.Parent := pnlLeft;
-  FTreeView.Images := FTreeImages;
+  FTreeView.Images := FImages;
   FTreeView.Align := alClient;
   FTreeView.OnChange := TreeViewChange;
   FTreeView.Show;
 
   for i := 0 to FPageList.Count - 1 do
-  begin
-    if FPageList[i].FCaption = '' then
-      Continue;
-
     FPageList[i].Panel.Visible := True;
-
-    Res := TResourceStream.Create(HInstance, FPageList[i].ResName, MakeIntResource(RT_RCDATA));
-    Png := TPngImage.Create;
-    try
-      Png.LoadFromStream(Res);
-      FPageList[i].ImageIndex := FTreeImages.AddPng(Png);
-    finally
-      Png.Free;
-      Res.Free;
-    end;
-  end;
 
   btnCopyProfile.Enabled := not AppGlobals.Storage.DataDirOverridden;
   btnDeleteProfile.Enabled := not AppGlobals.Storage.DataDirOverridden;
@@ -427,7 +396,7 @@ end;
 
 procedure TfrmSettingsBase.Finish;
 begin
-  if FShowGeneral then
+  if Assigned(FPageList.Find(pnlGeneral)) then
   begin
     AppGlobals.AutoUpdate := chkAutoUpdateCheck.Checked;
 
@@ -468,6 +437,7 @@ begin
 
   lstLanguages.Clear;
   lstLanguages.Images := AppGlobals.LanguageIcons.List;
+
   for i := 0 to LanguageList.Count - 1 do
     if LanguageList[i].Available then
     begin
@@ -476,8 +446,13 @@ begin
       ComboItem.Data := LanguageList[i];
       ComboItem.ImageIndex := AppGlobals.LanguageIcons.GetIconIndex(LanguageList[i].ID);
     end;
+
+  // TODO: Exception
+  {
   lstLanguages.ItemsEx.SortType := stText;
   lstLanguages.ItemsEx.Sort;
+  }
+
   for i := 0 to lstLanguages.ItemsEx.Count - 1 do
     if Language.CurrentLanguage.ID = TLanguage(lstLanguages.ItemsEx[i].Data).ID then
     begin
@@ -546,11 +521,13 @@ end;
 
 procedure TfrmSettingsBase.lstLanguagesChange(Sender: TObject);
 begin
+  {
   if lstLanguages.ItemIndex > -1 then
   begin
     Language.CurrentLanguage := TLanguage(lstLanguages.ItemsEx[lstLanguages.ItemIndex].Data);
     Language.Translate(Self, PreTranslate, PostTranslate);
   end;
+  }
 end;
 
 procedure TfrmSettingsBase.TreeViewChange(Sender: TBaseVirtualTree;
@@ -568,8 +545,12 @@ end;
 
 procedure TfrmSettingsBase.RegisterPages;
 begin
-  if FShowGeneral then
-    FPageList.Add(TPage.Create('General', pnlGeneral, 'SETTINGS'))
+
+end;
+
+procedure TfrmSettingsBase.RegisterGeneralPage(ImageIndex: Integer);
+begin
+  FPageList.Add(TPage.Create('General', pnlGeneral, ImageIndex))
 end;
 
 procedure TfrmSettingsBase.SetPage(Page: TPage);
@@ -641,8 +622,7 @@ begin
   Result := False;
 end;
 
-function TPageTree.DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
-  var Ghosted: Boolean; var Index: TImageIndex): TCustomImageList;
+function TPageTree.DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var Index: Integer): TCustomImageList;
 var
   i: Integer;
 begin
@@ -655,16 +635,16 @@ begin
           Index := FPages[i].ImageIndex;
 end;
 
-procedure TPageTree.DoGetText(var pEventArgs: TVSTGetCellTextEventArgs);
+procedure TPageTree.DoGetText(Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var Text: string);
 var
   i: Integer;
 begin
   inherited;
 
-  if pEventArgs.Column = 0 then
+  if Column = 0 then
     for i := 0 to FPages.Count - 1 do
-      if FPages[i].Node = pEventArgs.Node then
-        pEventArgs.CellText := FPages[i].Caption;
+      if FPages[i].Node = Node then
+        Text := FPages[i].Caption;
 end;
 
 procedure TPageTree.DoInitNode(Parent, Node: PVirtualNode;
@@ -686,7 +666,8 @@ procedure TPageTree.Resize;
 begin
   inherited;
 
-  FColName.Width := ClientWidth;
+  if Assigned(FColName) then
+    FColName.Width := ClientWidth;
 end;
 
 procedure TPageTree.Setup;

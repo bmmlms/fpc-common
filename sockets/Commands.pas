@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2020 Alexander Nottelmann
+    Copyright (c) 2010-2021 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -24,7 +24,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Sockets, Generics.Collections, ExtendedStream,
-  RTTI, Functions;
+  Functions;
 
 type
   TCommandTypes = (ctHandshake, ctHandshakeResponse,
@@ -235,12 +235,11 @@ class function TCommand.Read(CommandHeader: TCommandHeader; Stream: TExtendedStr
 var
   i: Integer;
   Cmd: TCommand;
-  Context: TRttiContext;
-  ClassType: TRttiType;
 begin
   for i := 0 to FCommands.Count - 1 do
     if FCommands[i].CommandType = CommandHeader.CommandType then
     begin
+      {
       Context := TRttiContext.Create;
       try
         ClassType := Context.GetType(FCommands[i].CommandClass);
@@ -250,6 +249,9 @@ begin
       finally
         Context.Free;
       end;
+      }
+      Cmd := TCommand(FCommands[i].CommandClass.NewInstance);
+      Cmd.Load(CommandHeader, Stream);
 
       Exit(Cmd);
     end;

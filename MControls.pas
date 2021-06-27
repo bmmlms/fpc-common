@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2020 Alexander Nottelmann
+    Copyright (c) 2010-2021 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -418,10 +418,10 @@ constructor TMTabSheet.Create(AOwner: TComponent);
 begin
   inherited;
   FShowCloseButton := True;
-  FButtonWidth := 12;
+  FButtonWidth := 16;
   FCaption := '';
   Button := TMTabSheetCloseButton.Create(Self);
-  Button.Parent := TWinControl(AOwner);
+//  Button.Parent := TWinControl(AOwner);
   Button.ShowHint := True;
   Button.Width := FButtonWidth;
   Button.Height := FButtonWidth;
@@ -429,6 +429,7 @@ begin
   AlignButton;
   Button.Show;
   FMaxWidth := TMPageControl(AOwner).FMaxTabWidth;
+  Color := clWhite;
 end;
 
 destructor TMTabSheet.Destroy;
@@ -474,20 +475,23 @@ var
   minsw: Integer;
 begin
   if FMaxWidth > 0 then
-    s2 := TruncateText(Value, FMaxWidth, PageControl.Canvas.Font)
+    s2 := TruncateText(Value, FMaxWidth, PageControl.Font)
   else
     s2 := Value;
 
+  // TODO:
+  {
   if FShowCloseButton then
   begin
     s := ' ';
-    minsw := PageControl.Canvas.TextWidth(s);
+    minsw := PageControl.TextWidth(s);
     while minsw < FButtonWidth + 4 do
     begin
       s := s + ' ';
-      minsw := PageControl.Canvas.TextWidth(s);
+      minsw := PageControl.TextWidth(s);
     end;
   end;
+  }
 
   inherited Caption := s2 + s;
 end;
