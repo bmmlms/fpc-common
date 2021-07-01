@@ -92,7 +92,7 @@ type
     procedure DoGet(S: TExtendedStream); virtual;
     function FGetCmdLength: Cardinal; virtual;
   public
-    constructor Create;
+    constructor Create; virtual;
     destructor Destroy; override;
 
     class procedure RegisterCommand(CommandType: TCommandTypes; CommandClass: TCommandClass);
@@ -251,6 +251,7 @@ begin
       end;
       }
       Cmd := TCommand(FCommands[i].CommandClass.NewInstance);
+      Cmd.Create;
       Cmd.Load(CommandHeader, Stream);
 
       Exit(Cmd);
