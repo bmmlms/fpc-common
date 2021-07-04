@@ -26,42 +26,62 @@ uses
   Windows, SysUtils, Classes, Messages, ComCtrls, ActiveX, Controls, Buttons,
   StdCtrls, Menus, VirtualTrees, DragDrop, DragDropFile, ShellApi, Types,
   Themes, ImgList, GUIFunctions, LanguageObjects, Graphics, Forms,
-  Generics.Collections;
+  Generics.Collections, Math;
 
 type
-  TMTabSheet = class;
 
-  TMTabSheetCloseButton = class(TSpeedButton)
+  { TMTabSheet }
+
+  TMTabSheet = class(TTabSheet)
   private
-    FHotTrack: Boolean;
-  protected
-    procedure Paint; override;
+    FCaption: string;
+    FShowCloseButton: Boolean;
+    FButtonRect: TRect;
+
+    FFocusedControlBeforeChange: TWinControl;
+
+    procedure UpdateProperties;
+    procedure FSetCaption(Value: string);
+    procedure FSetShowCloseButton(Value: Boolean);
   public
     constructor Create(AOwner: TComponent); override;
-    procedure Click; override;
-    property HotTrack: Boolean read FHotTrack write FHotTrack default True;
+
+    function CanClose: Boolean; virtual;
+
+    function ProcessShortCut(Msg: TWMKey): Boolean; virtual;   // TODO: testen ob das noch funzt.
+
+    property Caption: string read FCaption write FSetCaption;
+    property ShowCloseButton: Boolean read FShowCloseButton write FSetShowCloseButton;
   end;
 
-  TMPageControl = class(TPageControl)
-  private
-    FMaxTabWidth: Integer;
-    FFocusList: TList<TMTabSheet>;
+  { TMPageControl }
 
-    procedure AlignButtons;
+  TMPageControl = class(TPageControl)
+  private const
+    WM_CLOSETAB = WM_USER + 1245;
+    CT_ACTIVE = 0;
+    CT_ALL = 1;
+    CT_ALL_BUT_ACTIVE = 2;
+  private
+    FPainted: Boolean;
+    FMaxTabWidth: Integer;
+    FFocusList: TList<TTabSheet>;
+    FPressedButton: Integer;
+
+    procedure DrawButton(Canvas: TCanvas; R: TRect; State: TButtonState);
     procedure RemoveTab(Tab: TMTabSheet); virtual;
     procedure FSetMaxTabWidth(Value: Integer);
-
-    procedure FSetActivePage(Value: TTabSheet);
-    function FGetActivePage: TTabSheet;
+    function FGetTabSheet(Index: Integer): TMTabSheet;
   protected
     function CanChange: Boolean; override;
-    procedure Change; override;
-
-    procedure TabClosed(Tab: TMTabSheet); virtual;
-
+    procedure DoChange; override;
     procedure WndProc(var Message: TMessage); override;
+    procedure PaintWindow(DC: HDC); override;
+    procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
+    procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
+    procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
   public
-    constructor Create(AOwner: TComponent); reintroduce;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     procedure CloseTab(Idx: Integer);
@@ -69,40 +89,7 @@ type
     procedure CloseAllButActive;
 
     property MaxTabWidth: Integer read FMaxTabWidth write FSetMaxTabWidth;
-    property ActivePage: TTabSheet read FGetActivePage write FSetActivePage;
-  end;
-
-  TMTabSheet = class(TTabSheet)
-  private
-    FCaption: string;
-    FButtonWidth: Integer;
-    FMaxWidth: Integer;
-    Button: TMTabSheetCloseButton;
-    FShowCloseButton: Boolean;
-    FOnClosed: TNotifyEvent;
-
-    FFocusedControlBeforeChange: TWinControl;
-
-    procedure SetCaptionInternal(Value: string);
-    procedure FSetMaxWidth(Value: Integer);
-    function FGetCaption: string;
-    procedure FSetCaption(Value: string);
-    procedure FSetShowCloseButton(Value: Boolean);
-
-    procedure AlignButton;
-  public
-    constructor Create(AOwner: TComponent); reintroduce; virtual;
-    destructor Destroy; override;
-    procedure AfterCreate; virtual;
-
-    function CanClose: Boolean; virtual;
-
-    function ProcessShortCut(Msg: TWMKey): Boolean; virtual;
-
-    property Caption: string read FGetCaption write FSetCaption;
-    property MaxWidth: Integer read FMaxWidth write FSetMaxWidth;
-    property ShowCloseButton: Boolean read FShowCloseButton write FSetShowCloseButton;
-    property OnClosed: TNotifyEvent read FOnClosed write FOnClosed;
+    property Pages[Index: Integer]: TMTabSheet read FGetTabSheet;
   end;
 
   TMVirtualStringTree = class(TVirtualStringTree)
@@ -151,24 +138,75 @@ type
 
 implementation
 
-{ TMTabSheetCloseButton }
+{ TMTabSheet }
 
-constructor TMTabSheetCloseButton.Create(AOwner: TComponent);
+function TMTabSheet.CanClose: Boolean;
 begin
-  inherited;
-  FHotTrack := True;
-  Width := 14;
-  Height := 14;
-  Flat := false;
+  Result := True;
 end;
 
-procedure TMTabSheetCloseButton.Click;
+constructor TMTabSheet.Create(AOwner: TComponent);
 begin
   inherited;
-  TMPageControl(Parent).CloseTab(TMTabSheet(Owner).PageIndex);
+
+  FShowCloseButton := True;
+  FCaption := '';
+  Color := clWhite;
 end;
 
-procedure TMTabSheetCloseButton.Paint;
+procedure TMTabSheet.FSetCaption(Value: string);
+begin
+  FCaption := Value.Trim;
+  UpdateProperties;
+end;
+
+procedure TMTabSheet.FSetShowCloseButton(Value: Boolean);
+begin
+  FShowCloseButton := Value;
+  UpdateProperties;
+end;
+
+function TMTabSheet.ProcessShortCut(Msg: TWMKey): Boolean;
+begin
+  self.Update;
+
+  Result := False;
+end;
+
+procedure TMTabSheet.UpdateProperties;
+var
+  TabRect: TRect;
+  ButtonWidth: Integer;
+begin
+  if not Assigned(PageControl) then
+    Exit;
+
+  TabRect := PageControl.TabRect(PageIndex);
+
+  if TabRect.Height = 0 then
+    Exit;
+
+  ButtonWidth := GetTextSize('Wyg', PageControl.Font).Height - 2;
+
+  FButtonRect := TRect.Create(TPoint.Create(TabRect.Right - ButtonWidth - 5, TabRect.Top + (TabRect.Height div 2) - Math.Floor(ButtonWidth / 2)), ButtonWidth, ButtonWidth);
+
+  if PageControl.ActivePageIndex = PageIndex then
+    FButtonRect.Offset(0, -2);
+
+  if (TMPageControl(PageControl).FMaxTabWidth = 0) and FShowCloseButton then
+    inherited Caption := FCaption + StringForWidth(' ', FButtonRect.Width, PageControl.Font)
+  else if (TMPageControl(PageControl).FMaxTabWidth > 0) and FShowCloseButton then
+    inherited Caption := TruncateText(FCaption, TMPageControl(PageControl).FMaxTabWidth - (TabRect.Width - FButtonRect.Left), PageControl.Font) + StringForWidth(' ', FButtonRect.Width, PageControl.Font)
+  else if (TMPageControl(PageControl).FMaxTabWidth > 0) and (not FShowCloseButton) then
+    inherited Caption := TruncateText(FCaption, TMPageControl(PageControl).FMaxTabWidth, PageControl.Font)
+  else
+    inherited Caption := FCaption;
+end;
+
+{ TMPageControl }
+
+procedure TMPageControl.DrawButton(Canvas: TCanvas; R: TRect;
+  State: TButtonState);
 var
   uType: Integer;
   uState: Integer;
@@ -177,83 +215,112 @@ var
 begin
   if ThemeServices.ThemesEnabled then
   begin
-    if Enabled then
-    begin
-      if (Down) or (FState = bsDown) then
-        Win := twSmallCloseButtonPushed
-      else if MouseInControl then
-        Win :=  twSmallCloseButtonHot
+    case State of
+      bsDown:
+        Win := twSmallCloseButtonPushed;
+      bsHot:
+        Win := twSmallCloseButtonHot;
       else
-        Win :=  twSmallCloseButtonNormal;
-    end else
-      Win :=  twCloseButtonNormal;
+        Win := twSmallCloseButtonNormal;
+    end;
+
+    R.Right := R.Right + 2;
+    R.Bottom := R.Bottom + 2;
+
     Details := ThemeServices.GetElementDetails(Win);
-    ThemeServices.DrawElement(Canvas.Handle, Details, ClientRect);
+    ThemeServices.DrawElement(Canvas.Handle, Details, R);
   end else
   begin
     uType := DFC_CAPTION;
     uState := DFCS_CAPTIONCLOSE;
-    if Enabled then
-    begin
-      if (Down) or (FState = bsDown) then
-        uState := uState or DFCS_PUSHED
-      else if MouseInControl then
-      begin
-        if FHotTrack then
-          uState := uState or DFCS_MONO
-        else
-          uState := uState or DFCS_FLAT;
-      end else
+
+    case State of
+      bsDown:
+        uState := uState or DFCS_PUSHED;
+      bsHot:
+        uState := uState or DFCS_MONO;
+      else
         uState := uState or DFCS_FLAT;
-    end else
-      uState := uState or DFCS_INACTIVE;
-    DrawFrameControl(Canvas.Handle, ClientRect, uType, uState);
-  end;
-end;
+    end;
 
-{ TMPageControl }
-
-procedure TMPageControl.AlignButtons;
-var
-  i: Integer;
-  P: TMTabSheet;
-begin
-  for i := 0 to PageCount - 1 do
-  begin
-    P := TMTabSheet(Pages[i]);
-    P.AlignButton;
+    DrawFrameControl(Canvas.Handle, R, uType, uState);
   end;
 end;
 
 function TMPageControl.CanChange: Boolean;
+var
+  i: Integer;
 begin
-  TMTabSheet(ActivePage).FFocusedControlBeforeChange := Screen.ActiveControl;
+  if GetAsyncKeyState(VK_LBUTTON) < 0 then
+    for i := 0 to PageCount - 1 do
+      if TMTabSheet(Pages[i]).FButtonRect.Contains(ScreenToClient(Mouse.CursorPos)) then
+        Exit(False);
 
   Result := inherited;
+
+  if Result then
+    TMTabSheet(ActivePage).FFocusedControlBeforeChange := Screen.ActiveControl;
 end;
 
-procedure TMPageControl.Change;
+procedure TMPageControl.PaintWindow(DC: HDC);
+var
+  R: TRect;
+  i: Integer;
+  Canvas: TCanvas;
+begin
+  inherited PaintWindow(DC);
+
+  Canvas := TCanvas.Create;
+  Canvas.Handle := DC;
+  try
+    for i := 0 to PageCount - 1 do
+    begin
+      Pages[i].UpdateProperties;
+
+      R := Pages[i].FButtonRect;
+      if (not Pages[i].FShowCloseButton) or (R.Top >= 0) then
+        Continue;
+
+      if FPressedButton = i then
+        DrawButton(Canvas, R, bsDown)
+      else if R.Contains(ScreenToClient(Mouse.CursorPos)) then
+      begin
+        DrawButton(Canvas, R, bsHot);
+      end
+      else
+        DrawButton(Canvas, R, bsUp);
+    end;
+  finally
+    Canvas.Free;
+  end;
+
+  FPainted := True;
+end;
+
+procedure TMPageControl.DoChange;
 begin
   inherited;
 
   if TMTabSheet(ActivePage).FFocusedControlBeforeChange <> nil then
     TMTabSheet(ActivePage).FFocusedControlBeforeChange.ApplyFocus;
 
-  FFocusList.Add(TMTabSheet(ActivePage));
+  FFocusList.Add(ActivePage);
 
-  AlignButtons;
+  Invalidate;
 end;
 
 procedure TMPageControl.CloseTab(Idx: Integer);
 begin
-  PostMessage(Handle, WM_USER + 1245, 0, Idx)
+  PostMessage(Handle, WM_CLOSETAB, CT_ACTIVE, Idx)
 end;
 
 constructor TMPageControl.Create(AOwner: TComponent);
 begin
   inherited;
 
-  FFocusList := TList<TMTabSheet>.Create;
+  Options := Options + [nboDoChangeOnSetIndex];
+  FPressedButton := -1;
+  FFocusList := TList<TTabSheet>.Create;
 end;
 
 destructor TMPageControl.Destroy;
@@ -265,12 +332,12 @@ end;
 
 procedure TMPageControl.CloseAll;
 begin
-  PostMessage(Handle, WM_USER + 1245, 1, 0)
+  PostMessage(Handle, WM_CLOSETAB, CT_ALL, 0)
 end;
 
 procedure TMPageControl.CloseAllButActive;
 begin
-  PostMessage(Handle, WM_USER + 1245, 2, 0);
+  PostMessage(Handle, WM_CLOSETAB, CT_ALL_BUT_ACTIVE, 0);
 end;
 
 procedure TMPageControl.FSetMaxTabWidth(Value: Integer);
@@ -279,22 +346,15 @@ var
 begin
   FMaxTabWidth := Value;
   for i := 0 to PageCount - 1 do
-    TMTabSheet(Pages[i]).MaxWidth := Value;
+    Pages[i].UpdateProperties;
 end;
 
-function TMPageControl.FGetActivePage: TTabSheet;
+function TMPageControl.FGetTabSheet(Index: Integer): TMTabSheet;
 begin
-  Result := inherited ActivePage;
+  Result := TMTabSheet(inherited Pages[Index]);
 end;
 
-procedure TMPageControl.FSetActivePage(Value: TTabSheet);
-begin
-  inherited ActivePage := Value;
-
-  Change;
-end;
-
-procedure TMPageControl.RemoveTab(Tab: TMTabSheet);
+procedure TMPageControl.RemoveTab(Tab: TMTabSheet);    // TODO: ich sollte RemovePage(idx) überschreiben. und das hier sollte dann removepage aufrufen.
 var
   Idx: Integer;
   i: Integer;
@@ -304,9 +364,6 @@ begin
 
   LockWindowUpdate(Handle);
   try
-    if Assigned(TMTabSheet(Tab).FOnClosed) then
-      TMTabSheet(Tab).FOnClosed(Tab);
-
     if Tab = ActivePage then
     begin
       if PageCount - 1 > ActivePageIndex then
@@ -330,8 +387,6 @@ begin
       if FFocusList[i] = Tab then
         FFocusList.Delete(i);
 
-    Tab.Parent := nil;
-    TabClosed(TMTabSheet(Tab));
     Tab.Free;
 
     if FFocusList.Count > 0 then
@@ -342,160 +397,75 @@ begin
   end;
 end;
 
-procedure TMPageControl.TabClosed(Tab: TMTabSheet);
-begin
-
-end;
-
 procedure TMPageControl.WndProc(var Message: TMessage);
 var
   i: Integer;
 begin
-  if Message.Msg = WM_PAINT then
-    AlignButtons;
-  if Message.Msg = WM_USER + 1245 then
+  if Message.Msg = WM_CLOSETAB then
   begin
     case Message.WParam of
-      0: // Aktives schließen
+      CT_ACTIVE:
         begin
-          RemoveTab(TMTabSheet(Pages[Message.LParam]));
+          RemoveTab(Pages[Message.LParam]);
         end;
-      1: // Alle schließen
+      CT_ALL:
         begin
           for i := PageCount - 1 downto 0 do
-            RemoveTab(TMTabSheet(Pages[i]));
+            RemoveTab(Pages[i]);
         end;
-      2: // Alle außer aktivem schließen
+      CT_ALL_BUT_ACTIVE:
         for i := PageCount - 1 downto 0 do
           if Pages[i] <> ActivePage then
-            RemoveTab(TMTabSheet(Pages[i]));
+            RemoveTab(Pages[i]);
     end;
-
-    AlignButtons;
-  end;
-  inherited;
-end;
-
-{ TMTabSheet }
-
-procedure TMTabSheet.AfterCreate;
-begin
-
-end;
-
-procedure TMTabSheet.AlignButton;
-var
-  PageControl: TPageControl;
-begin
-  if not FShowCloseButton then
     Exit;
-  PageControl := TPageControl(Owner);
-  if PageControl.ActivePage = Self then
-  begin
-    // Diese Abfrage muss, sonst wird ein WM_PAINT ausgelöst, welches dann wieder hier endet (Endlosschleife)
-    if PageControl.TabRect(TabIndex).Right - FButtonWidth - 4 <> Button.Left then
-    begin
-      Button.Left := PageControl.TabRect(TabIndex).Right - FButtonWidth - 4;
-      Button.Top := (((PageControl.TabRect(TabIndex).Top + PageControl.TabRect(TabIndex).Bottom) div 2) - FButtonWidth div 2) + PageControl.TabRect(TabIndex).Top - 3;
-    end;
-  end else
-  begin
-    // Diese Abfrage muss, sonst wird ein WM_PAINT ausgelöst, welches dann wieder hier endet (Endlosschleife)
-    if Button.Left <> PageControl.TabRect(TabIndex).Right - FButtonWidth - 6 then
-    begin
-      Button.Left := PageControl.TabRect(TabIndex).Right - FButtonWidth - 6;
-      Button.Top := (((PageControl.TabRect(TabIndex).Top + PageControl.TabRect(TabIndex).Bottom) div 2) - FButtonWidth div 2) + PageControl.TabRect(TabIndex).Top - 2;
-    end;
   end;
-end;
-
-function TMTabSheet.CanClose: Boolean;
-begin
-  Result := True;
-end;
-
-constructor TMTabSheet.Create(AOwner: TComponent);
-begin
-  inherited;
-  FShowCloseButton := True;
-  FButtonWidth := 16;
-  FCaption := '';
-  Button := TMTabSheetCloseButton.Create(Self);
-//  Button.Parent := TWinControl(AOwner);
-  Button.ShowHint := True;
-  Button.Width := FButtonWidth;
-  Button.Height := FButtonWidth;
-  Button.Hint := _('Close tab');
-  AlignButton;
-  Button.Show;
-  FMaxWidth := TMPageControl(AOwner).FMaxTabWidth;
-  Color := clWhite;
-end;
-
-destructor TMTabSheet.Destroy;
-begin
 
   inherited;
 end;
 
-function TMTabSheet.FGetCaption: string;
+procedure TMPageControl.MouseMove(Shift: TShiftState; X, Y: Integer);
+begin
+  inherited MouseMove(Shift, X, Y);
+
+  Invalidate;
+end;
+
+procedure TMPageControl.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
-  s: string;
+  i: Integer;
 begin
-  s := inherited Caption;
-  Result := Trim(s);
-end;
+  inherited MouseDown(Button, Shift, X, Y);
 
-procedure TMTabSheet.FSetCaption(Value: string);
-begin
-  FCaption := Value;
-  SetCaptionInternal(Value);
-end;
+  if Button <> mbLeft then
+    Exit;
 
-procedure TMTabSheet.FSetMaxWidth(Value: Integer);
-begin
-  FMaxWidth := Value;
-  SetCaptionInternal(FCaption);
-end;
-
-procedure TMTabSheet.FSetShowCloseButton(Value: Boolean);
-begin
-  FShowCloseButton := Value;
-  AlignButton;
-end;
-
-function TMTabSheet.ProcessShortCut(Msg: TWMKey): Boolean;
-begin
-  Result := False;
-end;
-
-procedure TMTabSheet.SetCaptionInternal(Value: string);
-var
-  s, s2: string;
-  minsw: Integer;
-begin
-  if FMaxWidth > 0 then
-    s2 := TruncateText(Value, FMaxWidth, PageControl.Font)
-  else
-    s2 := Value;
-
-  // TODO:
-  {
-  if FShowCloseButton then
-  begin
-    s := ' ';
-    minsw := PageControl.TextWidth(s);
-    while minsw < FButtonWidth + 4 do
+  FPressedButton := -1;
+  for i := 0 to PageCount - 1 do
+    if Pages[i].FShowCloseButton and Pages[i].FButtonRect.Contains(ScreenToClient(Mouse.CursorPos)) then
     begin
-      s := s + ' ';
-      minsw := PageControl.TextWidth(s);
+      FPressedButton := i;
+      MouseCapture := True;
+      Invalidate;
+      Break;
     end;
-  end;
-  }
-
-  inherited Caption := s2 + s;
 end;
 
+procedure TMPageControl.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  inherited MouseUp(Button, Shift, X, Y);
+
+  if FPressedButton > -1 then
+  begin
+    if Pages[FPressedButton].FButtonRect.Contains(TPoint.Create(X, Y)) then
+      RemoveTab(Pages[FPressedButton]);
+
+    FPressedButton := -1;
+    MouseCapture := False;
+
+    Invalidate;
+  end;
+end;
 
 { TMStatusBar }
 
