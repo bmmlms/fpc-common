@@ -26,11 +26,9 @@ uses
   Windows, SysUtils, Classes, Controls, Graphics, ShellAPI, ShlObj, ActiveX,
   ComObj, Types;
 
-type
-  TAccessCanvas = class(TCanvas);
-
 function GetTextSize(Text: string; Font: TFont): TSize;
 function TruncateText(Text: string; MaxWidth: Integer; Font: TFont): string;
+function StringForWidth(const c: Char; const Width: Integer; const Font: TFont): string;
 function BrowseDialog(Handle: HWnd; Title: string; Flag: Integer): string;
 procedure PropertiesDialog(Filename: string);
 function GetShellFolder(CSIDL: Integer): string;
@@ -42,69 +40,75 @@ procedure GetMaxTransparent(Icon: TIcon; var Top, Right: Integer);
 
 implementation
 
-function GetTextSize(Text: string; Font: TFont): TSize;
-var
-  Canvas: TAccessCanvas;
-  Size2: TSize;
-begin
-  Result.cx := 0;
-  Result.cy := 0;
-  Canvas := TAccessCanvas.Create;
-  try
-    Canvas.Handle := GetDC(GetDesktopWindow);
-    SelectObject(Canvas.Handle, Font.Handle);
-    GetTextExtentPoint32A(Canvas.Handle, PChar(Text), Length(Text), Size2);
-    Result := Size2;
-    ReleaseDC(GetDesktopWindow, Canvas.Handle);
-  finally
-    Canvas.Free;
-  end;
-end;
-
+// TODO: nen helper draus machen.
 function TruncateText(Text: string; MaxWidth: Integer; Font: TFont): string;
 var
-  w: Integer;
-  Canvas: TAccessCanvas;
-  Size2: TSize;
+  Canvas: TCanvas;
+  EW: Integer;
 begin
-  Canvas := TAccessCanvas.Create;
+  Text := Text.Trim;
+  Canvas := TCanvas.Create;
   try
     Canvas.Handle := GetDC(GetDesktopWindow);
-    SelectObject(Canvas.Handle, Font.Handle);
+    try
+      Canvas.Font.Assign(Font);
 
-    if MaxWidth > -1 then
-    begin
-      GetTextExtentPoint32A(Canvas.Handle, PChar(Text), Length(Text), Size2);
-      w := Size2.cx;
-      if w > MaxWidth then
-      begin
-        SetLength(Text, Length(Text) - 1);
-        Text := Text + '...';
-      end;
+      if Canvas.TextWidth(Text) <= MaxWidth then
+        Exit(Text);
 
-      GetTextExtentPoint32A(Canvas.Handle, PChar(Text), Length(Text), Size2);
-      w := Size2.cx;
-      while w > MaxWidth do
-      begin
-        Text := Copy(Text, 1, Length(Text) - 4) + '...';
-        if Length(Text) = 3 then
-        begin
-          Text := '';
-          Break;
-        end;
-        GetTextExtentPoint32A(Canvas.Handle, PChar(Text), Length(Text), Size2);
-        w := Size2.cx;
-      end;
+      EW := Canvas.TextWidth('...');
+
+      Exit(Text.Substring(0, Canvas.TextFitInfo(Text, MaxWidth - EW)).Trim + '...');
+    finally
+      ReleaseDC(GetDesktopWindow, Canvas.Handle);
     end;
-    Result := Text;
-
-    ReleaseDC(GetDesktopWindow, Canvas.Handle);
   finally
     Canvas.Free;
   end;
 end;
 
-function BrowseDialog(Handle: HWnd; Title: string; Flag: Integer): string;
+function StringForWidth(const c: Char; const Width: Integer; const Font: TFont): string;
+var
+  Canvas: TCanvas;
+
+begin
+  Canvas := TCanvas.Create;
+  try
+    Canvas.Handle := GetDC(GetDesktopWindow);
+    try
+      Canvas.Font.Assign(Font);
+
+      Result := c;
+      while Canvas.TextWidth(Result) < Width do
+        Result += c;
+    finally
+      ReleaseDC(GetDesktopWindow, Canvas.Handle);
+    end;
+  finally
+    Canvas.Free;
+  end;
+end;
+
+function GetTextSize(Text: string; Font: TFont): TSize;
+var
+  Canvas: TCanvas;
+begin
+  Canvas := TCanvas.Create;
+  try
+    Canvas.Handle := GetDC(GetDesktopWindow);
+    try
+      Canvas.Font.Assign(Font);
+
+      Exit(Canvas.TextExtent(Text));
+    finally
+      ReleaseDC(GetDesktopWindow, Canvas.Handle);
+    end;
+  finally
+    Canvas.Free;
+  end;
+end;
+
+function BrowseDialog(Handle: HWnd; Title: string; Flag: Integer): string;  // TODO: gibts ne kompoinente für
 var
   lpItemID: PItemIDList;
   BrowseInfo: TBrowseInfo;

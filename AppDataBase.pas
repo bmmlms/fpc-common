@@ -107,7 +107,7 @@ type
     FProjectDonateLink: string;
     FProjectThanksText: string;
 
-    FBuildNumber: Integer;
+    FGitSHA: string;
     FCodename: string;
 
     procedure InitOnlyOne; virtual;
@@ -138,7 +138,7 @@ type
     property AppPath: string read FAppPath;
     property AppName: string read FAppName;
     property AppVersion: TAppVersion read FAppVersion;
-    property BuildNumber: Integer read FBuildNumber;
+    property GitSHA: string read FGitSHA;
     property Codename: string read FCodename;
     property TempDir: string read FTempDir;
     property ProjectUpdateLinks: TStringDynArray read FProjectUpdateLinks;
@@ -373,7 +373,7 @@ begin
   FStorage.Read('FirstStartShown', FFirstStartShown, False);
 
   FStorage.Read('LastUsedVersion', LastUsedVersion, AppVersion.AsString);
-  FStorage.Read('LastUsedBuild', FLastUsedBuild, FBuildNumber);
+  // FStorage.Read('LastUsedBuild', FLastUsedBuild, FBuildNumber);    // TODO: ... es gibt keine build number mehr.
   FStorage.Read('SuppressUpdatedInfo', FSuppressUpdatedInfo, False);
   try
     FLastUsedVersion := ParseVersion(LastUsedVersion);
@@ -404,7 +404,7 @@ begin
   FStorage.Write('Language', FLanguage);
   FStorage.Write('FirstStartShown', FFirstStartShown);
   FStorage.Write('LastUsedVersion', AppVersion.AsString);
-  FStorage.Write('LastUsedBuild', FBuildNumber);
+  // FStorage.Write('LastUsedBuild', FBuildNumber);
   FStorage.Write('SuppressUpdatedInfo', FSuppressUpdatedInfo);
 end;
 

@@ -29,6 +29,8 @@ uses
 type
   TStates = (stFadeIn, stWaiting, stFadeOut);
 
+  { TSplashThread }
+
   TSplashThread = class(TThread)
   private
     FResourceName: string;
@@ -38,7 +40,7 @@ type
   protected
     procedure Execute; override;
   public
-    constructor Create(WindowClass, ResourceName, Codename, Version: string; Build, MainLeft, MainTop, MainWidth, MainHeight: Integer);
+    constructor Create(WindowClass, ResourceName, Codename, Version, GitSHA: string; MainLeft, MainTop, MainWidth, MainHeight: Integer);
   end;
 
 const
@@ -214,8 +216,8 @@ end;
 
 { TSplashThread }
 
-constructor TSplashThread.Create(WindowClass, ResourceName, Codename, Version: string; Build: Integer;
-  MainLeft, MainTop, MainWidth, MainHeight: Integer);
+constructor TSplashThread.Create(WindowClass, ResourceName, Codename, Version,
+  GitSHA: string; MainLeft, MainTop, MainWidth, MainHeight: Integer);
 begin
   inherited Create(False);
 
@@ -228,10 +230,10 @@ begin
   FResourceName := ResourceName;
 
   FVersion := '© 2010-2021 Alexander Nottelmann et al. - V' + Version;
-  if (Build > 0) and (Codename <> '') then
-    FVersion := FVersion + ' ''' + Codename + ''' ' + Format(_('build %d'), [Build])
-  else if Build > 0 then
-    FVersion := FVersion + ' ' + Format(_('build %d'), [Build]);
+  if (GitSHA.Length > 0) and (Codename <> '') then
+    FVersion := FVersion + ' ''' + Codename + ''' ' + Format(_(' %s'), [GitSHA]) // TODO: ... auch hier drunter. sinnloses format
+  else if GitSHA.Length > 0 then
+    FVersion := FVersion + ' ' + Format(_('build %s'), [GitSHA]);
 
   StartPosLeft := MainLeft;
   StartPosTop := MainTop;

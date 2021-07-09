@@ -129,10 +129,10 @@ begin
   lblAbout.Caption := AppGlobals.AppName;
 
   lblVersion.Caption := _('Version') + ' ' + AppGlobals.AppVersion.AsString;
-  if (AppGlobals.BuildNumber > 0) and (AppGlobals.Codename <> '') then
-    lblVersion.Caption := lblVersion.Caption + ' ''' + AppGlobals.Codename + ''' ' + Format(_('build %d'), [AppGlobals.BuildNumber])
-  else if AppGlobals.BuildNumber > 0 then
-    lblVersion.Caption := lblVersion.Caption + ' ' + Format(_('build %d'), [AppGlobals.BuildNumber]);
+  if (AppGlobals.GitSHA.Length > 0) and (AppGlobals.Codename <> '') then
+    lblVersion.Caption := lblVersion.Caption + ' ''' + AppGlobals.Codename + ''' ' + Format(_(' %s'), [AppGlobals.GitSHA])   // TODO: ... auch hier drunter
+  else if AppGlobals.GitSHA.Length > 0 then
+    lblVersion.Caption := lblVersion.Caption + ' ' + Format(_(' %s'), [AppGlobals.GitSHA]);
 
   lblGPL.Caption := _('Distributed under the terms of the GNU General Public License');
 
