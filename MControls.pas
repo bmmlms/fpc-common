@@ -23,10 +23,29 @@ unit MControls;
 interface
 
 uses
-  Windows, SysUtils, Classes, Messages, ComCtrls, ActiveX, Controls, Buttons,
-  StdCtrls, Menus, VirtualTrees, DragDrop, DragDropFile, ShellApi, Types,
-  Themes, ImgList, GUIFunctions, LanguageObjects, Graphics, Forms,
-  Generics.Collections, Math;
+  ActiveX,
+  Buttons,
+  Classes,
+  ComCtrls,
+  Controls,
+  DragDrop,
+  DragDropFile,
+  Forms,
+  Generics.Collections,
+  Graphics,
+  GUIFunctions,
+  ImgList,
+  LanguageObjects,
+  Math,
+  Menus,
+  Messages,
+  ShellApi,
+  StdCtrls,
+  SysUtils,
+  Themes,
+  Types,
+  VirtualTrees,
+  Windows;
 
 type
 
@@ -57,7 +76,8 @@ type
   { TMPageControl }
 
   TMPageControl = class(TPageControl)
-  private const
+  private
+  const
     WM_CLOSETAB = WM_USER + 1245;
     CT_ACTIVE = 0;
     CT_ALL = 1;
@@ -67,9 +87,11 @@ type
     FMaxTabWidth: Integer;
     FFocusList: TList<TTabSheet>;
     FPressedButton: Integer;
+    FMouseInButton: Boolean;
 
     procedure DrawButton(Canvas: TCanvas; R: TRect; State: TButtonState);
     procedure RemoveTab(Tab: TMTabSheet); virtual;
+    function GetCloseButtonTabIndex(const P: TPoint): Integer;
     procedure FSetMaxTabWidth(Value: Integer);
     function FGetTabSheet(Index: Integer): TMTabSheet;
   protected
@@ -80,6 +102,7 @@ type
     procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
+    procedure MouseLeave; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -98,10 +121,8 @@ type
     procedure NodeSelected(Node: PVirtualNode); virtual;
     procedure KeyPress(var Key: Char); override;
     procedure KeyUp(var Key: Word; Shift: TShiftState); override;
-    procedure MouseDown(Button: TMouseButton; Shift: TShiftState;
-      X: Integer; Y: Integer); override;
-    procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X: Integer;
-      Y: Integer); override;
+    procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X: Integer; Y: Integer); override;
+    procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X: Integer; Y: Integer); override;
   public
   end;
 
@@ -205,8 +226,7 @@ end;
 
 { TMPageControl }
 
-procedure TMPageControl.DrawButton(Canvas: TCanvas; R: TRect;
-  State: TButtonState);
+procedure TMPageControl.DrawButton(Canvas: TCanvas; R: TRect; State: TButtonState);
 var
   uType: Integer;
   uState: Integer;
@@ -248,13 +268,9 @@ begin
 end;
 
 function TMPageControl.CanChange: Boolean;
-var
-  i: Integer;
 begin
-  if GetAsyncKeyState(VK_LBUTTON) < 0 then
-    for i := 0 to PageCount - 1 do
-      if TMTabSheet(Pages[i]).FButtonRect.Contains(ScreenToClient(Mouse.CursorPos)) then
-        Exit(False);
+  if (GetAsyncKeyState(VK_LBUTTON) < 0) and (GetCloseButtonTabIndex(ScreenToClient(Mouse.CursorPos)) > -1) then
+    Exit(False);
 
   Result := inherited;
 
@@ -284,9 +300,7 @@ begin
       if FPressedButton = i then
         DrawButton(Canvas, R, bsDown)
       else if R.Contains(ScreenToClient(Mouse.CursorPos)) then
-      begin
-        DrawButton(Canvas, R, bsHot);
-      end
+        DrawButton(Canvas, R, bsHot)
       else
         DrawButton(Canvas, R, bsUp);
     end;
@@ -311,7 +325,7 @@ end;
 
 procedure TMPageControl.CloseTab(Idx: Integer);
 begin
-  PostMessage(Handle, WM_CLOSETAB, CT_ACTIVE, Idx)
+  PostMessage(Handle, WM_CLOSETAB, CT_ACTIVE, Idx);
 end;
 
 constructor TMPageControl.Create(AOwner: TComponent);
@@ -332,7 +346,7 @@ end;
 
 procedure TMPageControl.CloseAll;
 begin
-  PostMessage(Handle, WM_CLOSETAB, CT_ALL, 0)
+  PostMessage(Handle, WM_CLOSETAB, CT_ALL, 0);
 end;
 
 procedure TMPageControl.CloseAllButActive;
@@ -370,13 +384,10 @@ begin
         Idx := ActivePageIndex
       else
         Idx := ActivePageIndex - 1;
-    end else
-    begin
-      if Tab.PageIndex <= ActivePageIndex then
-        Idx := ActivePageIndex - 1
-      else
-        Idx := ActivePageIndex;
-    end;
+    end else if Tab.PageIndex <= ActivePageIndex then
+      Idx := ActivePageIndex - 1
+    else
+      Idx := ActivePageIndex;
 
     if Idx < 0 then
       Idx := 0;
@@ -397,6 +408,16 @@ begin
   end;
 end;
 
+function TMPageControl.GetCloseButtonTabIndex(const P: TPoint): Integer;
+var
+  i: Integer;
+begin
+  for i := 0 to PageCount - 1 do
+    if Pages[i].FShowCloseButton and Pages[i].FButtonRect.Contains(P) then
+      Exit(i);
+  Exit(-1);
+end;
+
 procedure TMPageControl.WndProc(var Message: TMessage);
 var
   i: Integer;
@@ -405,14 +426,10 @@ begin
   begin
     case Message.WParam of
       CT_ACTIVE:
-        begin
-          RemoveTab(Pages[Message.LParam]);
-        end;
+        RemoveTab(Pages[Message.LParam]);
       CT_ALL:
-        begin
-          for i := PageCount - 1 downto 0 do
-            RemoveTab(Pages[i]);
-        end;
+        for i := PageCount - 1 downto 0 do
+          RemoveTab(Pages[i]);
       CT_ALL_BUT_ACTIVE:
         for i := PageCount - 1 downto 0 do
           if Pages[i] <> ActivePage then
@@ -425,30 +442,32 @@ begin
 end;
 
 procedure TMPageControl.MouseMove(Shift: TShiftState; X, Y: Integer);
+var
+  ButtonIndex: Integer;
 begin
   inherited MouseMove(Shift, X, Y);
 
-  Invalidate;
+  ButtonIndex := GetCloseButtonTabIndex(TPoint.Create(X, Y));
+
+  if (ButtonIndex > -1) <> FMouseInButton then
+    Invalidate;
+
+  FMouseInButton := ButtonIndex > -1;
 end;
 
 procedure TMPageControl.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var
-  i: Integer;
 begin
   inherited MouseDown(Button, Shift, X, Y);
 
   if Button <> mbLeft then
     Exit;
 
-  FPressedButton := -1;
-  for i := 0 to PageCount - 1 do
-    if Pages[i].FShowCloseButton and Pages[i].FButtonRect.Contains(ScreenToClient(Mouse.CursorPos)) then
-    begin
-      FPressedButton := i;
-      MouseCapture := True;
-      Invalidate;
-      Break;
-    end;
+  FPressedButton := GetCloseButtonTabIndex(TPoint.Create(X, Y));
+  if FPressedButton > -1 then
+  begin
+    MouseCapture := True;
+    Invalidate;
+  end;
 end;
 
 procedure TMPageControl.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -465,6 +484,14 @@ begin
 
     Invalidate;
   end;
+end;
+
+procedure TMPageControl.MouseLeave;
+begin
+  inherited MouseLeave;
+
+  if FMouseInButton then
+    Invalidate;
 end;
 
 { TMStatusBar }
@@ -520,25 +547,17 @@ end;
 procedure TMVirtualStringTree.KeyUp(var Key: Word; Shift: TShiftState);
 begin
   inherited;
-  if ((Key = VK_UP) or (Key = VK_DOWN) or
-      (Key = VK_RIGHT) or (Key = VK_LEFT) or
-      (Key = VK_SPACE) or (Key = VK_RETURN) or
-      (Key = VK_END) or (Key = VK_HOME) or
-      (Key = VK_PRIOR) or (Key = VK_NEXT)) and
-     (FocusedNode <> nil) then
-  begin
+  if ((Key = VK_UP) or (Key = VK_DOWN) or (Key = VK_RIGHT) or (Key = VK_LEFT) or (Key = VK_SPACE) or (Key = VK_RETURN) or (Key = VK_END) or (Key = VK_HOME) or
+    (Key = VK_PRIOR) or (Key = VK_NEXT)) and (FocusedNode <> nil) then
     NodeSelected(FocusedNode);
-  end;
 end;
 
-procedure TMVirtualStringTree.MouseDown(Button: TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
+procedure TMVirtualStringTree.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   inherited;
 end;
 
-procedure TMVirtualStringTree.MouseUp(Button: TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
+procedure TMVirtualStringTree.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   Node: PVirtualNode;
 begin

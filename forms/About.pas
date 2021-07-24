@@ -76,7 +76,6 @@ type
     procedure lblHomepageClick(Sender: TObject);
     procedure btnDonateClick(Sender: TObject);
     procedure pagAboutChange(Sender: TObject);
-    procedure btnDonateEnClick(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure pbLogoPaint(Sender: TObject);
     procedure pnlNavClick(Sender: TObject);
@@ -103,18 +102,7 @@ begin
   ShellExecute(0, 'open', PChar(AppGlobals.ProjectDonateLink), '', '', 1);
 end;
 
-procedure TfrmAbout.btnDonateEnClick(Sender: TObject);
-begin
-  ShellExecute(0, 'open', PChar(AppGlobals.ProjectDonateLink), '', '', 1);
-end;
-
 constructor TfrmAbout.Create(AOwner: TComponent; Caption: string; IsMainWindow: Boolean);
-var
-  TransparentRight, TransparentTop: Integer;
-  Icon: TIcon;
-  PNG, PNGCropped: TImage;
-  ResStream: TResourceStream;
-  P: TPortableNetworkGraphic;
 begin
   FIsMainWindow := IsMainWindow;
 
@@ -130,9 +118,9 @@ begin
 
   lblVersion.Caption := _('Version') + ' ' + AppGlobals.AppVersion.AsString;
   if (AppGlobals.GitSHA.Length > 0) and (AppGlobals.Codename <> '') then
-    lblVersion.Caption := lblVersion.Caption + ' ''' + AppGlobals.Codename + ''' ' + Format(_(' %s'), [AppGlobals.GitSHA])   // TODO: ... auch hier drunter
+    lblVersion.Caption := lblVersion.Caption + ' ''%s'' %s'.Format([AppGlobals.Codename, AppGlobals.GitSHA])
   else if AppGlobals.GitSHA.Length > 0 then
-    lblVersion.Caption := lblVersion.Caption + ' ' + Format(_(' %s'), [AppGlobals.GitSHA]);
+    lblVersion.Caption := lblVersion.Caption + ' %s'.Format([AppGlobals.GitSHA]);
 
   lblGPL.Caption := _('Distributed under the terms of the GNU General Public License');
 

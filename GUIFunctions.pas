@@ -23,8 +23,16 @@ unit GUIFunctions;
 interface
 
 uses
-  Windows, SysUtils, Classes, Controls, Graphics, ShellAPI, ShlObj, ActiveX,
-  ComObj, Types;
+  ActiveX,
+  Classes,
+  ComObj,
+  Controls,
+  Graphics,
+  ShellAPI,
+  ShlObj,
+  SysUtils,
+  Types,
+  Windows;
 
 function GetTextSize(Text: string; Font: TFont): TSize;
 function TruncateText(Text: string; MaxWidth: Integer; Font: TFont): string;
@@ -108,7 +116,7 @@ begin
   end;
 end;
 
-function BrowseDialog(Handle: HWnd; Title: string; Flag: Integer): string;  // TODO: gibts ne kompoinente für
+function BrowseDialog(Handle: HWnd; Title: string; Flag: Integer): string;
 var
   lpItemID: PItemIDList;
   BrowseInfo: TBrowseInfo;
@@ -141,7 +149,7 @@ begin
   sei.cbSize := SizeOf(sei);
   sei.lpFile := PChar(Filename);
   sei.lpVerb := 'properties';
-  sei.fMask  := SEE_MASK_INVOKEIDLIST;
+  sei.fMask := SEE_MASK_INVOKEIDLIST;
   //ShellExecuteEx(@sei);
 end;
 
@@ -155,18 +163,15 @@ begin
   Result := '';
   SHGetMalloc(Malloc);
   if Malloc = nil then
-  begin
     Exit;
-  end;
   try
     SystemFolder := CSIDL;
     if SUCCEEDED(SHGetSpecialFolderLocation(0, SystemFolder, pidl)) then
     begin
       SetLength(Result, MAX_PATH);
       if SHGetPathFromIDList(pidl, PChar(Result)) then
-      begin
-        SetLength(Result, Length(PChar(Result)));
-      end else
+        SetLength(Result, Length(PChar(Result)))
+      else
         Result := '';
     end;
   finally
@@ -198,9 +203,7 @@ function GetUserDir: string;
 begin
   Result := GetShellFolder(CSIDL_APPDATA);
   if (Trim(Result) <> '') then
-  begin
     Result := IncludeTrailingPathDelimiter(Result);
-  end;
 end;
 
 function ResizeBitmap(Bitmap: TBitmap; MaxSize: Integer): TBitmap;
@@ -234,9 +237,8 @@ var
 begin
   Dest := IncludeTrailingPathDelimiter(Dest);
   if Delete then
-  begin
-    Result := DeleteFile(Dest + Name + '.lnk');
-  end else
+    Result := DeleteFile(Dest + Name + '.lnk')
+  else
   begin
     DeleteFile(Dest + Name + '.lnk');
 
@@ -277,4 +279,3 @@ begin
 end;
 
 end.
-

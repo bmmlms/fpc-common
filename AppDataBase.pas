@@ -48,7 +48,6 @@ type
     FLanguage: string;
     FFirstStartShown: Boolean;
     FLastUsedVersion: TAppVersion;
-    FLastUsedBuild: Cardinal;
     FSuppressUpdatedInfo: Boolean;
 
     FMainWidthDefault: Integer;
@@ -161,7 +160,6 @@ type
     property Language: string read FLanguage write FLanguage;
     property FirstStartShown: Boolean read FFirstStartShown write FFirstStartShown;
     property LastUsedVersion: TAppVersion read FLastUsedVersion;
-    property LastUsedBuild: Cardinal read FLastUsedBuild write FLastUsedBuild;
     property SuppressUpdatedInfo: Boolean read FSuppressUpdatedInfo write FSuppressUpdatedInfo;
     property WindowHandle: Cardinal read FWindowHandle write FSetWindowHandle;
     property InfoShown[Idx: Integer]: Boolean read FGetInfoShown write FSetInfoShown;
@@ -373,7 +371,6 @@ begin
   FStorage.Read('FirstStartShown', FFirstStartShown, False);
 
   FStorage.Read('LastUsedVersion', LastUsedVersion, AppVersion.AsString);
-  // FStorage.Read('LastUsedBuild', FLastUsedBuild, FBuildNumber);    // TODO: ... es gibt keine build number mehr.
   FStorage.Read('SuppressUpdatedInfo', FSuppressUpdatedInfo, False);
   try
     FLastUsedVersion := ParseVersion(LastUsedVersion);
@@ -404,7 +401,6 @@ begin
   FStorage.Write('Language', FLanguage);
   FStorage.Write('FirstStartShown', FFirstStartShown);
   FStorage.Write('LastUsedVersion', AppVersion.AsString);
-  // FStorage.Write('LastUsedBuild', FBuildNumber);
   FStorage.Write('SuppressUpdatedInfo', FSuppressUpdatedInfo);
 end;
 

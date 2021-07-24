@@ -231,9 +231,9 @@ begin
 
   FVersion := '© 2010-2021 Alexander Nottelmann et al. - V' + Version;
   if (GitSHA.Length > 0) and (Codename <> '') then
-    FVersion := FVersion + ' ''' + Codename + ''' ' + Format(_(' %s'), [GitSHA]) // TODO: ... auch hier drunter. sinnloses format
+    FVersion := FVersion + ' ''%s'' %s'.Format([Codename, GitSHA])
   else if GitSHA.Length > 0 then
-    FVersion := FVersion + ' ' + Format(_('build %s'), [GitSHA]);
+    FVersion := FVersion + ' %s'.Format([GitSHA]);
 
   StartPosLeft := MainLeft;
   StartPosTop := MainTop;

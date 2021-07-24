@@ -55,7 +55,7 @@ object frmAbout: TfrmAbout
   OnKeyDown = FormKeyDown
   OnResize = FormResize
   Position = poOwnerFormCenter
-  LCLVersion = '2.0.12.0'
+  LCLVersion = '2.2.0.1'
   object pagAbout: TPageControl
     Left = 0
     Height = 222
@@ -80,7 +80,6 @@ object frmAbout: TfrmAbout
         Font.Height = -16
         Font.Name = 'Tahoma'
         Font.Style = [fsBold]
-        ParentColor = False
         ParentFont = False
       end
       object lblVersion: TLabel
@@ -92,7 +91,6 @@ object frmAbout: TfrmAbout
         Font.Color = clWindowText
         Font.Height = -11
         Font.Name = 'Tahoma'
-        ParentColor = False
         ParentFont = False
       end
       object lblCopyright: TLabel
@@ -101,7 +99,6 @@ object frmAbout: TfrmAbout
         Top = 56
         Width = 253
         Caption = 'Copyright © 2010-2021 Alexander Nottelmann et al.'
-        ParentColor = False
       end
       object lblHomepage: TLabel
         Cursor = crHandPoint
@@ -114,7 +111,6 @@ object frmAbout: TfrmAbout
         Font.Height = -11
         Font.Name = 'Tahoma'
         Font.Style = [fsUnderline]
-        ParentColor = False
         ParentFont = False
         OnClick = lblHomepageClick
       end
@@ -152,8 +148,8 @@ object frmAbout: TfrmAbout
     end
     object tabLicense: TTabSheet
       Caption = 'License'
-      ClientHeight = 0
-      ClientWidth = 0
+      ClientHeight = 196
+      ClientWidth = 413
       ImageIndex = 1
       object lblGPL: TLabel
         Cursor = crHandPoint
@@ -166,7 +162,6 @@ object frmAbout: TfrmAbout
         Font.Height = -11
         Font.Name = 'Tahoma'
         Font.Style = [fsUnderline]
-        ParentColor = False
         ParentFont = False
         OnClick = lblGPLClick
       end
