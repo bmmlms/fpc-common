@@ -24,6 +24,7 @@ interface
 
 uses
   Windows,
+  Forms,
   ActiveX,
   Classes,
   ComObj,
@@ -45,6 +46,7 @@ function GetUserDir: string;
 function ResizeBitmap(Bitmap: TBitmap; MaxSize: Integer): TBitmap;
 function CreateLink(Executable, Dir, Name, Args: string; Delete: Boolean): Boolean;
 procedure GetMaxTransparent(Icon: TIcon; var Top, Right: Integer);
+function WindowIsFullscreen: Boolean;
 
 implementation
 
@@ -274,6 +276,37 @@ begin
       if Icon.Canvas.Pixels[n, i] <> C then
         if i < Top then
           Top := i;
+end;
+
+function WindowIsFullscreen: Boolean;
+  function RectMatches(R: TRect; R2: TRect): Boolean;
+  begin
+    Result := (R.Left = R2.Left) and (R.Top = R2.Top) and (R.Right = R2.Right) and (R.Bottom = R2.Bottom);
+  end;
+type
+  TGetShellWindow = function(): HWND; stdcall;
+var
+  i: Integer;
+  H, Handle: Cardinal;
+  R: TRect;
+  GetShellWindow: TGetShellWindow;
+begin
+  H := GetForegroundWindow;
+
+  @GetShellWindow := nil;
+  Handle := GetModuleHandle('user32.dll');
+  if (Handle > 0) then
+    @GetShellWindow := GetProcAddress(Handle, 'GetShellWindow');
+
+  if ((H <> GetDesktopWindow) and ((@GetShellWindow <> nil) and (H <> GetShellWindow))) then
+  begin
+    GetWindowRect(H, R);
+    for i := 0 to Screen.MonitorCount - 1 do
+      if RectMatches(Screen.Monitors[i].BoundsRect, R) then
+        Exit(True);
+  end;
+
+  Exit(False);
 end;
 
 end.
