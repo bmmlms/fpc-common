@@ -23,7 +23,7 @@ unit MControls;
 interface
 
 uses
-  ActiveX,
+  Windows,
   Buttons,
   Classes,
   ComCtrls,
@@ -39,13 +39,10 @@ uses
   Math,
   Menus,
   Messages,
-  ShellApi,
-  StdCtrls,
   SysUtils,
   Themes,
   Types,
-  VirtualTrees,
-  Windows;
+  VirtualTrees;
 
 type
 
@@ -83,6 +80,7 @@ type
     CT_ALL = 1;
     CT_ALL_BUT_ACTIVE = 2;
   private
+    FRemoving: Boolean;
     FPainted: Boolean;
     FMaxTabWidth: Integer;
     FFocusList: TList<TTabSheet>;
@@ -318,7 +316,8 @@ begin
   if TMTabSheet(ActivePage).FFocusedControlBeforeChange <> nil then
     TMTabSheet(ActivePage).FFocusedControlBeforeChange.ApplyFocus;
 
-  FFocusList.Add(ActivePage);
+  if not FRemoving then
+    FFocusList.Add(ActivePage);
 
   Invalidate;
 end;
@@ -376,6 +375,7 @@ begin
   if not Tab.CanClose then
     Exit;
 
+  FRemoving := True;
   LockWindowUpdate(Handle);
   try
     if Tab = ActivePage then
@@ -405,6 +405,7 @@ begin
     ActivePageIndex := Idx;
   finally
     LockWindowUpdate(0);
+    FRemoving := False;
   end;
 end;
 
@@ -547,8 +548,7 @@ end;
 procedure TMVirtualStringTree.KeyUp(var Key: Word; Shift: TShiftState);
 begin
   inherited;
-  if ((Key = VK_UP) or (Key = VK_DOWN) or (Key = VK_RIGHT) or (Key = VK_LEFT) or (Key = VK_SPACE) or (Key = VK_RETURN) or (Key = VK_END) or (Key = VK_HOME) or
-    (Key = VK_PRIOR) or (Key = VK_NEXT)) and (FocusedNode <> nil) then
+  if ((Key = VK_UP) or (Key = VK_DOWN) or (Key = VK_RIGHT) or (Key = VK_LEFT) or (Key = VK_SPACE) or (Key = VK_RETURN) or (Key = VK_END) or (Key = VK_HOME) or (Key = VK_PRIOR) or (Key = VK_NEXT)) and (FocusedNode <> nil) then
     NodeSelected(FocusedNode);
 end;
 

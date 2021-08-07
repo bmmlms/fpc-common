@@ -23,6 +23,7 @@ unit GUIFunctions;
 interface
 
 uses
+  Windows,
   ActiveX,
   Classes,
   ComObj,
@@ -31,8 +32,7 @@ uses
   ShellAPI,
   ShlObj,
   SysUtils,
-  Types,
-  Windows;
+  Types;
 
 function GetTextSize(Text: string; Font: TFont): TSize;
 function TruncateText(Text: string; MaxWidth: Integer; Font: TFont): string;
@@ -43,7 +43,7 @@ function GetShellFolder(CSIDL: Integer): string;
 function Recycle(Handle: Cardinal; Filename: string): Boolean; overload;
 function GetUserDir: string;
 function ResizeBitmap(Bitmap: TBitmap; MaxSize: Integer): TBitmap;
-function CreateLink(Executable, Dest, Name, Args: string; Delete: Boolean): Boolean;
+function CreateLink(Executable, Dir, Name, Args: string; Delete: Boolean): Boolean;
 procedure GetMaxTransparent(Icon: TIcon; var Top, Right: Integer);
 
 implementation
@@ -228,31 +228,29 @@ begin
   Result := Res;
 end;
 
-function CreateLink(Executable, Dest, Name, Args: string; Delete: Boolean): Boolean;
+function CreateLink(Executable, Dir, Name, Args: string; Delete: Boolean): Boolean;
 var
   IObject: IUnknown;
-  ISLink: IShellLink;
+  ISLink: IShellLinkW;
   IPFile: IPersistFile;
-  LinkName: WideString;
+  Filename: string;
 begin
-  Dest := IncludeTrailingPathDelimiter(Dest);
+  Filename := ConcatPaths([Dir, '%s.lnk'.Format([Name])]);
   if Delete then
-    Result := DeleteFile(Dest + Name + '.lnk')
+    Result := DeleteFile(Filename)
   else
   begin
-    DeleteFile(Dest + Name + '.lnk');
+    DeleteFile(Filename);
 
     IObject := CreateComObject(CLSID_ShellLink);
-    ISLink := IObject as IShellLink;
+    ISLink := IObject as IShellLinkW;
     IPFile := IObject as IPersistFile;
 
-    ISLink.SetPath(PChar(Executable));
-    ISLink.SetWorkingDirectory(PChar(ExtractFilePath(Executable)));
-    ISLink.SetArguments(PChar(Args));
+    ISLink.SetPath(PWideChar(WideString(Executable)));
+    ISLink.SetWorkingDirectory(PWideChar(WideString(ExtractFilePath(Executable))));
+    ISLink.SetArguments(PWideChar(WideString(Args)));
 
-    // TODO:
-    //LinkName := Dest + Name + '.lnk';
-    //Result := IPFile.Save(PChar(LinkName), False) = S_OK;
+    Result := IPFile.Save(PWideChar(WideString(Filename)), False) = S_OK;
   end;
 end;
 
