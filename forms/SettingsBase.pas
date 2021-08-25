@@ -26,7 +26,7 @@ uses
   Windows, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Buttons, ComCtrls, LanguageObjects,
   AppData, AppDataBase, SettingsStorage, Functions, ComboEx,
-  ImgList, VirtualTrees, ExtendedStream, GUIFunctions,
+  ImgList, MLabeledEdit, VirtualTrees, ExtendedStream, GUIFunctions,
   MControls, Generics.Collections;
 
 type
@@ -77,6 +77,14 @@ type
   { TfrmSettingsBase }
 
   TfrmSettingsBase = class(TForm)
+    btnCopyProfile: TButton;
+    btnDeleteProfile: TButton;
+    btnExportProfile: TButton;
+    btnImportProfile: TButton;
+    FlowPanelSettingsBase1: TFlowPanel;
+    FlowPanelSettingsBase2: TFlowPanel;
+    lstLanguages: TMLabeledComboBoxEx;
+    txtHost: TMLabeledEdit;
     pnlHeader: TPanel;
     Shape1: TShape;
     lblTop: TLabel;
@@ -85,18 +93,11 @@ type
     btnOK: TBitBtn;
     pnlLeft: TPanel;
     pnlGeneral: TPanel;
-    lstLanguages: TComboBoxEx;
-    lblLanguage: TLabel;
     chkAutoUpdateCheck: TCheckBox;
     lblPortable: TLabel;
-    btnCopyProfile: TButton;
-    txtPort: TLabeledEdit;
-    txtHost: TLabeledEdit;
     chkProxy: TCheckBox;
-    btnDeleteProfile: TButton;
-    btnExportProfile: TButton;
-    btnImportProfile: TButton;
     chkCheckCertificate: TCheckBox;
+    txtPort: TMLabeledSpinEdit;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
@@ -329,11 +330,11 @@ begin
 
   if chkProxy.Checked then
   begin
-    if (Trim(txtHost.Text) = '') or (Trim(txtPort.Text) = '') or (StrToIntDef(txtPort.Text, 0) <= 0) then
+    if (Trim(txtHost.Control.Text) = '') or (Trim(txtPort.Control.Text) = '') or (StrToIntDef(txtPort.Control.Text, 0) <= 0) then
     begin
       MsgBox(Handle, _('You need to supply a host and a port (must be a positive number) to connect to if the use of a HTTP proxy is enabled.'), _('Info'), MB_ICONINFORMATION);
       SetPage(FPageList.Find(TPanel(txtHost.Parent)));
-      if Trim(txtHost.Text) = '' then
+      if Trim(txtHost.Control.Text) = '' then
         txtHost.ApplyFocus
       else
         txtPort.ApplyFocus;
@@ -404,16 +405,14 @@ begin
     try
       AppGlobals.CheckCertificate := chkCheckCertificate.Checked;
       AppGlobals.ProxyEnabled := chkProxy.Checked;
-      AppGlobals.ProxyHost := txtHost.Text;
-      AppGlobals.ProxyPort := StrToIntDef(txtPort.Text, 8080);
+      AppGlobals.ProxyHost := txtHost.Control.Text;
+      AppGlobals.ProxyPort := StrToIntDef(txtPort.Control.Text, 8080);
     finally
       AppGlobals.Unlock;
     end;
 
-    if lstLanguages.ItemIndex > -1 then
-    begin
+    if lstLanguages.Control.ItemIndex > -1 then
       AppGlobals.Language := Language.CurrentLanguage.ID;
-    end;
   end;
 
   FSaveSettings := True;
@@ -432,16 +431,16 @@ begin
   chkProxy.Checked := AppGlobals.ProxyEnabled;
   txtHost.Enabled := chkProxy.Checked;
   txtPort.Enabled := chkProxy.Checked;
-  txtHost.Text := AppGlobals.ProxyHost;
-  txtPort.Text := IntToStr(AppGlobals.ProxyPort);
+  txtHost.Control.Text := AppGlobals.ProxyHost;
+  txtPort.Control.Text := IntToStr(AppGlobals.ProxyPort);
 
-  lstLanguages.Clear;
-  lstLanguages.Images := AppGlobals.LanguageIcons.List;
+  lstLanguages.Control.Clear;
+  lstLanguages.Control.Images := AppGlobals.LanguageIcons.List;
 
   for i := 0 to LanguageList.Count - 1 do
     if LanguageList[i].Available then
     begin
-      ComboItem := lstLanguages.ItemsEx.Add;
+      ComboItem := lstLanguages.Control.ItemsEx.Add;
       ComboItem.Caption := LanguageList[i].Name;
       ComboItem.Data := LanguageList[i];
       ComboItem.ImageIndex := AppGlobals.LanguageIcons.GetIconIndex(LanguageList[i].ID);
@@ -453,10 +452,10 @@ begin
   lstLanguages.ItemsEx.Sort;
   }
 
-  for i := 0 to lstLanguages.ItemsEx.Count - 1 do
-    if Language.CurrentLanguage.ID = TLanguage(lstLanguages.ItemsEx[i].Data).ID then
+  for i := 0 to lstLanguages.Control.ItemsEx.Count - 1 do
+    if Language.CurrentLanguage.ID = TLanguage(lstLanguages.Control.ItemsEx[i].Data).ID then
     begin
-      lstLanguages.ItemIndex := i;
+      lstLanguages.Control.ItemIndex := i;
       Break;
     end;
 end;

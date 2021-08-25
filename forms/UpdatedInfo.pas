@@ -28,13 +28,17 @@ uses
   ShellAPI, MControls;
 
 type
+
+  { TfrmUpdatedInfo }
+
   TfrmUpdatedInfo = class(TForm)
+    btnDonateDe: TImage;
+    btnDonateEn: TImage;
+    Panel1: TPanel;
     txtInfo: TMemo;
     pnlNav: TPanel;
     Bevel2: TBevel;
     btnClose: TBitBtn;
-    btnDonateEn: TImage;
-    btnDonateDe: TImage;
     chkNotShowAgain: TCheckBox;
     procedure FormKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);

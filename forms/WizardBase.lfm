@@ -17,7 +17,6 @@ object frmWizardBase: TfrmWizardBase
   OnDestroy = FormDestroy
   OnKeyDown = FormKeyDown
   OnShow = FormShow
-  LCLVersion = '2.0.12.0'
   object pnlLanguage: TPanel
     Left = 4
     Height = 213
@@ -34,14 +33,13 @@ object frmWizardBase: TfrmWizardBase
       Top = 4
       Width = 51
       Caption = 'Language:'
-      ParentColor = False
     end
     object lstLanguages: TComboBoxEx
       Left = 8
-      Height = 22
+      Height = 24
       Top = 20
       Width = 165
-      ItemHeight = 0
+      ItemHeight = 16
       ItemsEx = <>
       OnSelect = lstLanguagesSelect
       Style = csExDropDownList
@@ -59,29 +57,28 @@ object frmWizardBase: TfrmWizardBase
     ClientWidth = 430
     TabOrder = 1
     object Bevel2: TBevel
-      Left = 4
+      Left = 0
       Height = 5
-      Top = 4
-      Width = 422
+      Top = 0
+      Width = 430
       Align = alTop
       Shape = bsTopLine
     end
     object btnNext: TBitBtn
-      Left = 329
-      Height = 27
-      Top = 9
+      Left = 333
+      Height = 35
+      Top = 5
       Width = 97
       Align = alRight
       Caption = '&Next'
       Default = True
-      Layout = blGlyphLeft
       OnClick = btnNextClick
       TabOrder = 1
     end
     object btnBack: TBitBtn
-      Left = 4
-      Height = 27
-      Top = 9
+      Left = 0
+      Height = 35
+      Top = 5
       Width = 97
       Align = alLeft
       Caption = '&Cancel'
@@ -90,7 +87,7 @@ object frmWizardBase: TfrmWizardBase
     end
   end
   object pnlStorage: TPanel
-    Left = 408
+    Left = 248
     Height = 241
     Top = 96
     Width = 393
@@ -105,7 +102,6 @@ object frmWizardBase: TfrmWizardBase
       Width = 361
       AutoSize = False
       Caption = '-'
-      ParentColor = False
       WordWrap = True
       OnClick = lblAppDataClick
     end
@@ -116,23 +112,22 @@ object frmWizardBase: TfrmWizardBase
       Width = 361
       AutoSize = False
       Caption = '-'
-      ParentColor = False
       WordWrap = True
       OnClick = lblPortableClick
     end
     object optAppData: TRadioButton
       Left = 8
-      Height = 21
+      Height = 19
       Top = 0
-      Width = 353
+      Width = 233
       Caption = 'Save data to registry/application data folder'
       TabOrder = 0
     end
     object optPortable: TRadioButton
       Left = 8
-      Height = 21
+      Height = 19
       Top = 80
-      Width = 353
+      Width = 161
       Caption = 'Save data to application path'
       TabOrder = 1
     end
@@ -148,9 +143,9 @@ object frmWizardBase: TfrmWizardBase
     TabOrder = 3
     object chkAutoUpdate: TCheckBox
       Left = 8
-      Height = 21
+      Height = 19
       Top = 0
-      Width = 341
+      Width = 196
       Caption = 'Enable automatic search for updates'
       TabOrder = 0
     end
@@ -166,19 +161,19 @@ object frmWizardBase: TfrmWizardBase
     ClientWidth = 430
     TabOrder = 4
     object Shape1: TShape
-      Left = 4
-      Height = 29
-      Top = 2
-      Width = 422
+      Left = 0
+      Height = 33
+      Top = 0
+      Width = 430
       Align = alClient
       Brush.Color = clActiveCaption
       Pen.Color = clActiveBorder
     end
     object lblTop: TLabel
-      Left = 7
-      Height = 23
-      Top = 5
-      Width = 416
+      Left = 0
+      Height = 33
+      Top = 0
+      Width = 430
       Align = alClient
       AutoSize = False
       Caption = 'Welcome'
@@ -188,7 +183,6 @@ object frmWizardBase: TfrmWizardBase
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       Layout = tlCenter
-      ParentColor = False
       ParentFont = False
       Transparent = False
     end
@@ -210,7 +204,6 @@ object frmWizardBase: TfrmWizardBase
       Width = 413
       Anchors = [akTop, akLeft, akRight, akBottom]
       AutoSize = False
-      ParentColor = False
       WordWrap = True
     end
   end

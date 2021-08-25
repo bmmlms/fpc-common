@@ -28,12 +28,17 @@ uses
   Functions, ChangeLog, ShellAPI, ExtCtrls;
 
 type
+
+  { TfrmUpdate }
+
   TfrmUpdate = class(TForm)
-    lblState: TLabel;
     Label1: TLabel;
     Label2: TLabel;
-    lblVersion: TLabel;
     lblNewestVersion: TLabel;
+    lblState: TLabel;
+    lblVersion: TLabel;
+    Panel1: TPanel;
+    Panel2: TPanel;
     ProgressBar1: TProgressBar;
     lblChangeLog: TLabel;
     pnlNav: TPanel;

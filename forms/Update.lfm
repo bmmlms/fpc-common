@@ -1,13 +1,13 @@
 object frmUpdate: TfrmUpdate
   Left = 0
-  Height = 149
+  Height = 102
   Top = 0
-  Width = 269
+  Width = 275
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Update'
-  ClientHeight = 149
-  ClientWidth = 269
+  ClientHeight = 102
+  ClientWidth = 275
   Color = clBtnFace
   Font.Color = clWindowText
   Font.Height = -11
@@ -57,58 +57,20 @@ object frmUpdate: TfrmUpdate
   OnKeyDown = FormKeyDown
   Position = poOwnerFormCenter
   object lblState: TLabel
-    Left = 8
-    Height = 20
-    Top = 49
-    Width = 202
+    Left = 0
+    Height = 13
+    Top = 26
+    Width = 275
+    Align = alTop
     Alignment = taCenter
-    Anchors = [akTop, akLeft, akRight]
-    AutoSize = False
     Caption = 'Searching for new version...'
-    ParentColor = False
-  end
-  object Label1: TLabel
-    Left = 8
-    Height = 13
-    Top = 8
-    Width = 83
-    Caption = 'Installed version:'
-    ParentColor = False
-  end
-  object Label2: TLabel
-    Left = 8
-    Height = 13
-    Top = 28
-    Width = 78
-    Caption = 'Newest version:'
-    ParentColor = False
-  end
-  object lblVersion: TLabel
-    Left = 206
-    Height = 13
-    Top = 8
-    Width = 4
-    Alignment = taRightJustify
-    Anchors = [akTop, akRight]
-    Caption = '-'
-    ParentColor = False
-  end
-  object lblNewestVersion: TLabel
-    Left = 206
-    Height = 13
-    Top = 28
-    Width = 4
-    Alignment = taRightJustify
-    Anchors = [akTop, akRight]
-    Caption = '-'
-    ParentColor = False
   end
   object lblChangeLog: TLabel
     Cursor = crHandPoint
     Left = 112
     Height = 13
     Top = 72
-    Width = 0
+    Width = 6
     Alignment = taCenter
     Anchors = [akTop, akLeft, akRight]
     Caption = 'Changelog'
@@ -116,44 +78,44 @@ object frmUpdate: TfrmUpdate
     Font.Height = -11
     Font.Name = 'Tahoma'
     Font.Style = [fsUnderline]
-    ParentColor = False
     ParentFont = False
     Visible = False
     OnClick = lblChangeLogClick
   end
   object ProgressBar1: TProgressBar
-    Left = 8
+    Left = 0
     Height = 17
-    Top = 92
-    Width = 202
-    Anchors = [akTop, akLeft, akRight]
+    Top = 39
+    Width = 275
+    Align = alTop
     TabOrder = 0
   end
   object pnlNav: TPanel
     Left = 0
     Height = 40
-    Top = 109
-    Width = 269
+    Top = 62
+    Width = 275
     Align = alBottom
     BevelOuter = bvNone
     ClientHeight = 40
-    ClientWidth = 269
+    ClientWidth = 275
     TabOrder = 1
     object Bevel2: TBevel
       Left = 0
       Height = 5
       Top = 0
-      Width = 269
+      Width = 275
       Align = alTop
       Shape = bsTopLine
     end
     object cmdOK: TButton
-      Left = 172
+      Left = 178
       Height = 35
       Top = 5
       Width = 97
       Align = alRight
       Caption = '&Download'
+      Default = True
       Enabled = False
       OnClick = cmdOKClick
       TabOrder = 0
@@ -167,6 +129,64 @@ object frmUpdate: TfrmUpdate
       Caption = '&Close'
       OnClick = cmdCancelClick
       TabOrder = 1
+    end
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 13
+    Top = 0
+    Width = 275
+    Align = alTop
+    AutoSize = True
+    BevelOuter = bvNone
+    ClientHeight = 13
+    ClientWidth = 275
+    TabOrder = 2
+    object Label1: TLabel
+      Left = 0
+      Height = 13
+      Top = 0
+      Width = 83
+      Align = alLeft
+      Caption = 'Installed version:'
+    end
+    object lblVersion: TLabel
+      Left = 271
+      Height = 13
+      Top = 0
+      Width = 4
+      Align = alRight
+      Alignment = taRightJustify
+      Caption = '-'
+    end
+  end
+  object Panel2: TPanel
+    Left = 0
+    Height = 13
+    Top = 13
+    Width = 275
+    Align = alTop
+    AutoSize = True
+    BevelOuter = bvNone
+    ClientHeight = 13
+    ClientWidth = 275
+    TabOrder = 3
+    object Label2: TLabel
+      Left = 0
+      Height = 13
+      Top = 0
+      Width = 78
+      Align = alLeft
+      Caption = 'Newest version:'
+    end
+    object lblNewestVersion: TLabel
+      Left = 271
+      Height = 13
+      Top = 0
+      Width = 4
+      Align = alRight
+      Alignment = taRightJustify
+      Caption = '-'
     end
   end
 end

@@ -56,11 +56,11 @@ object frmChangeLog: TfrmChangeLog
   OnShow = FormShow
   Position = poOwnerFormCenter
   object txtChangeLog: TMemo
-    Left = 4
-    Height = 241
-    Top = 4
-    Width = 441
-    Anchors = [akTop, akLeft, akRight, akBottom]
+    Left = 0
+    Height = 245
+    Top = 0
+    Width = 449
+    Align = alClient
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 0
