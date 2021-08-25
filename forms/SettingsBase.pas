@@ -81,6 +81,7 @@ type
     btnDeleteProfile: TButton;
     btnExportProfile: TButton;
     btnImportProfile: TButton;
+    FlowPanelPages: TFlowPanel;
     FlowPanelSettingsBase1: TFlowPanel;
     FlowPanelSettingsBase2: TFlowPanel;
     lstLanguages: TMLabeledComboBoxEx;
@@ -363,6 +364,9 @@ begin
   inherited Create(AOwner);
 
   FImages := Images;;
+
+  for i := FlowPanelPages.ControlCount - 1 downto 0 do
+    FlowPanelPages.Controls[i].Parent := Self;
 
   // Alle Panels verstecken
   for i := 0 to ControlCount - 1 do

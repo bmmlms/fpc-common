@@ -1,13 +1,13 @@
 object frmSettingsBase: TfrmSettingsBase
   Left = 0
-  Height = 470
+  Height = 874
   Top = 0
-  Width = 620
+  Width = 1618
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Settings'
-  ClientHeight = 470
-  ClientWidth = 620
+  ClientHeight = 874
+  ClientWidth = 1618
   Color = clBtnFace
   Font.Color = clWindowText
   Font.Height = -11
@@ -16,21 +16,35 @@ object frmSettingsBase: TfrmSettingsBase
   OnDestroy = FormDestroy
   OnKeyDown = FormKeyDown
   OnShow = FormShow
+  LCLVersion = '2.2.0.1'
+  object FlowPanelPages: TFlowPanel
+    Left = 93
+    Height = 801
+    Top = 33
+    Width = 1525
+    Align = alClient
+    BevelOuter = bvNone
+    ControlList = <>
+    FlowLayout = tlTop
+    FlowStyle = fsLeftRightTopBottom
+    ParentColor = False
+    TabOrder = 4
+  end
   object pnlHeader: TPanel
     Left = 0
     Height = 33
     Top = 0
-    Width = 620
+    Width = 1618
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 33
-    ClientWidth = 620
+    ClientWidth = 1618
     TabOrder = 0
     object Shape1: TShape
       Left = 0
       Height = 33
       Top = 0
-      Width = 620
+      Width = 1618
       Align = alClient
       Brush.Color = clActiveCaption
       Pen.Color = clActiveBorder
@@ -39,7 +53,7 @@ object frmSettingsBase: TfrmSettingsBase
       Left = 0
       Height = 33
       Top = 0
-      Width = 620
+      Width = 1618
       Align = alClient
       AutoSize = False
       Caption = 'Settings'
@@ -56,23 +70,23 @@ object frmSettingsBase: TfrmSettingsBase
   object pnlNav: TPanel
     Left = 0
     Height = 40
-    Top = 430
-    Width = 620
+    Top = 834
+    Width = 1618
     Align = alBottom
     BevelOuter = bvNone
     ClientHeight = 40
-    ClientWidth = 620
+    ClientWidth = 1618
     TabOrder = 1
     object Bevel2: TBevel
       Left = 0
       Height = 5
       Top = 0
-      Width = 620
+      Width = 1618
       Align = alTop
       Shape = bsTopLine
     end
     object btnOK: TBitBtn
-      Left = 523
+      Left = 1521
       Height = 35
       Top = 5
       Width = 97
@@ -85,7 +99,7 @@ object frmSettingsBase: TfrmSettingsBase
   end
   object pnlLeft: TPanel
     Left = 0
-    Height = 397
+    Height = 801
     Top = 33
     Width = 93
     Align = alLeft
