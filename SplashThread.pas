@@ -23,223 +23,219 @@ unit SplashThread;
 interface
 
 uses
-  jwawinuser, Windows, Messages, SysUtils, Classes, Graphics, MultiMon,
-  Functions, LanguageObjects, Types;
+  JwaWinUser,
+  Windows,
+  Classes,
+  DateUtils,
+  Graphics,
+  LanguageObjects,
+  Messages,
+  MultiMon,
+  SysUtils,
+  Types;
 
 type
-  TStates = (stFadeIn, stWaiting, stFadeOut);
 
   { TSplashThread }
 
   TSplashThread = class(TThread)
+  type
+    TSplashStates = (ssFadingIn, ssVisible, ssFadingOut);
+  private
+  const
+    FADE_DURATION = 500;
+    SHOW_DURATION = 2000;
+    WINDOW_CLASS = 'mistakeSplashScreen';
   private
     FResourceName: string;
     FVersion: string;
+
+    FHandle: LongWord;
+    FFadeStartedAt, FFadeoutAt: TDateTime;
+
+    FBitmapSize: TSize;
+    FSplashBitmap: TBitmap;
+    FSplashBitmapPos: TPoint;
+    FBlendFunction: TBlendFunction;
+    FState: TSplashStates;
+    FWindowClass: TWndClassEx;
+    FStartPos: TRect;
+    FMonitors: array of TRect;
+    FAppWindow: Cardinal;
+    FMainWindowClass: string;
+    FMainWindowFound: Boolean;
+
+    class function EnumWindowsProc(hHwnd: HWND; lParam: integer): boolean; stdcall; static;
+    class function MonitorEnumProc(hm: HMONITOR; dc: HDC; r: PRect; l: LPARAM): Boolean; stdcall; static;
+    class function WndProcWrapper(hwnd: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall; static;
+
+    function FindAppWindow: Boolean;
+    procedure FocusAppWindow;
+    procedure SetAlpha(Value: Byte);
+    function WndProc(uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT;
 
     procedure PremultiplyBitmap(Bitmap: TBitmap);
   protected
     procedure Execute; override;
   public
     constructor Create(WindowClass, ResourceName, Codename, Version, GitSHA: string; MainLeft, MainTop, MainWidth, MainHeight: Integer);
+    destructor Destroy; override;
   end;
-
-const
-  FADE_TIME = 750;
-  FADE_WAIT_TIME = 1800;
-
-var
-  SplashWndHandle: LongWord;
-  BitmapSize: TSize;
-  SplashBitmap: TBitmap;
-  SplashBitmapPos: TPoint;
-  BlendFunction: TBlendFunction;
-  State: TStates;
-  WaitingStarted: Cardinal;
-  StartPosLeft, StartPosTop, StartPosWidth, StartPosHeight: Integer;
-  Monitors: array of TRect;
-  Killed: Boolean;
-  AnimationStart: UInt64;
-  EnumFoundWindow: Cardinal;
-  FadeOutWaitStart: Cardinal;
-  FocusWasSet: Boolean;
-  MainWindowClass: string;
-  FadeoutWait: Boolean;
 
 implementation
 
-function EnumWindowsProc(hHwnd: HWND; lParam : integer): boolean; stdcall;
+{ TSplashThread }
+
+class function TSplashThread.EnumWindowsProc(hHwnd: HWND; lParam: integer): boolean; stdcall;
 var
   Pid: DWORD;
   ClassName: string;
   Len: Integer;
+  SplashThread: TSplashThread;
 begin
+  SplashThread := TSplashThread(lParam);
+
   if (hHwnd = 0) then
-  begin
-    Result := False;
-  end
-  else
-  begin
-    Result := True;
+    Exit(False);
 
-    if hHwnd = SplashWndHandle then
-      Exit;
+  Result := True;
 
-    SetLength(ClassName, 255);
-    GetWindowThreadProcessId(hHwnd, Pid);
-    if (Pid = GetCurrentProcessId) and (IsWindowVisible(hHwnd)) then
+  if hHwnd = SplashThread.FHandle then
+    Exit;
+
+  SetLength(ClassName, 255);
+  GetWindowThreadProcessId(hHwnd, Pid);
+  if (Pid = GetCurrentProcessId) and (IsWindowVisible(hHwnd)) then
+  begin
+    Len := GetClassName(hHwnd, @ClassName[1], 255);
+    if Len > 0 then
     begin
-      Len := GetClassName(hHwnd, @ClassName[1], 255);
-      if Len > 0 then
-      begin
-        SetLength(ClassName, Len);
-        if ClassName = 'TApplication' then
-          Exit;
-        if ClassName = MainWindowClass then
-          FadeoutWait := True;
+      SetLength(ClassName, Len);
+      if ClassName = 'TApplication' then
+        Exit;
 
-        EnumFoundWindow := hHwnd;
-        Result := False;
-      end;
+      if ClassName = SplashThread.FMainWindowClass then
+        SplashThread.FMainWindowFound := True;
+
+      SplashThread.FAppWindow := hHwnd;
+      Result := False;
     end;
   end;
 end;
 
-function GetWindow: Boolean;
-begin
-  EnumWindows(@EnumWindowsProc, 0);
-  Result := EnumFoundWindow > 0;
-end;
-
-procedure FocusFoundWindow;
-begin
-  GetWindow;
-  if EnumFoundWindow > 0 then
-  begin
-    FocusWasSet := True;
-    SetForegroundWindow(EnumFoundWindow);
-  end;
-end;
-
-function WindowProc(hwn, msg, wpr, lpr: Longint): Longint; stdcall;
+class function TSplashThread.MonitorEnumProc(hm: HMONITOR; dc: HDC; r: PRect; l: LPARAM): Boolean; stdcall;
 var
-  Val: Cardinal;
-  TC: UInt64;
+  SplashThread: TSplashThread;
 begin
-  if Killed then
-  begin
-    Result := 0;
-    Exit;
-  end;
+  SplashThread := TSplashThread(l);
 
-  case msg of
-    WM_TIMER:
-      begin
-        if not FocusWasSet then
-          FocusFoundWindow;
+  SetLength(SplashThread.FMonitors, Length(SplashThread.FMonitors) + 1);
+  PRect(@SplashThread.FMonitors[High(SplashThread.FMonitors)])^ := r^;
 
-        TC := GetTickCount64;
-        if AnimationStart = 0 then
-          AnimationStart := GetTickCount64;
-
-        case State of
-          stFadeIn:
-            begin
-              Val := Trunc(((TC - AnimationStart) / FADE_TIME) * 254);
-
-              if TC - AnimationStart < FADE_TIME then
-              begin
-                BlendFunction.SourceConstantAlpha := Val;
-                UpdateLayeredWindow(SplashWndHandle, 0, nil, @BitmapSize, SplashBitmap.Canvas.Handle, @SplashBitmapPos, 0, @BlendFunction, ULW_ALPHA);
-              end else
-              begin
-                WaitingStarted := TC;
-                State := stWaiting;
-              end;
-            end;
-          stWaiting:
-            begin
-              if FocusWasSet then
-              begin
-                if FadeOutWaitStart = High(Cardinal) then
-                begin
-                  Sleep(200);
-                  if FadeoutWait then
-                  begin
-                    FadeOutWaitStart := TC;
-                  end else
-                  begin
-                    State := stFadeOut;
-                    AnimationStart := TC;
-                  end;
-                end;
-
-                if (FadeOutWaitStart <> High(Cardinal)) and (TC - FadeOutWaitStart > FADE_WAIT_TIME) then
-                begin
-                  State := stFadeOut;
-                  AnimationStart := TC;
-                end;
-              end;
-            end;
-          stFadeOut:
-            begin
-              Val := 254 - Trunc(((TC - AnimationStart) / FADE_TIME) * 254);
-
-              if TC - AnimationStart < FADE_TIME then
-              begin
-                BlendFunction.SourceConstantAlpha := Val;
-                UpdateLayeredWindow(SplashWndHandle, 0, nil, @BitmapSize, SplashBitmap.Canvas.Handle, @SplashBitmapPos, 0, @BlendFunction, ULW_ALPHA);
-              end else
-              begin
-                SplashBitmap.Free;
-                KillTimer(SplashWndHandle, 0);
-                Killed := True;
-              end;
-            end;
-        end;
-        SetWindowPos(SplashWndHandle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE or SWP_NOACTIVATE);
-      end;
-  end;
-  Result := DefWindowProc(hwn, msg, wpr, lpr);
-end;
-
-function MonitorEnumProc(hm: HMONITOR; dc: HDC; r: PRect; l: LPARAM): Boolean; stdcall;
-begin
-  SetLength(Monitors, Length(Monitors) + 1);
-  Monitors[High(Monitors)].Left := r.Left;
-  Monitors[High(Monitors)].Top := r.Top;
-  Monitors[High(Monitors)].Right := r.Right;
-  Monitors[High(Monitors)].Bottom := r.Bottom;
-  Monitors[High(Monitors)].TopLeft := r.TopLeft;
-  Monitors[High(Monitors)].BottomRight := r.BottomRight;
   Result := True;
 end;
 
-{ TSplashThread }
+class function TSplashThread.WndProcWrapper(hwnd: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall;
+begin
+  Result := TSplashThread(GetWindowLongPtrW(hwnd, GWLP_USERDATA)).WndProc(uMsg, wParam, lParam);
+end;
 
-constructor TSplashThread.Create(WindowClass, ResourceName, Codename, Version,
-  GitSHA: string; MainLeft, MainTop, MainWidth, MainHeight: Integer);
+function TSplashThread.FindAppWindow: Boolean;
+begin
+  EnumWindows(@EnumWindowsProc, THandle(Self));
+  Result := FAppWindow > 0;
+end;
+
+procedure TSplashThread.FocusAppWindow;
+begin
+  FindAppWindow;
+  if FAppWindow > 0 then
+    SetForegroundWindow(FAppWindow);
+end;
+
+procedure TSplashThread.SetAlpha(Value: Byte);
+begin
+  FBlendFunction.SourceConstantAlpha := Value;
+  UpdateLayeredWindow(FHandle, 0, nil, @FBitmapSize, FSplashBitmap.Canvas.Handle, @FSplashBitmapPos, 0, @FBlendFunction, ULW_ALPHA);
+end;
+
+function TSplashThread.WndProc(uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT;
+var
+  N: TDateTime;
+begin
+  case uMsg of
+    WM_TIMER:
+    begin
+      if FAppWindow = 0 then
+        FocusAppWindow;
+
+      case FState of
+        ssFadingIn:
+          if MilliSecondsBetween(Now, FFadeStartedAt) > FADE_DURATION then
+          begin
+            SetAlpha(High(Byte));
+            FState := ssVisible;
+            FFadeoutAt := IncMilliSecond(Now, SHOW_DURATION);
+          end else
+            SetAlpha(Trunc((MilliSecondsBetween(Now, FFadeStartedAt) / FADE_DURATION) * High(Byte)));
+        ssVisible:
+        begin
+          N := Now;
+
+          if N >= FFadeoutAt then
+          begin
+            FFadeStartedAt := N;
+            FState := ssFadingOut;
+          end;
+
+          if (FAppWindow > 0) and (FFadeStartedAt < N) then
+            FFadeoutAt := IncMilliSecond(Now, IfThen<Int64>(FMainWindowFound, 200, 0));
+        end;
+        ssFadingOut:
+          if MilliSecondsBetween(Now, FFadeStartedAt) > FADE_DURATION then
+          begin
+            SetAlpha(Low(Byte));
+
+            KillTimer(FHandle, 0);
+            DestroyWindow(FHandle);
+          end else
+            SetAlpha(High(Byte) - Trunc((MilliSecondsBetween(Now, FFadeStartedAt) / FADE_DURATION) * High(Byte)));
+      end;
+
+      SetWindowPos(FHandle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE or SWP_NOACTIVATE);
+    end;
+    WM_NCDESTROY:
+      PostQuitMessage(0);
+  end;
+
+  Result := DefWindowProc(FHandle, uMsg, wParam, lParam);
+end;
+
+constructor TSplashThread.Create(WindowClass, ResourceName, Codename, Version, GitSHA: string; MainLeft, MainTop, MainWidth, MainHeight: Integer);
 begin
   inherited Create(False);
 
   FreeOnTerminate := True;
 
-  FadeoutWait := False;
-
-  MainWindowClass := WindowClass;
-
+  FSplashBitmap := TBitmap.Create;
+  FMainWindowClass := WindowClass;
   FResourceName := ResourceName;
+  FStartPos := TRect.Create(MainLeft, MainTop, MainLeft + MainWidth, MainTop + MainHeight);
 
   FVersion := '© 2010-2021 Alexander Nottelmann et al. - V' + Version;
   if (GitSHA.Length > 0) and (Codename <> '') then
     FVersion := FVersion + ' ''%s'' %s'.Format([Codename, GitSHA])
   else if GitSHA.Length > 0 then
     FVersion := FVersion + ' %s'.Format([GitSHA]);
+end;
 
-  StartPosLeft := MainLeft;
-  StartPosTop := MainTop;
-  StartPosWidth := MainWidth;
-  StartPosHeight := MainHeight;
-  Killed := False;
+destructor TSplashThread.Destroy;
+begin
+  UnregisterClassA(WINDOW_CLASS, HINSTANCE);
+
+  FSplashBitmap.Free;
+
+  inherited Destroy;
 end;
 
 procedure TSplashThread.Execute;
@@ -247,32 +243,29 @@ var
   i: Integer;
   Msg: TMsg;
   PngImage: TPortableNetworkGraphic;
-  WndClass: TWndClassEx;
   ResStream: TResourceStream;
   Monitor: Integer;
   DummyRect: TRect;
 begin
   // Falls direkt was passiert, keinen Splash zeigen.
   Sleep(200);
-  if GetWindow then
+  if FindAppWindow then
     Exit;
 
-  FocusWasSet := False;
-  FadeOutWaitStart := High(Cardinal);
-  SetLength(Monitors, 0);
-  EnumDisplayMonitors(0, nil, @MonitorEnumProc, 0);
+  SetLength(FMonitors, 0);
+  EnumDisplayMonitors(0, nil, @MonitorEnumProc, THandle(Self));
 
   Monitor := -1;
-  for i := 0 to High(Monitors) do
-    if PtInRect(Monitors[i], Point(StartPosLeft + StartPosWidth div 2, StartPosTop + StartPosHeight div 2)) then
+  for i := 0 to High(FMonitors) do
+    if PtInRect(FMonitors[i], CenterPoint(FStartPos)) then
     begin
       Monitor := i;
       Break;
     end;
 
   if Monitor = -1 then
-    for i := 0 to High(Monitors) do
-      if IntersectRect(DummyRect, Monitors[i], Rect(StartPosLeft, StartPosTop, StartPosWidth + StartPosLeft, StartPosHeight + StartPosTop)) then
+    for i := 0 to High(FMonitors) do
+      if IntersectRect(DummyRect, FMonitors[i], FStartPos) then
       begin
         Monitor := i;
         Break;
@@ -281,62 +274,61 @@ begin
   if Monitor = -1 then
     Exit;
 
-  WndClass.cbSize := SizeOf(TWndClassEx);
-  WndClass.style := CS_CLASSDC or CS_PARENTDC;
-  WndClass.lpfnWndProc := @WindowProc;
-  WndClass.cbClsExtra := 0;
-  WndClass.cbWndExtra := 0;
-  WndClass.hInstance := HInstance;
-  WndClass.hIcon := 0;
-  WndClass.hCursor := LoadCursor(0, IDC_ARROW);
-  WndClass.hbrBackground := COLOR_APPWORKSPACE;
-  WndClass.lpszMenuName := nil;
-  WndClass.lpszClassName := 'mistakeSplashScreen';
-  WndClass.hIconSm := 0;
-  RegisterClassEx(WndClass);
+  FWindowClass.cbSize := SizeOf(TWndClassEx);
+  FWindowClass.style := CS_CLASSDC or CS_PARENTDC;
+  FWindowClass.lpfnWndProc := @DefWindowProcW;
+  FWindowClass.hInstance := HINSTANCE;
+  FWindowClass.hCursor := LoadCursor(0, IDC_ARROW);
+  FWindowClass.hbrBackground := COLOR_APPWORKSPACE;
+  FWindowClass.lpszClassName := WINDOW_CLASS;
+  RegisterClassEx(FWindowClass);
 
-  SplashBitmap := TBitmap.Create;
   PngImage := TPortableNetworkGraphic.Create;
-  ResStream := TResourceStream.Create(HInstance, FResourceName, RT_RCDATA);
+  ResStream := TResourceStream.Create(HINSTANCE, FResourceName, RT_RCDATA);
   try
     PngImage.LoadFromStream(ResStream);
 
-    SplashBitmap.Assign(PngImage);
+    FSplashBitmap.Assign(PngImage);
 
-    PremultiplyBitmap(SplashBitmap);
+    PremultiplyBitmap(FSplashBitmap);
 
-    SplashBitmap.Canvas.Font.Name := 'Tahoma';
-    SplashBitmap.Canvas.Font.Color := clWhite;
-    SplashBitmap.Canvas.Font.Size := 11;
-    SetBkMode(SplashBitmap.Canvas.Handle, TRANSPARENT);
-    SplashBitmap.Canvas.TextOut(SplashBitmap.Width - SplashBitmap.Canvas.TextWidth(FVersion) - 25,
-      SplashBitmap.Height - SplashBitmap.Canvas.TextHeight(FVersion) - 20, FVersion);
+    FSplashBitmap.Canvas.Font.Name := 'Tahoma';
+    FSplashBitmap.Canvas.Font.Color := clWhite;
+    FSplashBitmap.Canvas.Font.Size := 11;
+    SetBkMode(FSplashBitmap.Canvas.Handle, TRANSPARENT);
+    FSplashBitmap.Canvas.TextOut(FSplashBitmap.Width - FSplashBitmap.Canvas.TextWidth(FVersion) - 25,
+      FSplashBitmap.Height - FSplashBitmap.Canvas.TextHeight(FVersion) - 20, FVersion);
 
-    SplashBitmapPos := Point(0, 0);
-    BitmapSize.cx := SplashBitmap.Width;
-    BitmapSize.cy := SplashBitmap.Height;
+    FBitmapSize.cx := FSplashBitmap.Width;
+    FBitmapSize.cy := FSplashBitmap.Height;
 
-    BlendFunction.BlendOp := AC_SRC_OVER;
-    BlendFunction.BlendFlags := 0;
-    BlendFunction.SourceConstantAlpha := 0;
-    BlendFunction.AlphaFormat := AC_SRC_ALPHA;
+    FBlendFunction.BlendOp := AC_SRC_OVER;
+    FBlendFunction.AlphaFormat := AC_SRC_ALPHA;
 
-    SplashWndHandle := CreateWindowEx(WS_EX_LAYERED or WS_EX_TOOLWINDOW, 'mistakeSplashScreen', '', WS_VISIBLE or WS_POPUP or WS_CHILD,
-      (Monitors[Monitor].Left + Abs(Monitors[Monitor].Right - Monitors[Monitor].Left) div 2) - SplashBitmap.Width div 2,
-      (Monitors[Monitor].Top + Abs(Monitors[Monitor].Bottom - Monitors[Monitor].Top) div 2) - SplashBitmap.Height div 2,
-      SplashBitmap.Width, SplashBitmap.Height, 0, 0, HInstance, nil);
+    FHandle := CreateWindowEx(WS_EX_LAYERED or WS_EX_TOOLWINDOW, WINDOW_CLASS, '', WS_VISIBLE or WS_POPUP or WS_CHILD, (FMonitors[Monitor].Left + Abs(FMonitors[Monitor].Right - FMonitors[Monitor].Left) div 2) -
+      FSplashBitmap.Width div 2, (FMonitors[Monitor].Top + Abs(FMonitors[Monitor].Bottom - FMonitors[Monitor].Top) div 2) - FSplashBitmap.Height div 2, FSplashBitmap.Width, FSplashBitmap.Height, 0, 0, HINSTANCE, nil);
+    if FHandle = 0 then
+      raise Exception.Create('CreateWindowExW() failed: %d'.Format([GetLastError]));
 
-    UpdateLayeredWindow(SplashWndHandle, 0, nil, @BitmapSize, SplashBitmap.Canvas.Handle, @SplashBitmapPos, 0, @BlendFunction, ULW_ALPHA);
+    SetWindowLongPtrW(FHandle, GWLP_USERDATA, THandle(Self));
+    if GetLastError <> 0 then
+      raise Exception.Create('SetWindowLongPtrW() failed: %d'.Format([GetLastError]));
 
-    SetTimer(SplashWndHandle, 0, 30, nil);
+    SetLastError(0);
+    if (SetWindowLongPtrW(FHandle, GWLP_WNDPROC, LONG_PTR(@WndProcWrapper)) = 0) and (GetLastError <> 0) then
+      raise Exception.Create('SetWindowLongPtrW() failed: %d'.Format([GetLastError]));
+
+    SetAlpha(0);
+
+    SetTimer(FHandle, 0, 20, nil);
   finally
     PngImage.Free;
     ResStream.Free;
   end;
 
-  AnimationStart := 0;
+  FFadeStartedAt := Now;
 
-  while (not Killed) and GetMessage(Msg, SplashWndHandle, 0, 0) do
+  while Integer(GetMessage(Msg, FHandle, 0, 0)) > 0 do
   begin
     TranslateMessage(Msg);
     DispatchMessage(Msg);
@@ -373,4 +365,3 @@ begin
 end;
 
 end.
-
