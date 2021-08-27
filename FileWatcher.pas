@@ -66,7 +66,7 @@ implementation
 constructor TFileWatcher.Create(const Path: string; Filter: DWORD);
 begin
   inherited Create(True);
-  FPath := IncludeTrailingBackslash(Path);
+  FPath := Path;
   FFilter := Filter;
   FreeOnTerminate := True;
 end;

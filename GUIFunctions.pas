@@ -152,7 +152,7 @@ begin
   sei.lpFile := PChar(Filename);
   sei.lpVerb := 'properties';
   sei.fMask := SEE_MASK_INVOKEIDLIST;
-  //ShellExecuteEx(@sei);
+  //ShellExecuteEx(@sei); // TODO: ...
 end;
 
 function GetShellFolder(CSIDL: Integer): string;
@@ -174,7 +174,7 @@ begin
       if SHGetPathFromIDList(pidl, PChar(Result)) then
         SetLength(Result, Length(PChar(Result)))
       else
-        Result := '';
+        raise Exception.Create('GetShellFolder() error');
     end;
   finally
     Malloc.Free(pidl);
@@ -204,8 +204,6 @@ end;
 function GetUserDir: string;
 begin
   Result := GetShellFolder(CSIDL_APPDATA);
-  if (Trim(Result) <> '') then
-    Result := IncludeTrailingPathDelimiter(Result);
 end;
 
 function ResizeBitmap(Bitmap: TBitmap; MaxSize: Integer): TBitmap;

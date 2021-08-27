@@ -184,7 +184,7 @@ begin
   FLicense := License;
 
   FCS := TCriticalSection.Create;
-  FAppPath := IncludeTrailingBackslash(ExtractFilePath(ParamStr(0)));
+  FAppPath := ExtractFilePath(ParamStr(0));
   FAppName := AppName;
   FOnlyOne := OnlyOne;
   FStorage := nil;
@@ -549,7 +549,7 @@ procedure TAppDataBase.GetPortableAllowed;
     E := True;
     while E do
     begin
-      Result := IncludeTrailingBackslash(Dir) + IntToStr(Random(100000));
+      Result := ConcatPaths([Dir, IntToStr(Random(100000))]);
       E := FileExists(Result);
     end;
   end;
@@ -568,7 +568,7 @@ begin
   S := TMemoryStream.Create;
   try
     try
-      Dir := IncludeTrailingBackslash(ExtractFilePath(AppPath));
+      Dir := ExtractFilePath(AppPath);
       Filename := GetRandomFile(Dir);
       S.SaveToFile(Filename);
       DeleteFile(Filename);
@@ -626,8 +626,6 @@ begin
     FTempDir := Rec.Values[0]
   else
     FTempDir := Functions.GetTempDir + FAppName;
-
-  FTempDir := IncludeTrailingBackslash(FTempDir);
 
   if FTempDir <> '' then
   begin

@@ -234,7 +234,7 @@ begin
   if (Param <> nil) and (Param.Values.Count = 1) and (DirectoryExists(Param.Values[0])) then
   begin
     FDataDirOverridden := True;
-    FDataDir := IncludeTrailingBackslash(Param.Values[0])
+    FDataDir := Param.Values[0];
   end else
     FDataDir := GetDataDir(AppName);
 end;
@@ -293,10 +293,10 @@ begin
 
     Files := TStringList.Create;
     try
-      FindFiles(FDataDir + FAppName + '_*', Files);
+      FindFiles(ConcatPaths([FDataDir, FAppName + '_*']), Files);
       for i := 0 to Files.Count - 1 do
       begin
-        if not DeleteFile(FDataDir + Files[i]) then
+        if not DeleteFile(ConcatPaths([FDataDir, Files[i]])) then
           Result := False;
       end;
     finally
@@ -398,9 +398,7 @@ class function TSettingsInstalled.GetDataDir(AppName: string): string;
 begin
   Result := GetShellFolder(CSIDL_APPDATA);
   if (Trim(Result) <> '') then
-  begin
-    Result := IncludeTrailingPathDelimiter(Result) + AppName + '\';
-  end;
+    Result := ConcatPaths([Result, AppName]);
 end;
 
 class function TSettingsInstalled.GetRegPath(AppName: string): string;
@@ -564,7 +562,7 @@ end;
 
 class function TSettingsPortable.Active(AppName: string): Boolean;
 begin
-  Result := FileExists(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + LowerCase(AppName) + '_settings.ini');
+  Result := FileExists(ConcatPaths([ExtractFilePath(ParamStr(0)), LowerCase(AppName) + '_settings.ini']));
 end;
 
 constructor TSettingsPortable.Create(AppName, AppPath: string; CommandLine: TCommandLine);
@@ -578,11 +576,11 @@ begin
   if (Param <> nil) and (Param.Values.Count = 1) and (DirectoryExists(Param.Values[0])) then
   begin
     FDataDirOverridden := True;
-    FDataDir := IncludeTrailingBackslash(Param.Values[0])
+    FDataDir := Param.Values[0];
   end else
     FDataDir := GetDataDir;
 
-  FIniFile := FDataDir + LowerCase(AppName) + '_settings.ini';
+  FIniFile := ConcatPaths([FDataDir, LowerCase(AppName) + '_settings.ini']);
 end;
 
 function TSettingsPortable.Delete(Name, Section: string): Boolean;
@@ -631,10 +629,10 @@ begin
 
   Files := TStringList.Create;
   try
-    FindFiles(FDataDir + FAppName + '_*', Files);
+    FindFiles(ConcatPaths([FDataDir, FAppName + '_*']), Files);
     for i := 0 to Files.Count - 1 do
     begin
-      if not DeleteFile(FDataDir + Files[i]) then
+      if not DeleteFile(ConcatPaths([FDataDir, Files[i]])) then
         Result := False;
     end;
   finally
@@ -735,7 +733,7 @@ end;
 
 class function TSettingsPortable.GetDataDir: string;
 begin
-  Result := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)));
+  Result := ExtractFilePath(ParamStr(0));
 end;
 
 procedure TSettingsPortable.GetValues(Section: string;
@@ -891,15 +889,15 @@ begin
     begin
       Files := TStringList.Create;
       try
-        FindFiles(AssignFrom.FDataDir + AssignFrom.FAppName + '_*', Files);
+        FindFiles(ConcatPaths([AssignFrom.FDataDir, AssignFrom.FAppName + '_*']), Files);
         for i := 0 to Files.Count - 1 do
         begin
           if AssignFrom is TSettingsPortable then
             if LowerCase(Files[i]) = LowerCase(ExtractFileName(TSettingsPortable(AssignFrom).FIniFile)) then
               Continue;
 
-          if not CopyFile(PChar(AssignFrom.FDataDir + Files[i]), PChar(FDataDir + Files[i]), False) then
-            raise Exception.Create('');
+          if not CopyFile(PChar(ConcatPaths([AssignFrom.FDataDir, Files[i]])), PChar(ConcatPaths([FDataDir, Files[i]])), False) then
+            raise Exception.Create('Error copying file');
         end;
       finally
         Files.Free;
@@ -970,7 +968,7 @@ begin
     Exit;
   end;
 
-  Result := FDataDir + LowerCase(FAppName) + '_' + Filename
+  Result := ConcatPaths([FDataDir, LowerCase(FAppName) + '_' + Filename]);
 end;
 
 { TSettingsDummy }

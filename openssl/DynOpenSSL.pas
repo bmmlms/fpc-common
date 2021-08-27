@@ -77,8 +77,8 @@ var
 begin
   Result := False;
 
-  FLibEayDLLPath := TempDir + 'libeay32.dll';
-  FSSLEayDLLPath := TempDir + 'ssleay32.dll';
+  FLibEayDLLPath := ConcatPaths([TempDir, 'libeay32.dll']);
+  FSSLEayDLLPath := ConcatPaths([TempDir, 'ssleay32.dll']);
 
   Res := TResourceStream.Create(0, 'CERTIFICATES', MakeIntResource(RT_RCDATA));
   try
