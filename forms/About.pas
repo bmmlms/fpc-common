@@ -99,7 +99,7 @@ end;
 
 procedure TfrmAbout.btnDonateClick(Sender: TObject);
 begin
-  ShellExecute(0, 'open', PChar(AppGlobals.ProjectDonateLink), '', '', 1);
+  ShellExecuteW(0, 'open', PWideChar(UnicodeString(AppGlobals.ProjectDonateLink)), '', '', 1);
 end;
 
 constructor TfrmAbout.Create(AOwner: TComponent; Caption: string; IsMainWindow: Boolean);
@@ -233,12 +233,12 @@ end;
 
 procedure TfrmAbout.lblHomepageClick(Sender: TObject);
 begin
-  ShellExecute(0, 'open', PChar(AppGlobals.ProjectHomepageLink), '', '', 1);
+  ShellExecuteW(0, 'open', PWideChar(UnicodeString(AppGlobals.ProjectHomepageLink)), '', '', 1);
 end;
 
 procedure TfrmAbout.lblGPLClick(Sender: TObject);
 begin
-  ShellExecute(0, 'open', 'http://www.gnu.org/licenses/gpl-3.0.html', '', '', 1);
+  ShellExecuteW(0, 'open', 'http://www.gnu.org/licenses/gpl-3.0.html', '', '', 1);
 end;
 
 procedure TfrmAbout.pagAboutChange(Sender: TObject);

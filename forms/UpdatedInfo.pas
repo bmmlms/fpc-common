@@ -65,7 +65,7 @@ end;
 
 procedure TfrmUpdatedInfo.btnDonateClick(Sender: TObject);
 begin
-  ShellExecute(0, 'open', PChar(AppGlobals.ProjectDonateLink), '', '', 1);
+  ShellExecuteW(0, 'open', PWideChar(UnicodeString(AppGlobals.ProjectDonateLink)), '', '', 1);
   AppGlobals.SuppressUpdatedInfo := chkNotShowAgain.Checked;
   Close;
 end;

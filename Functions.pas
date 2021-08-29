@@ -105,7 +105,7 @@ implementation
 
 function MsgBox(Handle: HWND; Text, Title: string; uType: Cardinal): Integer;
 begin
-  Result := MessageBox(Handle, PChar(Text), PChar(Title), uType);
+  Result := MessageBoxW(Handle, PWideChar(UnicodeString(Text)), PWideChar(UnicodeString(Title)), uType);
 end;
 
 function ValidURL(URL: string): Boolean;

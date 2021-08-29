@@ -18,6 +18,7 @@ object frmUpdatedInfo: TfrmUpdatedInfo
   OnResize = FormResize
   OnShow = FormShow
   Position = poOwnerFormCenter
+  LCLVersion = '2.2.0.1'
   object txtInfo: TMemo
     Left = 0
     Height = 160

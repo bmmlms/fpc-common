@@ -625,7 +625,7 @@ begin
   if (Rec <> nil) and (Rec.Values.Count > 0) then
     FTempDir := Rec.Values[0]
   else
-    FTempDir := Functions.GetTempDir + FAppName;
+    FTempDir := ConcatPaths([Functions.GetTempDir, FAppName]);
 
   if FTempDir <> '' then
   begin

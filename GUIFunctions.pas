@@ -145,14 +145,14 @@ end;
 
 procedure PropertiesDialog(Filename: string);
 var
-  sei: ShellExecuteInfo;
+  Info: TSHELLEXECUTEINFOW;
 begin
-  FillChar(sei, SizeOf(sei), 0);
-  sei.cbSize := SizeOf(sei);
-  sei.lpFile := PChar(Filename);
-  sei.lpVerb := 'properties';
-  sei.fMask := SEE_MASK_INVOKEIDLIST;
-  //ShellExecuteEx(@sei); // TODO: ...
+  FillChar(Info, SizeOf(Info), 0);
+  Info.cbSize := SizeOf(Info);
+  Info.lpFile := PWideChar(UnicodeString(Filename));
+  Info.lpVerb := 'properties';
+  Info.fMask := SEE_MASK_INVOKEIDLIST;
+  ShellExecuteExW(@Info);
 end;
 
 function GetShellFolder(CSIDL: Integer): string;

@@ -90,11 +90,10 @@ begin
           lblState.Caption := _('Downloading update...');
           ProgressBar1.Tag := -1;
           ProgressBar1.Position := 0;
-        //  ProgressBar1.State := pbsNormal;
           Updater.Start(uaUpdate, True);
         end else
         begin
-          ShellExecute(0, 'open', PChar(AppGlobals.ProjectLink), '', '', 1);
+          ShellExecuteW(0, 'open', PWideChar(UnicodeString(AppGlobals.ProjectLink)), '', '', 1);
           Close;
         end;
       end;

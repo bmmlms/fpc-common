@@ -187,7 +187,7 @@ begin
   FUpdateURL := '';
   FLanguage := 'en';
   FChangeLog := '';
-  FUpdateFile := AppGlobals.TempDir + LowerCase(AppGlobals.AppName) + 'update.exe';
+  FUpdateFile := ConcatPaths([AppGlobals.TempDir, LowerCase(AppGlobals.AppName) + 'update.exe']);
   FUpdateLength := 0;
   FPercent := 0;
 end;
@@ -218,48 +218,53 @@ begin
   end;
 end;
 
+// TODO: ...
 procedure TUpdateClient.RunUpdate(Handle: Cardinal);
+{
 var
-//  osvi: _OSVERSIONINFOEXW;
+  osvi: _OSVERSIONINFOEXW;
   ConditionMask: DWORDLONG;
   op: Integer;
-  SEI: TShellExecuteInfo;
+  Info: TShellExecuteInfo;
+}
 const
   VER_GREATER_EQUAL = 3;
 begin
+  {
   op := VER_GREATER_EQUAL;
 
-  //ZeroMemory(@osvi, SizeOf(_OSVERSIONINFOW));
-  //osvi.dwOSVersionInfoSize := SizeOf(_OSVERSIONINFOW);
-  //osvi.dwMajorVersion := 6;
-  //osvi.dwMinorVersion := 0;
+  ZeroMemory(@osvi, SizeOf(_OSVERSIONINFOW));
+  osvi.dwOSVersionInfoSize := SizeOf(_OSVERSIONINFOW);
+  osvi.dwMajorVersion := 6;
+  osvi.dwMinorVersion := 0;
 
   ConditionMask := 0;
- // ConditionMask := VerSetConditionMask(ConditionMask, VER_MAJORVERSION, op);
- // ConditionMask := VerSetConditionMask(ConditionMask, VER_MINORVERSION, op);
+  ConditionMask := VerSetConditionMask(ConditionMask, VER_MAJORVERSION, op);
+  ConditionMask := VerSetConditionMask(ConditionMask, VER_MINORVERSION, op);
 
   // Bei >= Vista gehts über das Manifest, ansonsten 'runas'...
   if IsAdmin then
     RunProcess('"' + FUpdateFile + '" /NOICONS /SP /SILENT /UPDATE /RUN /PATH="' + AppGlobals.AppPath + '"')
   else
   begin
-  //  if VerifyVersionInfo(osvi, VER_MAJORVERSION or VER_MINORVERSION, ConditionMask) then
-   //   RunProcess('"' + FUpdateFile + '" /NOICONS /SP /SILENT /UPDATE /PATH="' + AppGlobals.AppPath + '"')
-   // else
+    if VerifyVersionInfo(osvi, VER_MAJORVERSION or VER_MINORVERSION, ConditionMask) then
+      RunProcess('"' + FUpdateFile + '" /NOICONS /SP /SILENT /UPDATE /PATH="' + AppGlobals.AppPath + '"')
+    else
     begin
       MsgBox(Handle, _('You do not have administrative rights.'#13#10'Please enter the credentials of a user with administrative rights now.'), _('Info'), MB_ICONINFORMATION);
 
-      FillChar(SEI, SizeOf(SEI), 0);
-      SEI.cbSize := SizeOf(SEI);
+      FillChar(Info, SizeOf(Info), 0);
+      Info.cbSize := SizeOf(SEI);
       SEI.Wnd := Handle;
       SEI.fMask := SEE_MASK_FLAG_DDEWAIT or SEE_MASK_FLAG_NO_UI;
       SEI.lpVerb := 'runas';
       SEI.lpFile := PChar(FUpdateFile);
       SEI.lpParameters := PChar('/NOICONS /SP /SILENT /UPDATE /PATH="' + AppGlobals.AppPath + '"');
       SEI.nShow := SW_SHOWNORMAL;
-//      ShellExecuteEx(@SEI);
+      ShellExecuteEx(@SEI);
     end;
   end;
+  }
 end;
 
 procedure TUpdateClient.Start(Action: TUpdateAction; StartOver: Boolean);
