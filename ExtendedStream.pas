@@ -53,18 +53,12 @@ type
     function PosInStream(Search: AnsiString; FromOffset: Int64): Integer;
     function ToString: AnsiString; reintroduce; overload;
     function ToString(FromOffset, Count: Int64): AnsiString; reintroduce; overload;
-    constructor Create;
     {$WARN HIDDEN_VIRTUAL ON}
   end;
 
 implementation
 
 { TExtendedStream }
-
-constructor TExtendedStream.Create;
-begin
-  inherited Create;
-end;
 
 function TExtendedStream.PosInStream(Search: AnsiString; FromOffset: Int64): Integer;
 var
@@ -263,14 +257,8 @@ begin
   if (FromOffset < 0) or (Count < 1) then
     raise Exception.Create('(FromOffset < 0) or (Count < 1)');
 
-  GetMem(Res, Count);
-  CopyMemory(Res, Pointer(Integer(Memory) + FromOffset), Count);
-  for i := 0 to Count - 1 do
-    if PByte(Cardinal(Res) + i)^ = 0 then
-      PByte(Cardinal(Res) + i)^ := Byte(' ');
   SetLength(Result, Count);
-  CopyMemory(@Result[1], Res, Count);
-  FreeMem(Res);
+  CopyMemory(@Result[1], Memory + FromOffset, Count);
 end;
 
 end.

@@ -45,6 +45,7 @@ type
   const
     FADE_DURATION = 500;
     SHOW_DURATION = 2000;
+    SHOW_AFTER_MAIN_DURATION = 1000;
     WINDOW_CLASS = 'mistakeSplashScreen';
   private
     FResourceName: string;
@@ -169,19 +170,19 @@ begin
       if FAppWindow = 0 then
         FocusAppWindow;
 
+      N := Now;
+
       case FState of
         ssFadingIn:
-          if MilliSecondsBetween(Now, FFadeStartedAt) > FADE_DURATION then
+          if MilliSecondsBetween(N, FFadeStartedAt) > FADE_DURATION then
           begin
             SetAlpha(High(Byte));
             FState := ssVisible;
-            FFadeoutAt := IncMilliSecond(Now, SHOW_DURATION);
+            FFadeoutAt := IncMilliSecond(N, SHOW_DURATION);
           end else
-            SetAlpha(Trunc((MilliSecondsBetween(Now, FFadeStartedAt) / FADE_DURATION) * High(Byte)));
+            SetAlpha(Trunc((MilliSecondsBetween(N, FFadeStartedAt) / FADE_DURATION) * High(Byte)));
         ssVisible:
         begin
-          N := Now;
-
           if N >= FFadeoutAt then
           begin
             FFadeStartedAt := N;
@@ -189,17 +190,20 @@ begin
           end;
 
           if (FAppWindow > 0) and (FFadeStartedAt < N) then
-            FFadeoutAt := IncMilliSecond(Now, IfThen<Int64>(FMainWindowFound, 200, 0));
+          begin
+            FFadeStartedAt := MaxDateTime;
+            FFadeoutAt := IncMilliSecond(N, IfThen<Integer>(FMainWindowFound, SHOW_AFTER_MAIN_DURATION, 0));
+          end;
         end;
         ssFadingOut:
-          if MilliSecondsBetween(Now, FFadeStartedAt) > FADE_DURATION then
+          if MilliSecondsBetween(N, FFadeStartedAt) > FADE_DURATION then
           begin
             SetAlpha(Low(Byte));
 
             KillTimer(FHandle, 0);
             DestroyWindow(FHandle);
           end else
-            SetAlpha(High(Byte) - Trunc((MilliSecondsBetween(Now, FFadeStartedAt) / FADE_DURATION) * High(Byte)));
+            SetAlpha(High(Byte) - Trunc((MilliSecondsBetween(N, FFadeStartedAt) / FADE_DURATION) * High(Byte)));
       end;
 
       SetWindowPos(FHandle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE or SWP_NOACTIVATE);
