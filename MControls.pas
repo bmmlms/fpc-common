@@ -26,6 +26,7 @@ uses
   Windows,
   Buttons,
   Classes,
+  ComboEx,
   ComCtrls,
   Controls,
   DragDrop,
@@ -33,12 +34,15 @@ uses
   Forms,
   Generics.Collections,
   Graphics,
+  GraphType,
   GUIFunctions,
   ImgList,
   LanguageObjects,
+  LMessages,
   Math,
   Menus,
   Messages,
+  StdCtrls,
   SysUtils,
   Themes,
   Types,
@@ -148,6 +152,36 @@ type
   published
     property ShowCaption: string read FShowCaption write FShowCaption;
     property HideCaption: string read FHideCaption write FHideCaption;
+  end;
+
+  { TComboBoxExEditable }
+
+  TComboBoxExEditable = class(TComboBoxEx)
+  private
+  const
+    WM_ALIGNEDIT = WM_USER + 1;
+    WM_SETTEXTBYINDEX = WM_USER + 2;
+  private
+    FSettingText: Boolean;
+    FMarginLeft, FMarginTop: Integer;
+    FEditRect: TRect;
+    FItemIndexBeforeDropDown: Integer;
+
+    function FGetFocusedItemData: TCustomData;
+  protected
+    procedure WMPaint(var Msg: TLMPaint); message LM_PAINT;
+    procedure Select; override;
+    procedure SetTextByIndex(var Msg: TMessage); message WM_SETTEXTBYINDEX;
+    procedure AlignEdit(var Msg: TMessage); message WM_ALIGNEDIT;
+    procedure DoSetBounds(ALeft, ATop, AWidth, AHeight: integer); override;
+    procedure SetItemIndex(const Val: integer); override;
+    procedure DropDown; override;
+    procedure CloseUp; override;
+    procedure Change; override;
+  public
+    constructor Create(TheOwner: TComponent); override;
+
+    property FocusedItemData: TCustomData read FGetFocusedItemData;
   end;
 
   TWinControlFocuser = class helper for TWinControl
@@ -622,6 +656,124 @@ begin
   FBuffer := TBitmap.Create;
   FBuffer.Width := ClientWidth;
   FBuffer.Height := ClientHeight;
+end;
+
+{ TComboBoxExEditable }
+
+procedure TComboBoxExEditable.AlignEdit(var Msg: TMessage);
+var
+  EditHandle: THandle;
+  EditRect, Rect: TRect;
+begin
+  EditHandle := FindWindowEx(Handle, 0, 'Edit', nil);
+
+  GetWindowRect(EditHandle, @EditRect);
+  GetWindowRect(Handle, @Rect);
+
+  FMarginLeft := EditRect.Left - Rect.Left;
+  FMarginTop := EditRect.Top - Rect.Top;
+
+  FEditRect := TRect.Create(TPoint.Create(EditRect.Left - Rect.Left, EditRect.Top - Rect.Top), EditRect.Width, EditRect.Height);
+
+  SetWindowPos(EditHandle, 0, 16 + FMarginLeft, FMarginTop, EditRect.Width - (16 + FMarginLeft), EditRect.Height, 0);
+
+  Repaint;
+end;
+
+function TComboBoxExEditable.FGetFocusedItemData: TCustomData;
+begin
+  if ItemIndex = -1 then
+    Exit(nil);
+
+  Exit(ItemsEx[ItemIndex].Data);
+end;
+
+procedure TComboBoxExEditable.WMPaint(var Msg: TLMPaint);
+begin
+  inherited;
+
+  Canvas.Brush.Color := clWindow;
+  Canvas.Brush.Style := bsSolid;
+  Canvas.FillRect(FMarginLeft, FMarginTop, FMarginLeft + 16, FMarginTop + 16);
+
+  if ItemIndex > -1 then
+    Images.Resolution[16].Draw(Canvas, FMarginLeft, FMarginTop, ItemsEx[ItemIndex].ImageIndex, gdeNormal)
+  else if FItemIndexBeforeDropDown > -1 then
+    Images.Resolution[16].Draw(Canvas, FMarginLeft, FMarginTop, ItemsEx[FItemIndexBeforeDropDown].ImageIndex, gdeNormal);
+end;
+
+procedure TComboBoxExEditable.Select;
+begin
+  inherited Select;
+
+  if not DroppedDown then
+    FItemIndexBeforeDropDown := -2;
+
+  PostMessage(Handle, WM_SETTEXTBYINDEX, 0, 0);
+end;
+
+procedure TComboBoxExEditable.SetTextByIndex(var Msg: TMessage);
+begin
+  if ItemIndex > -1 then
+  begin
+    FSettingText := True;
+    Text := ItemsEx[ItemIndex].Caption;
+    FSettingText := False;
+    if Focused then
+      SelectAll;
+  end;
+end;
+
+procedure TComboBoxExEditable.DoSetBounds(ALeft, ATop, AWidth, AHeight: integer);
+begin
+  inherited DoSetBounds(ALeft, ATop, AWidth, AHeight);
+
+  if not Assigned(Parent) then
+    Exit;
+
+  PostMessage(Handle, WM_ALIGNEDIT, 0, 0);
+end;
+
+procedure TComboBoxExEditable.SetItemIndex(const Val: integer);
+begin
+  if FSettingText then
+    Exit;
+
+  inherited SetItemIndex(Val);
+
+  PostMessage(Handle, WM_SETTEXTBYINDEX, 0, 0);
+end;
+
+procedure TComboBoxExEditable.DropDown;
+begin
+  FItemIndexBeforeDropDown := ItemIndex;
+
+  inherited DropDown;
+end;
+
+procedure TComboBoxExEditable.CloseUp;
+begin
+  inherited CloseUp;
+
+  if FItemIndexBeforeDropDown > -2 then
+    ItemIndex := FItemIndexBeforeDropDown;
+end;
+
+procedure TComboBoxExEditable.Change;
+begin
+  inherited Change;
+
+  FItemIndexBeforeDropDown := -2;
+
+  Repaint;
+end;
+
+constructor TComboBoxExEditable.Create(TheOwner: TComponent);
+begin
+  inherited Create(TheOwner);
+
+  FItemIndexBeforeDropDown := -2;
+  TCustomComboBox(Self).Style := csOwnerDrawEditableFixed;
 end;
 
 { TWinControlFocuser }
