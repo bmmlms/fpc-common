@@ -663,7 +663,7 @@ end;
 procedure TComboBoxExEditable.AlignEdit(var Msg: TMessage);
 var
   EditHandle: THandle;
-  EditRect, Rect: TRect;
+  EditRect, EditTextRect, Rect: TRect;
 begin
   EditHandle := FindWindowEx(Handle, 0, 'Edit', nil);
 
@@ -675,7 +675,9 @@ begin
 
   FEditRect := TRect.Create(TPoint.Create(EditRect.Left - Rect.Left, EditRect.Top - Rect.Top), EditRect.Width, EditRect.Height);
 
-  SetWindowPos(EditHandle, 0, 16 + FMarginLeft, FMarginTop, EditRect.Width - (16 + FMarginLeft), EditRect.Height, 0);
+  SendMessage(EditHandle, EM_GETRECT, 0, LPARAM(@EditTextRect));
+
+  SetWindowPos(EditHandle, 0, 16 + FMarginLeft * 2, Trunc(Rect.Height / 2 - EditTextRect.Height / 2), EditRect.Width - (16 + FMarginLeft * 2), EditTextRect.Height, 0);
 
   Repaint;
 end;
