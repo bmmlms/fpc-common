@@ -23,168 +23,237 @@ unit FileWatcher;
 interface
 
 uses
-  Windows, SysUtils, Classes, SyncObjs, ShellApi, ComCtrls, Logging;
+  Classes,
+  ComCtrls,
+  JwaWinNT,
+  Logging,
+  SysUtils,
+  Windows;
 
 type
-  TFileWatchEvent = procedure(Sender: TObject; Action: DWORD; RootDir, OldName, NewName: string) of object;
+  TFileWatcherEventActions = (eaAdded, eaRemoved, eaModified, eaMoved);
+
+  TFileWatcherEvent = procedure(Sender: TObject; Action: TFileWatcherEventActions; Path, PathNew: string) of object;
+
+  { TFileWatcher }
 
   TFileWatcher = class(TThread)
   private
-    FPath: string;
-    FFilename: string;
-    FFilenameNew: string;
-    FAction: DWORD;
+  const
+    WAIT_TERMINATE = WAIT_OBJECT_0;
+    WAIT_DIR = WAIT_OBJECT_0 + 1;
+    BUFFER_LEN = 65535;
+  private
+    FWatchPath: string;
+    FPath, FPathNew: string;
+    FAction: TFileWatcherEventActions;
     FFilter: DWORD;
-    FTermEvent: TEvent;
 
-    FOnEvent: TFileWatchEvent;
+    FTermEvent: THandle;
+    FDeleted: TStringList;
+
+    FOnEvent: TFileWatcherEvent;
 
     procedure TriggerEvent;
-  public
-    constructor Create(const Path: string; Filter: DWORD);
+  protected
     procedure Execute; override;
+    procedure DoChangeDetected(Path: string; Action: DWORD); virtual;
+    procedure DoAfterDelete; virtual;
+  public
+    constructor Create(WatchPath: string; Filter: DWORD); virtual;
+    destructor Destroy; override;
     procedure Terminate; reintroduce;
 
-    property OnEvent: TFileWatchEvent read FOnEvent write FOnEvent;
+    property OnEvent: TFileWatcherEvent read FOnEvent write FOnEvent;
   end;
-
-  PFILE_NOTIFY_INFORMATION = ^FILE_NOTIFY_INFORMATION;
-  FILE_NOTIFY_INFORMATION = packed record
-    NextEntryOffset: DWORD;
-    Action: DWORD;
-    FilenameLength: DWORD;
-    Filename: WideString;
-  end;
-
-const
-  WaitDir = WAIT_OBJECT_0;
-  WaitTerm = WAIT_OBJECT_0 + 1;
-  FILE_LIST_DIRECTORY = $0001;
 
 implementation
 
-constructor TFileWatcher.Create(const Path: string; Filter: DWORD);
+constructor TFileWatcher.Create(WatchPath: string; Filter: DWORD);
 begin
   inherited Create(True);
-  FPath := Path;
+
+  FWatchPath := WatchPath;
   FFilter := Filter;
+
+  FTermEvent := CreateEvent(nil, False, False, nil);
+  FDeleted := TStringList.Create;
+
   FreeOnTerminate := True;
+end;
+
+destructor TFileWatcher.Destroy;
+begin
+  FDeleted.Free;
+  CloseHandle(FTermEvent);
+
+  inherited Destroy;
 end;
 
 procedure TFileWatcher.Execute;
 var
-  WatchHandle: DWORD;
+  DirHandle, BytesRead, NextOffset, WaitResult: DWORD;
   Buffer: Pointer;
-  BufLen: DWORD;
-  Read: DWORD;
   Info: PFILE_NOTIFY_INFORMATION;
-  NextOffset: DWORD;
-  NameLen: DWORD;
   Overlap: TOverlapped;
-  WaitResult: DWORD;
   EventArray: array [0..1] of THandle;
-  FileEvent: TEvent;
+  ChangeEvent: THandle;
+  Path: string;
+  WasDeleted: Boolean;
 begin
-  // TODO: This thread consumes max cpu, needs to be fixed
-  Exit;
+  ChangeEvent := CreateEvent(nil, False, False, nil);
+
+  Overlap.hEvent := ChangeEvent;
+
+  EventArray[0] := FTermEvent;
+  EventArray[1] := ChangeEvent;
+
+  WasDeleted := False;
 
   try
-    WatchHandle := CreateFile(PChar(FPath), FILE_LIST_DIRECTORY or GENERIC_READ,
-      FILE_SHARE_READ or FILE_SHARE_WRITE or FILE_SHARE_DELETE, nil,
-      OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS or FILE_FLAG_OVERLAPPED, 0);
+    while not Terminated do
+    begin
+      DirHandle := CreateFileW(PWideChar(UnicodeString(FWatchPath)), FILE_LIST_DIRECTORY or GENERIC_READ, FILE_SHARE_READ or FILE_SHARE_WRITE or FILE_SHARE_DELETE, nil, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS or FILE_FLAG_OVERLAPPED, 0);
 
-    if (WatchHandle = INVALID_HANDLE_VALUE) or (WatchHandle = 0) then
-      Exit;
-
-    FileEvent := TEvent.Create(nil, False, False, '');
-    Overlap.hEvent := THANDLE(FileEvent.Handle);
-
-    FTermEvent := TEvent.Create(nil, False, False, '');
-
-    EventArray[0] := THANDLE(FileEvent.Handle);
-    EventArray[1] := THANDLE(FTermEvent.Handle);
-
-    BufLen := 65535;
-    Buffer := AllocMem(BufLen);
-    try
-      while not Terminated do
+      if (DirHandle = INVALID_HANDLE_VALUE) or (DirHandle = 0) then
       begin
-        Read := 0;
+        if WaitForSingleObject(FTermEvent, 2000) = WAIT_TERMINATE then
+          Exit;
 
-        if ReadDirectoryChangesW(WatchHandle, Buffer, BufLen, True, FFilter, @Read, @Overlap, nil) then
+        Continue;
+      end;
+
+      Buffer := AllocMem(BUFFER_LEN);
+      try
+        while not Terminated do
         begin
-          WaitResult := WaitForMultipleObjects(2, @EventArray, False, INFINITE);
-          case WaitResult of
-            WaitDir:
-              begin
-                Info := Buffer;
-                repeat
-                  NextOffset := Info.NextEntryOffset;
-                  FAction := Info.Action;
-                  NameLen := Info.FilenameLength;
+          if not ReadDirectoryChangesW(DirHandle, Buffer, BUFFER_LEN, True, FFilter, @BytesRead, @Overlap, nil) then
+          begin
+            if WaitForSingleObject(FTermEvent, 2000) = WAIT_TERMINATE then
+              Exit;
 
-                  // Wenn man im Explorer die File-Properties anzeigt und ID3-Tags ändert,
-                  // löscht der die Datei und stellt sie dann wieder her. Das Sleep() ist doof,
-                  // aber mir fällt auf die Schnelle nichts besseres ein...
-                  if FAction = FILE_ACTION_REMOVED then
-                    Sleep(100);
-
-                  // Die letzte Bedingung ist für MusicBee. Da wird die Datei umbenannt und dann neu angelegt,
-                  // das ignorieren wir dann.
-                  {
-                  if (((FAction = FILE_ACTION_REMOVED) and (not FileExists(FPath + WideCharLenToString(@Info.FileName, NameLen div 2)))) or
-                       (FAction <> FILE_ACTION_REMOVED) and
-                      not ((FAction = FILE_ACTION_ADDED) and (FPath + WideCharLenToString(@Info.FileName, NameLen div 2) = FFilename))) then
-                  begin
-                    if FAction <> FILE_ACTION_RENAMED_NEW_NAME then
-                      FFilename := WideCharLenToString(@Info.FileName, NameLen div 2)
-                    else
-                      FFilenameNew := WideCharLenToString(@Info.Filename, NameLen div 2);
-
-                    if Assigned(FOnEvent) then
-                      Synchronize(TriggerEvent);
-                  end;
-                  }
-
-                  Info := Pointer(Int64(Info) + NextOffset);
-
-                  if Terminated then
-                    Break;
-
-                until NextOffset = 0;
-              end;
-            WaitTerm:
-              begin
-                Break;
-              end
-          else
             Break;
           end;
-        end;
-      end;
-    finally
-      CloseHandle(WatchHandle);
-      FileEvent.Free;
-      FTermEvent.Free;
-      FreeMem(Buffer, BufLen);
-    end;
-  except
 
+          WaitResult := WaitForMultipleObjects(2, @EventArray, False, IfThen<DWORD>(WasDeleted, 1000, INFINITE));
+          case WaitResult of
+            WAIT_DIR:
+            begin
+              Info := Buffer;
+              repeat
+                if Info.Action = 0 then
+                  Break;
+
+                NextOffset := Info.NextEntryOffset;
+                Path := ConcatPaths([FWatchPath, WideCharLenToString(@Info.FileName, Info.FileNameLength div 2)]);
+
+                if (Info.Action = FILE_ACTION_REMOVED) and (not FileExists(Path)) then
+                  WasDeleted := True;
+
+                DoChangeDetected(Path, Info.Action);
+
+                Info := Pointer(Info) + NextOffset;
+              until NextOffset = 0;
+
+              if Info.Action = 0 then
+                Break;
+            end;
+            WAIT_TERMINATE:
+              Exit;
+            WAIT_TIMEOUT:
+            begin
+              DoAfterDelete;
+              WasDeleted := False;
+            end else
+            begin
+              if WaitForSingleObject(FTermEvent, 2000) = WAIT_TERMINATE then
+                Exit;
+
+              Break;
+            end;
+          end;
+        end;
+      finally
+        CloseHandle(DirHandle);
+        FreeMem(Buffer);
+      end;
+    end;
+  finally
+    CloseHandle(ChangeEvent);
   end;
 end;
 
 procedure TFileWatcher.Terminate;
 begin
-  if FTermEvent <> nil then
-    FTermEvent.SetEvent;
+  if FTermEvent > 0 then
+    SetEvent(FTermEvent);
 
   inherited;
 end;
 
 procedure TFileWatcher.TriggerEvent;
 begin
-  if Assigned(FOnEvent) then
-    FOnEvent(Self, FAction, FPath, FFilename, FFilenameNew);
+  if (not Terminated) and Assigned(FOnEvent) then
+    FOnEvent(Self, FAction, FPath, FPathNew);
+end;
+
+procedure TFileWatcher.DoChangeDetected(Path: string; Action: DWORD);
+var
+  i: Integer;
+begin
+  case Action of
+    FILE_ACTION_REMOVED:
+      FDeleted.Add(Path);
+    FILE_ACTION_ADDED:
+      begin
+        for i := 0 to FDeleted.Count - 1 do
+          if ExtractFileName(FDeleted[i]) = ExtractFileName(Path) then
+          begin
+            FAction := eaMoved;
+            FPath := FDeleted[i];
+            FPathNew := Path;
+
+            FDeleted.Delete(i);
+            Exit;
+          end;
+
+        FAction := eaAdded;
+        FPath := Path;
+
+        Synchronize(TriggerEvent);
+      end;
+    FILE_ACTION_MODIFIED:
+      begin
+        FAction := eaModified;
+        FPath := Path;
+
+        Synchronize(TriggerEvent);
+      end;
+    FILE_ACTION_RENAMED_OLD_NAME:
+      FPath := Path;
+    FILE_ACTION_RENAMED_NEW_NAME:
+      begin
+        FAction := eaMoved;
+        FPathNew := Path;
+
+        Synchronize(TriggerEvent);
+      end;
+  end;
+end;
+
+procedure TFileWatcher.DoAfterDelete;
+var
+  P: string;
+begin
+  for P in FDeleted do
+  begin
+    FAction := eaRemoved;
+    FPath := P;
+
+    Synchronize(TriggerEvent);
+  end;
+
+  FDeleted.Clear;
 end;
 
 end.
