@@ -163,7 +163,6 @@ type
     WM_SETTEXTBYINDEX = WM_USER + 2;
   private
     FSettingText: Boolean;
-    FMarginLeft, FMarginTop: Integer;
     FEditRect: TRect;
     FItemIndexBeforeDropDown: Integer;
 
@@ -667,17 +666,14 @@ var
 begin
   EditHandle := FindWindowEx(Handle, 0, 'Edit', nil);
 
-  GetWindowRect(EditHandle, @EditRect);
-  GetWindowRect(Handle, @Rect);
+  GetWindowRect(EditHandle, @FEditRect);
 
-  FMarginLeft := EditRect.Left - Rect.Left;
-  FMarginTop := EditRect.Top - Rect.Top;
-
-  FEditRect := TRect.Create(TPoint.Create(EditRect.Left - Rect.Left, EditRect.Top - Rect.Top), EditRect.Width, EditRect.Height);
+  Windows.ScreenToClient(GetParent(EditHandle), @FEditRect.TopLeft);
+  Windows.ScreenToClient(GetParent(EditHandle), @FEditRect.BottomRight);
 
   SendMessage(EditHandle, EM_GETRECT, 0, LPARAM(@EditTextRect));
 
-  SetWindowPos(EditHandle, 0, 16 + FMarginLeft * 2, Trunc(Rect.Height / 2 - EditTextRect.Height / 2), EditRect.Width - (16 + FMarginLeft * 2), EditTextRect.Height, 0);
+  MoveWindow(EditHandle, 16 + FEditRect.Left * 2, ClientRect.Height div 2 - EditTextRect.Height div 2, FEditRect.Width - 16, EditTextRect.Height, False);
 
   Repaint;
 end;
@@ -696,12 +692,12 @@ begin
 
   Canvas.Brush.Color := clWindow;
   Canvas.Brush.Style := bsSolid;
-  Canvas.FillRect(FMarginLeft, FMarginTop, FMarginLeft + 16, FMarginTop + 16);
+  Canvas.FillRect(FEditRect.Left, FEditRect.Top, FEditRect.Left + 16, FEditRect.Top + 16);
 
   if ItemIndex > -1 then
-    Images.Resolution[16].Draw(Canvas, FMarginLeft, FMarginTop, ItemsEx[ItemIndex].ImageIndex, gdeNormal)
+    Images.Resolution[16].Draw(Canvas, FEditRect.Left, ClientRect.Height div 2 - 16 div 2, ItemsEx[ItemIndex].ImageIndex, gdeNormal)
   else if FItemIndexBeforeDropDown > -1 then
-    Images.Resolution[16].Draw(Canvas, FMarginLeft, FMarginTop, ItemsEx[FItemIndexBeforeDropDown].ImageIndex, gdeNormal);
+    Images.Resolution[16].Draw(Canvas, FEditRect.Left, ClientRect.Height div 2 - 16 div 2, ItemsEx[FItemIndexBeforeDropDown].ImageIndex, gdeNormal);
 end;
 
 procedure TComboBoxExEditable.Select;
@@ -730,7 +726,7 @@ procedure TComboBoxExEditable.DoSetBounds(ALeft, ATop, AWidth, AHeight: integer)
 begin
   inherited DoSetBounds(ALeft, ATop, AWidth, AHeight);
 
-  if not Assigned(Parent) then
+  if not HandleAllocated then
     Exit;
 
   PostMessage(Handle, WM_ALIGNEDIT, 0, 0);
@@ -776,6 +772,8 @@ begin
 
   FItemIndexBeforeDropDown := -2;
   TCustomComboBox(Self).Style := csOwnerDrawEditableFixed;
+
+  FWinControlFlags += [wcfEraseBackground];
 end;
 
 { TWinControlFocuser }

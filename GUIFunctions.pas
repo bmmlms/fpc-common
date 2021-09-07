@@ -184,19 +184,22 @@ end;
 function Recycle(Handle: Cardinal; Filename: string): Boolean;
 var
   Ret: Integer;
-  Operation: TSHFileOpStruct;
+  Operation: TSHFileOpStructW;
+  Buf: array[0..MAX_PATH] of Char;
 begin
+  FillChar(Buf, SizeOf(Buf), #0);
+  StrPCopy(@Buf[0], PWideChar(UnicodeString(Filename)));
   with Operation do
   begin
     Wnd := Handle;
     wFunc := FO_DELETE;
-    pFrom := PChar(Filename + #0#0#0#0);
+    pFrom := @Buf[0];
     pTo := nil;
-    fFlags := FOF_ALLOWUNDO or FOF_NOCONFIRMATION;
+    fFlags := FOF_ALLOWUNDO or FOF_NOCONFIRMATION or FOF_SILENT;
     hNameMappings := nil;
     lpszProgressTitle := nil;
   end;
-  Ret := SHFileOperation(Operation);
+  Ret := SHFileOperationW(@Operation);
   // True wenn Erfolg oder Datei nicht gefunden
   Result := (Ret = 0) or (Ret = 2);
 end;
