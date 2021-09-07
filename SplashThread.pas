@@ -226,7 +226,7 @@ begin
   FResourceName := ResourceName;
   FStartPos := TRect.Create(MainLeft, MainTop, MainLeft + MainWidth, MainTop + MainHeight);
 
-  FVersion := '© 2010-2021 Alexander Nottelmann et al. - V' + Version;
+  FVersion := 'Â© 2010-2021 Alexander Nottelmann et al. - V' + Version;
   if (GitSHA.Length > 0) and (Codename <> '') then
     FVersion := FVersion + ' ''%s'' %s'.Format([Codename, GitSHA])
   else if GitSHA.Length > 0 then

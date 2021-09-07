@@ -127,7 +127,7 @@ begin
   case AppGlobals.License of
     alGPL:
       txtAbout.Text := Format(_('%s'#13#10 +
-                                'Copyright © 2010-2021 Alexander Nottelmann et al.'#13#10#13#10 +
+                                'Copyright Â© 2010-2021 Alexander Nottelmann et al.'#13#10#13#10 +
                                 'This program is free software: you can redistribute it and/or modify ' +
                                 'it under the terms of the GNU General Public License as published by ' +
                                 'the Free Software Foundation, either version 3 of the License, or ' +
@@ -141,7 +141,7 @@ begin
     alProprietary:
       begin
         txtAbout.Text := Format(_('%s'#13#10 +
-                                  'Copyright © 2010-2021 Alexander Nottelmann'), [AppGlobals.AppName]);
+                                  'Copyright Â© 2010-2021 Alexander Nottelmann'), [AppGlobals.AppName]);
         lblGPL.Visible := False;
         txtAbout.Height := txtAbout.Height + lblGPL.Height + (txtAbout.Top - lblGPL.Top - lblGPL.Height);
         txtAbout.Top := lblGPL.Top;
