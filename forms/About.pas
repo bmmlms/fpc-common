@@ -53,22 +53,23 @@ type
   { TfrmAbout }
 
   TfrmAbout = class(TForm)
+    btnDonateDe: TImage;
+    btnDonateEn: TImage;
+    lblAbout: TLabel;
+    lblCopyright: TLabel;
+    lblHomepage: TLabel;
+    lblVersion: TLabel;
     pagAbout: TPageControl;
+    Panel1: TPanel;
     pbLogo: TPaintBox;
     tabAbout: TTabSheet;
-    lblAbout: TLabel;
     tabLicense: TTabSheet;
     txtAbout: TMemo;
     pnlNav: TPanel;
     Bevel2: TBevel;
     btnClose: TBitBtn;
     lblGPL: TLabel;
-    lblVersion: TLabel;
-    lblCopyright: TLabel;
-    lblHomepage: TLabel;
     tabThanks: TTabSheet;
-    btnDonateDe: TImage;
-    btnDonateEn: TImage;
     procedure FormKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure lblGPLClick(Sender: TObject);
@@ -107,6 +108,8 @@ begin
   FIsMainWindow := IsMainWindow;
 
   inherited Create(AOwner);
+
+  exit;
 
   if IsMainWindow then
     Self.Icon.Handle := Application.Icon.Handle;

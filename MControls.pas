@@ -203,7 +203,7 @@ begin
 
   FShowCloseButton := True;
   FCaption := '';
-  Color := clWhite;
+  Color := clWindow;
 end;
 
 procedure TMTabSheet.FSetCaption(Value: string);

@@ -70,71 +70,6 @@ object frmAbout: TfrmAbout
       Caption = 'About'
       ClientHeight = 196
       ClientWidth = 413
-      object lblAbout: TLabel
-        Left = 4
-        Height = 19
-        Top = 2
-        Width = 7
-        Caption = '-'
-        Font.Color = clWindowText
-        Font.Height = -16
-        Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
-        ParentFont = False
-      end
-      object lblVersion: TLabel
-        Left = 3
-        Height = 13
-        Top = 24
-        Width = 4
-        Caption = '-'
-        Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'Tahoma'
-        ParentFont = False
-      end
-      object lblCopyright: TLabel
-        Left = 4
-        Height = 13
-        Top = 56
-        Width = 253
-        Caption = 'Copyright © 2010-2021 Alexander Nottelmann et al.'
-      end
-      object lblHomepage: TLabel
-        Cursor = crHandPoint
-        Left = 4
-        Height = 13
-        Top = 76
-        Width = 89
-        Caption = 'http://mistake.ws/'
-        Font.Color = clBlue
-        Font.Height = -11
-        Font.Name = 'Tahoma'
-        Font.Style = [fsUnderline]
-        ParentFont = False
-        OnClick = lblHomepageClick
-      end
-      object btnDonateDe: TImage
-        Cursor = crHandPoint
-        Left = 4
-        Height = 40
-        Top = 148
-        Width = 283
-        AutoSize = True
-        OnClick = btnDonateClick
-        Visible = False
-      end
-      object btnDonateEn: TImage
-        Cursor = crHandPoint
-        Left = 4
-        Height = 40
-        Top = 148
-        Width = 291
-        Anchors = [akTop, akLeft, akRight]
-        AutoSize = True
-        OnClick = btnDonateClick
-        Visible = False
-      end
       object pbLogo: TPaintBox
         Left = 308
         Height = 196
@@ -145,6 +80,90 @@ object frmAbout: TfrmAbout
         Constraints.MinWidth = 96
         OnPaint = pbLogoPaint
       end
+      object Panel1: TPanel
+        Left = 0
+        Height = 196
+        Top = 0
+        Width = 308
+        Align = alClient
+        BevelOuter = bvNone
+        ClientHeight = 196
+        ClientWidth = 308
+        Color = clWindow
+        ParentColor = False
+        TabOrder = 0
+        object btnDonateDe: TImage
+          Cursor = crHandPoint
+          Left = 0
+          Height = 40
+          Top = 108
+          Width = 308
+          Align = alBottom
+          AutoSize = True
+          OnClick = btnDonateClick
+          Visible = False
+        end
+        object btnDonateEn: TImage
+          Cursor = crHandPoint
+          Left = 0
+          Height = 48
+          Top = 148
+          Width = 308
+          Align = alBottom
+          Anchors = [akTop, akLeft, akRight]
+          AutoSize = True
+          OnClick = btnDonateClick
+          Visible = False
+        end
+        object lblHomepage: TLabel
+          Cursor = crHandPoint
+          Left = 0
+          Height = 13
+          Top = 45
+          Width = 308
+          Align = alTop
+          Caption = 'http://mistake.ws/'
+          Font.Color = clBlue
+          Font.Height = -11
+          Font.Name = 'Tahoma'
+          Font.Style = [fsUnderline]
+          ParentFont = False
+          OnClick = lblHomepageClick
+        end
+        object lblCopyright: TLabel
+          Left = 0
+          Height = 13
+          Top = 32
+          Width = 308
+          Align = alTop
+          Caption = 'Copyright © 2010-2021 Alexander Nottelmann et al.'
+        end
+        object lblVersion: TLabel
+          Left = 0
+          Height = 13
+          Top = 19
+          Width = 308
+          Align = alTop
+          Caption = '-'
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Tahoma'
+          ParentFont = False
+        end
+        object lblAbout: TLabel
+          Left = 0
+          Height = 19
+          Top = 0
+          Width = 308
+          Align = alTop
+          Caption = '-'
+          Font.Color = clWindowText
+          Font.Height = -16
+          Font.Name = 'Tahoma'
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+      end
     end
     object tabLicense: TTabSheet
       Caption = 'License'
@@ -153,10 +172,11 @@ object frmAbout: TfrmAbout
       ImageIndex = 1
       object lblGPL: TLabel
         Cursor = crHandPoint
-        Left = 4
+        Left = 0
         Height = 13
-        Top = 4
-        Width = 4
+        Top = 0
+        Width = 413
+        Align = alTop
         Caption = '-'
         Font.Color = clBlue
         Font.Height = -11
@@ -166,11 +186,11 @@ object frmAbout: TfrmAbout
         OnClick = lblGPLClick
       end
       object txtAbout: TMemo
-        Left = 4
-        Height = 184
-        Top = 24
-        Width = 397
-        Anchors = [akTop, akLeft, akRight, akBottom]
+        Left = 0
+        Height = 183
+        Top = 13
+        Width = 413
+        Align = alClient
         Color = clBtnFace
         ReadOnly = True
         ScrollBars = ssVertical

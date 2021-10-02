@@ -1299,14 +1299,12 @@ procedure TLanguageManager.TranslateProperty(C: TObject; Owner: TComponent; Prop
     Result := '';
     Name := string(Prop.Name);
     case Prop.PropType^.Kind of
-      tkString, tkLString:
+      tkString, tkLString, tkAString:
         Result := GetStrProp(C, Name);
       tkWString:
         Result := GetWideStrProp(C, Name);
-//      {$IF CompilerVersion > 18.5}
       tkUString:
         Result := GetUnicodeStrProp(C, Name);
-//      {$IFEND}
     end;
   end;
 var
@@ -1315,11 +1313,7 @@ begin
   if Prop.SetProc <> nil then
   begin
     case Prop.PropType^.Kind of
-//      {$IF CompilerVersion > 18.5}
-      tkString, tkLString, tkWString, tkUString:
-//      {$ELSE}
-//      tkString, tkLString, tkWString:
-//      {$IFEND}
+      tkString, tkLString, tkAString, tkWString, tkUString:
         begin
           OldValue := ReadString(C, Prop);
           NewValue := TranslateString(C, Owner, string(Prop.Name), OldValue);
@@ -1409,22 +1403,14 @@ begin
   if C is TComponent then
     Owner := TComponent(C);
 
-//  {$IF CompilerVersion > 18.5}
-//  Count := GetPropList(PTypeInfo(C.ClassInfo), [tkClass, tkString, tkLString, tkWString, tkUString], @PropList);
-//  {$ELSE}
-  Count := GetPropList(PTypeInfo(C.ClassInfo), [tkClass, tkString, tkLString, tkWString], @PropList);
-//  {$IFEND}
+  Count := GetPropList(PTypeInfo(C.ClassInfo), [tkClass, tkString, tkLString, tkAString, tkWString], @PropList);
 
   for i := 0 to Count - 1 do
   begin
     PropInfo := PropList[i];
 
     case PropInfo^.PropType^.Kind of
-//      {$IF CompilerVersion > 18.5}
-//      tkString, tkLString, tkWString, tkUString:
-//      {$ELSE}
       tkString, tkLString, tkAString, tkWString:
-//      {$IFEND}
         begin
           if (PropInfo^.Name = 'Caption') or (PropInfo^.Name = 'Hint')
              or (PropInfo^.Name = 'Title')  or (PropInfo^.Name = 'Description') // Steffen: ToolTip Komponente
