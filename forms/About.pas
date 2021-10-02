@@ -109,8 +109,6 @@ begin
 
   inherited Create(AOwner);
 
-  exit;
-
   if IsMainWindow then
     Self.Icon.Handle := Application.Icon.Handle;
 
