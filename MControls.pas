@@ -54,15 +54,17 @@ type
 
   TMTabSheet = class(TTabSheet)
   private
-    FCaption: string;
+    FCaption: TCaption;
     FShowCloseButton: Boolean;
     FButtonRect: TRect;
 
     FFocusedControlBeforeChange: TWinControl;
 
     procedure UpdateProperties;
-    procedure FSetCaption(Value: string);
+    procedure FSetCaption(Value: TCaption);
     procedure FSetShowCloseButton(Value: Boolean);
+  protected
+    function RealGetText: TCaption; override;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -70,7 +72,7 @@ type
 
     function ProcessShortCut(Msg: TWMKey): Boolean; virtual;   // TODO: testen ob das noch funzt.
 
-    property Caption: string read FCaption write FSetCaption;
+    property Caption: TCaption read FCaption write FSetCaption;
     property ShowCloseButton: Boolean read FShowCloseButton write FSetShowCloseButton;
   end;
 
@@ -206,9 +208,9 @@ begin
   Color := clWindow;
 end;
 
-procedure TMTabSheet.FSetCaption(Value: string);
+procedure TMTabSheet.FSetCaption(Value: TCaption);
 begin
-  FCaption := Value.Trim;
+  FCaption := Trim(Value);
   UpdateProperties;
 end;
 
@@ -218,9 +220,14 @@ begin
   UpdateProperties;
 end;
 
+function TMTabSheet.RealGetText: TCaption;
+begin
+  Result := FCaption;
+end;
+
 function TMTabSheet.ProcessShortCut(Msg: TWMKey): Boolean;
 begin
-  self.Update;
+  Update;
 
   Result := False;
 end;
