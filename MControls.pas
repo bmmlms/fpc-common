@@ -63,17 +63,15 @@ type
     procedure UpdateProperties;
     procedure FSetCaption(Value: TCaption);
     procedure FSetShowCloseButton(Value: Boolean);
-  protected
-    function RealGetText: TCaption; override;
   public
     constructor Create(AOwner: TComponent); override;
 
     function CanClose: Boolean; virtual;
 
     function ProcessShortCut(Msg: TWMKey): Boolean; virtual;   // TODO: testen ob das noch funzt.
-
-    property Caption: TCaption read FCaption write FSetCaption;
     property ShowCloseButton: Boolean read FShowCloseButton write FSetShowCloseButton;
+  published
+    property Caption: TCaption read FCaption write FSetCaption;
   end;
 
   { TMPageControl }
@@ -218,11 +216,6 @@ procedure TMTabSheet.FSetShowCloseButton(Value: Boolean);
 begin
   FShowCloseButton := Value;
   UpdateProperties;
-end;
-
-function TMTabSheet.RealGetText: TCaption;
-begin
-  Result := FCaption;
 end;
 
 function TMTabSheet.ProcessShortCut(Msg: TWMKey): Boolean;

@@ -1342,6 +1342,7 @@ begin
       if TTranslationMarker(Owner.Components[i]).Obj = C then
       begin
         TM := TTranslationMarker(Owner.Components[i]);
+        Break;
       end;
   end;
 
