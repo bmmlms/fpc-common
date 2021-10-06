@@ -355,25 +355,33 @@ end;
 procedure TScrollText.BuildBitmap;
   procedure DistortArea(Percent, YFrom, YTo: Integer);
   type
-    TRGBLine = array[word] of TRGBTriple;
-     pRGBLine = ^TRGBLine;
+    TRGBLine = array[Word] of TRGBTriple;
+    PRGBLine = ^TRGBLine;
   var
     Y, X, Rnd: Integer;
     Pixels: PRGBLine;
   begin
-    for Y := YFrom to YTo - 1 do
-    begin
-      Pixels := FBmp.ScanLine[Y];
-      for X := 0 to FBmp.Width - 1 do
+    FBmp.BeginUpdate;
+    try
+      for Y := YFrom to YTo - 1 do
       begin
-        //Rnd := Random(100);
-        //if Percent > Rnd then
+        Pixels := FBmp.ScanLine[Y];
+        for X := 0 to FBmp.Width - 1 do
         begin
-          Pixels^[X].rgbtBlue := 100;
-          Pixels^[X].rgbtGreen := 100;
-          Pixels^[X].rgbtRed := 200;
+          if (Pixels^[X].rgbtBlue = 0) and (Pixels^[X].rgbtGreen = 0) and (Pixels^[X].rgbtRed = 0) then
+            Continue;
+
+          Rnd := Random(100);
+          if Percent > Rnd then
+          begin
+            Pixels^[X].rgbtBlue := Rnd;
+            Pixels^[X].rgbtGreen := Rnd;
+            Pixels^[X].rgbtRed := Rnd;
+          end;
         end;
       end;
+    finally
+      FBmp.EndUpdate;
     end;
   end;
 var

@@ -167,6 +167,7 @@ object frmSettingsBase: TfrmSettingsBase
       Control.Align = alClient
       Control.ItemHeight = 16
       Control.ItemsEx = <>
+      Control.OnChange = lstLanguagesChange
       Control.TabOrder = 0
     end
     object txtHost: TMLabeledEdit

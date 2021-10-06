@@ -497,9 +497,6 @@ begin
         TPanel(Controls[n]).Enabled := False;
         TPanel(Controls[n]).Align := alClient;
         TPanel(Controls[n]).BevelOuter := bvNone;
-        // Vermeidet Flackern nach anklicken im Tree/aktivieren.
-        // Das Align := alClient wird da wohl erst aktiv.
-        TPanel(Controls[n]).SendToBack;
         Break;
       end;
 
@@ -524,13 +521,11 @@ end;
 
 procedure TfrmSettingsBase.lstLanguagesChange(Sender: TObject);
 begin
-  {
-  if lstLanguages.ItemIndex > -1 then
+  if lstLanguages.Control.ItemIndex > -1 then
   begin
-    Language.CurrentLanguage := TLanguage(lstLanguages.ItemsEx[lstLanguages.ItemIndex].Data);
+    Language.CurrentLanguage := TLanguage(lstLanguages.Control.ItemsEx[lstLanguages.Control.ItemIndex].Data);
     Language.Translate(Self, PreTranslate, PostTranslate);
   end;
-  }
 end;
 
 procedure TfrmSettingsBase.TreeViewChange(Sender: TBaseVirtualTree;
