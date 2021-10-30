@@ -47,10 +47,6 @@ type
     procedure FormCreate(Sender: TObject);
     procedure btnDeleteClick(Sender: TObject);
     procedure btnCopyClick(Sender: TObject);
-  private
-  protected
-   // procedure CreateParams(var Params: TCreateParams); override;
-  public
   end;
 
 implementation
@@ -108,17 +104,7 @@ begin
     AppGlobals.Portable := poYes;
   Close;
 end;
-                                    {
-procedure TfrmProfileSettings.CreateParams(var Params: TCreateParams);
-begin
-  inherited;
 
-  // We are WS_EX_APPWINDOW - we do this to get rid of the regular taskbar-entry.
-  // The application window is hidden at this point.
-  Params.ExStyle := Params.ExStyle and WS_EX_APPWINDOW;
-  Params.WndParent := 0;
-end;
-                            }
 procedure TfrmProfileSettings.btnDeleteClick(Sender: TObject);
 var
   S: TSettingsStorage;

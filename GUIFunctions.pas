@@ -23,6 +23,7 @@ unit GUIFunctions;
 interface
 
 uses
+  Windows,
   ActiveX,
   Classes,
   ComObj,
@@ -33,8 +34,7 @@ uses
   ShellAPI,
   ShlObj,
   SysUtils,
-  Types,
-  Windows;
+  Types;
 
 function GetTextSize(Text: string; Font: TFont): TSize;
 function TruncateText(Text: string; MaxWidth: Integer; Font: TFont): string;
