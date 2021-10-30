@@ -23,22 +23,23 @@ unit GUIFunctions;
 interface
 
 uses
-  Windows,
-  Forms,
   ActiveX,
   Classes,
   ComObj,
   Controls,
+  Dialogs,
+  Forms,
   Graphics,
   ShellAPI,
   ShlObj,
   SysUtils,
-  Types;
+  Types,
+  Windows;
 
 function GetTextSize(Text: string; Font: TFont): TSize;
 function TruncateText(Text: string; MaxWidth: Integer; Font: TFont): string;
 function StringForWidth(const c: Char; const Width: Integer; const Font: TFont): string;
-function BrowseDialog(Handle: HWnd; Title: string; Flag: Integer): string;
+function BrowseDialog(Owner: TComponent; Title: string): string;
 procedure PropertiesDialog(Filename: string);
 function GetShellFolder(CSIDL: Integer): string;
 function Recycle(Handle: Cardinal; Filename: string): Boolean; overload;
@@ -118,28 +119,22 @@ begin
   end;
 end;
 
-function BrowseDialog(Handle: HWnd; Title: string; Flag: Integer): string;
+function BrowseDialog(Owner: TComponent; Title: string): string;
 var
-  lpItemID: PItemIDList;
-  BrowseInfo: TBrowseInfo;
-  DisplayName: array[0..MAX_PATH] of Char;
-  TempPath: array[0..MAX_PATH] of Char;
+  Dlg: TSelectDirectoryDialog;
 begin
   Result := '';
-  FillChar(BrowseInfo, sizeof(TBrowseInfo), #0);
-  with BrowseInfo do
-  begin
-    hwndOwner := Handle;
-    pszDisplayName := @DisplayName;
-    lpszTitle := PChar(Title);
-    ulFlags := Flag or BIF_NEWDIALOGSTYLE;
-  end;
-  lpItemID := SHBrowseForFolder(BrowseInfo);
-  if lpItemId <> nil then
-  begin
-    SHGetPathFromIDList(lpItemID, TempPath);
-    Result := TempPath;
-    GlobalFreePtr(lpItemID);
+  Dlg := TSelectDirectoryDialog.Create(Owner);
+  try
+    Dlg.Options := [ofEnableSizing, ofPathMustExist];
+    Dlg.Title := Title;
+
+    if not Dlg.Execute then
+      Exit;
+
+    Result := Dlg.FileName;
+  finally
+    Dlg.Free;
   end;
 end;
 
@@ -280,10 +275,12 @@ begin
 end;
 
 function WindowIsFullscreen: Boolean;
+
   function RectMatches(R: TRect; R2: TRect): Boolean;
   begin
     Result := (R.Left = R2.Left) and (R.Top = R2.Top) and (R.Right = R2.Right) and (R.Bottom = R2.Bottom);
   end;
+
 type
   TGetShellWindow = function(): HWND; stdcall;
 var
@@ -293,7 +290,6 @@ var
   GetShellWindow: TGetShellWindow;
 begin
   H := GetForegroundWindow;
-
   @GetShellWindow := nil;
   Handle := GetModuleHandle('user32.dll');
   if (Handle > 0) then
