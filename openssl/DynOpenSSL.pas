@@ -80,7 +80,7 @@ begin
   FLibEayDLLPath := ConcatPaths([TempDir, 'libeay32.dll']);
   FSSLEayDLLPath := ConcatPaths([TempDir, 'ssleay32.dll']);
 
-  Res := TResourceStream.Create(0, 'CERTIFICATES', MakeIntResource(RT_RCDATA));
+  Res := TResourceStream.Create(0, 'CERTIFICATES', RT_RCDATA);
   try
     try
       SetLength(C, Res.Size);
@@ -91,7 +91,7 @@ begin
     Res.Free;
   end;
 
-  Res := TResourceStream.Create(0, 'LIBEAY32', MakeIntResource(RT_RCDATA));
+  Res := TResourceStream.Create(0, 'LIBEAY32', RT_RCDATA);
   try
     try
       Res.SaveToFile(FLibEayDLLPath);
@@ -100,7 +100,7 @@ begin
     Res.Free;
   end;
 
-  Res := TResourceStream.Create(0, 'SSLEAY32', MakeIntResource(RT_RCDATA));
+  Res := TResourceStream.Create(0, 'SSLEAY32', RT_RCDATA);
   try
     try
       Res.SaveToFile(FSSLEayDLLPath);

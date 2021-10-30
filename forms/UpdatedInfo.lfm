@@ -17,8 +17,8 @@ object frmUpdatedInfo: TfrmUpdatedInfo
   OnKeyDown = FormKeyDown
   OnResize = FormResize
   OnShow = FormShow
-  Position = poOwnerFormCenter
-  LCLVersion = '2.2.0.1'
+  Position = poScreenCenter
+  ShowInTaskBar = stAlways
   object txtInfo: TMemo
     Left = 0
     Height = 160

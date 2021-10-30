@@ -23,21 +23,30 @@ unit AppStartup;
 interface
 
 uses
-  Windows, SysUtils, WinSock, Forms, AppData, UpdateClient, Update, WizardBase,
-  ProfileSettings, Functions, SettingsStorage, LanguageObjects, Dialogs,
-  AppDataBase, About, Menus, UpdatedInfo, Logging, MsgDlg;
+  About,
+  AppData,
+  AppDataBase,
+  Dialogs,
+  Forms,
+  Functions,
+  LanguageObjects,
+  Logging,
+  Menus,
+  MsgDlg,
+  ProfileSettings,
+  SettingsStorage,
+  SysUtils,
+  UpdateClient,
+  UpdatedInfo,
+  Windows,
+  WinSock,
+  WizardBase;
 
 type
   TPatch = packed record
     Call: Byte;
     Proc: Pointer;
     Ret: Byte;
-  end;
-
-type
-  TAppEvents = class
-  public
-    class procedure OnActivate(Sender: TObject);
   end;
 
   TWizardClass = class of TfrmWizardBase;
@@ -48,24 +57,10 @@ function InitWinsock: Boolean;
 
 implementation
 
-{ TAppEvents }
-
-class procedure TAppEvents.OnActivate(Sender: TObject);
-begin
-  ShowWindow(Application.Handle, SW_HIDE);
-end;
-
-function PatchedIsAltGRPressed: Boolean;
-begin
-  Result := False;
-end;
-
 function InitAppStageOne: Boolean;
 var
   Ver: TOSVersionInfo;
   VerRec: TAppVersion;
-  OldProtect: Cardinal;
-  Patch: TPatch;
   ProfileSettings: TfrmProfileSettings;
 begin
   Randomize;
@@ -73,34 +68,17 @@ begin
 
   SetErrorMode(SEM_FAILCRITICALERRORS);
 
-  Application.OnActivate := TAppEvents.OnActivate;
-
   Ver.dwOSVersionInfoSize := SizeOf(Ver);
   if GetVersionEx(Ver) then
   begin
     VerRec := ParseVersion(Ver.dwMajorVersion, Ver.dwMinorVersion, 0, 0);
     if not IsVersionNewer(ParseVersion('5.0.0.0'), VerRec) then
-    begin
       TfrmMsgDlg.ShowMsg(nil, Format(_('%s requires at least Windows Vista, earlier versions of windows are not supported.'#13#10 +
-                                       'If you continue running %s using a not supported operating system I am not responsible for any problems that might occur.'), [AppGlobals.AppName, AppGlobals.AppName]),
-                         mtWarning, [mbOK], mbOK, 12);
-    end;
+        'If you continue running %s using a not supported operating system I am not responsible for any problems that might occur.'), [AppGlobals.AppName, AppGlobals.AppName]),
+        mtWarning, [mbOK], mbOK, 12);
   end;
 
-  // Gibt manchmal bei ALT-GR eine Exception. Die möchten wir nicht.
-  {
-  Patch.Call := $E8;
-  Patch.Proc := Pointer(Integer(Pointer(@PatchedIsAltGRPressed)) - Integer(Pointer(@IsAltGRPressed)) - 5);
-  Patch.Ret := $C3;
-  if VirtualProtect(@IsAltGRPressed, SizeOf(TPatch), PAGE_EXECUTE_READWRITE, OldProtect) then
-    try
-      CopyMemory(@IsAltGRPressed, @Patch, SizeOf(TPatch));
-    finally
-      VirtualProtect(@IsAltGRPressed, SizeOf(TPatch), OldProtect, OldProtect);
-    end;
-                 }
-  if TSettingsInstalled.Active(AppGlobals.AppName) and
-     TSettingsPortable.Active(AppGlobals.AppName) then
+  if TSettingsInstalled.Active(AppGlobals.AppName) and TSettingsPortable.Active(AppGlobals.AppName) then
   begin
     ProfileSettings := TfrmProfileSettings.Create(nil);
     try
@@ -147,12 +125,12 @@ begin
       AppGlobals.InstallUpdateOnStart := False;
       try
         AppGlobals.Save;
-      except end;
+      except
+      end;
     end;
   end;
 
-  if IsVersionNewer(AppGlobals.LastUsedVersion, AppGlobals.AppVersion) and (not AppGlobals.SuppressUpdatedInfo) and
-    (AppGlobals.ProjectDonateLink <> '') then
+  if IsVersionNewer(AppGlobals.LastUsedVersion, AppGlobals.AppVersion) and (not AppGlobals.SuppressUpdatedInfo) and (AppGlobals.ProjectDonateLink <> '') then
   begin
     UpdatedInfo := TfrmUpdatedInfo.Create(nil);
     try
@@ -164,7 +142,7 @@ begin
 
   if not AppGlobals.FirstStartShown then
   begin
-    About := TfrmAbout.Create(nil, _('Application information'), True);
+    About := TfrmAbout.Create(nil, _('Application information'));
     try
       About.ShowModal;
     finally
@@ -182,9 +160,6 @@ begin
     end;
   end;
 
-  Application.OnActivate := nil;
-
-  Application.Initialize;
   Application.MainFormOnTaskbar := True;
 end;
 

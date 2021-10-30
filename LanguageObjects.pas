@@ -1199,7 +1199,7 @@ begin
 
       for i := 0 to Resources.Count - 1 do
       begin
-        Res := TResourceStream.Create(HInstance, PChar(Resources[i]), MakeIntResource(10));
+        Res := TResourceStream.Create(HInstance, PChar(Resources[i]), RT_RCDATA);
         try
           Project := TProject.Create(Res);
           FProjects.Add(Project);

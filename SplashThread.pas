@@ -227,10 +227,10 @@ begin
   FStartPos := TRect.Create(MainLeft, MainTop, MainLeft + MainWidth, MainTop + MainHeight);
 
   FVersion := '© 2010-2021 Alexander Nottelmann et al. - V' + Version;
-  if (GitSHA.Length > 0) and (Codename <> '') then
-    FVersion := FVersion + ' ''%s'' %s'.Format([Codename, GitSHA])
-  else if GitSHA.Length > 0 then
-    FVersion := FVersion + ' %s'.Format([GitSHA]);
+  if GitSHA <> '' then
+    FVersion := FVersion + '-%s'.Format([GitSHA]);
+  if Codename <> '' then
+    FVersion := FVersion + ' ''%s'''.Format([Codename]);
 end;
 
 destructor TSplashThread.Destroy;
@@ -298,7 +298,7 @@ begin
 
     FSplashBitmap.Canvas.Font.Name := 'Tahoma';
     FSplashBitmap.Canvas.Font.Color := clWhite;
-    FSplashBitmap.Canvas.Font.Size := 11;
+    FSplashBitmap.Canvas.Font.Size := 8;
     SetBkMode(FSplashBitmap.Canvas.Handle, TRANSPARENT);
     FSplashBitmap.Canvas.TextOut(FSplashBitmap.Width - FSplashBitmap.Canvas.TextWidth(FVersion) - 25,
       FSplashBitmap.Height - FSplashBitmap.Canvas.TextHeight(FVersion) - 20, FVersion);

@@ -70,8 +70,7 @@ type
     btnClose: TBitBtn;
     lblGPL: TLabel;
     tabThanks: TTabSheet;
-    procedure FormKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure lblGPLClick(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);
     procedure lblHomepageClick(Sender: TObject);
@@ -82,11 +81,8 @@ type
     procedure pnlNavClick(Sender: TObject);
   private
     FScrollText: TScrollText;
-    FIsMainWindow: Boolean;
-  protected
-   // procedure CreateParams(var Params: TCreateParams); override;
   public
-    constructor Create(AOwner: TComponent; Caption: string; IsMainWindow: Boolean); reintroduce;
+    constructor Create(AOwner: TComponent; Caption: string); reintroduce;
   end;
 
 implementation
@@ -103,14 +99,16 @@ begin
   ShellExecuteW(0, 'open', PWideChar(UnicodeString(AppGlobals.ProjectDonateLink)), '', '', 1);
 end;
 
-constructor TfrmAbout.Create(AOwner: TComponent; Caption: string; IsMainWindow: Boolean);
+constructor TfrmAbout.Create(AOwner: TComponent; Caption: string);
 begin
-  FIsMainWindow := IsMainWindow;
-
   inherited Create(AOwner);
 
-  if IsMainWindow then
+  if not Assigned(AOwner) then
+  begin
     Self.Icon.Handle := Application.Icon.Handle;
+    Position := poScreenCenter;
+    ShowInTaskBar := stAlways;
+  end;
 
   Language.Translate(Self);
 
@@ -118,10 +116,10 @@ begin
   lblAbout.Caption := AppGlobals.AppName;
 
   lblVersion.Caption := _('Version') + ' ' + AppGlobals.AppVersion.AsString;
-  if (AppGlobals.GitSHA.Length > 0) and (AppGlobals.Codename <> '') then
-    lblVersion.Caption := lblVersion.Caption + ' ''%s'' %s'.Format([AppGlobals.Codename, AppGlobals.GitSHA])
-  else if AppGlobals.GitSHA.Length > 0 then
-    lblVersion.Caption := lblVersion.Caption + ' %s'.Format([AppGlobals.GitSHA]);
+  if AppGlobals.GitSHA <> '' then
+    lblVersion.Caption := lblVersion.Caption + '-%s'.Format([AppGlobals.GitSHA]);
+  if AppGlobals.Codename <> '' then
+    lblVersion.Caption := lblVersion.Caption + ' ''%s'''.Format([AppGlobals.Codename]);
 
   lblGPL.Caption := _('Distributed under the terms of the GNU General Public License');
 
@@ -182,21 +180,6 @@ begin
 
   pagAbout.ActivePageIndex := 0;
 end;
-
-{
-procedure TfrmAbout.CreateParams(var Params: TCreateParams);
-begin
-  inherited;
-
-  if FIsMainWindow then
-  begin
-    // We are WS_EX_APPWINDOW - we do this to get rid of the regular taskbar-entry.
-    // The application window is hidden at this point.
-    Params.ExStyle := Params.ExStyle and WS_EX_APPWINDOW;
-    Params.WndParent := 0;
-  end;
-end;
-}
 
 procedure TfrmAbout.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);

@@ -47,10 +47,6 @@ type
     procedure FormShow(Sender: TObject);
     procedure btnDonateClick(Sender: TObject);
     procedure FormResize(Sender: TObject);
-  private
-  protected
-    //procedure CreateParams(var Params: TCreateParams); override;
-  public
   end;
 
 implementation
@@ -69,17 +65,7 @@ begin
   AppGlobals.SuppressUpdatedInfo := chkNotShowAgain.Checked;
   Close;
 end;
-              {
-procedure TfrmUpdatedInfo.CreateParams(var Params: TCreateParams);
-begin
-  inherited;
 
-  // We are WS_EX_APPWINDOW - we do this to get rid of the regular taskbar-entry.
-  // The application window is hidden at this point.
-  Params.ExStyle := Params.ExStyle and WS_EX_APPWINDOW;
-  Params.WndParent := 0;
-end;
-          }
 procedure TfrmUpdatedInfo.FormCreate(Sender: TObject);
 begin
   Language.Translate(Self);

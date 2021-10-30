@@ -17,6 +17,7 @@ object frmWizardBase: TfrmWizardBase
   OnDestroy = FormDestroy
   OnKeyDown = FormKeyDown
   OnShow = FormShow
+  ShowInTaskBar = stAlways
   object pnlLanguage: TPanel
     Left = 4
     Height = 213
@@ -36,7 +37,7 @@ object frmWizardBase: TfrmWizardBase
     end
     object lstLanguages: TComboBoxEx
       Left = 8
-      Height = 24
+      Height = 22
       Top = 20
       Width = 165
       ItemHeight = 16

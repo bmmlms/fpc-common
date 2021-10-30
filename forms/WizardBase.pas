@@ -95,7 +95,6 @@ type
     procedure Finish; virtual;
     function IsValid(Step: TStep): Boolean; virtual;
     procedure InitStep(Step: TStep); virtual;
-//    procedure CreateParams(var Params: TCreateParams); override;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -129,18 +128,6 @@ begin
 
   Language.Translate(Self);
 end;
-
-{
-procedure TfrmWizardBase.CreateParams(var Params: TCreateParams);
-begin
-  inherited;
-
-  // We are WS_EX_APPWINDOW - we do this to get rid of the regular taskbar-entry.
-  // The application window is hidden at this point.
-  Params.ExStyle := Params.ExStyle and WS_EX_APPWINDOW;
-  Params.WndParent := 0;
-end;
-}
 
 procedure TfrmWizardBase.Finish;
 begin
@@ -203,8 +190,8 @@ begin
       ComboItem.Data := LanguageList[i];
       ComboItem.ImageIndex := AppGlobals.LanguageIcons.GetIconIndex(LanguageList[i].ID);
     end;
-  lstLanguages.ItemsEx.SortType := stText;
-  lstLanguages.ItemsEx.Sort;
+  // lstLanguages.ItemsEx.SortType := stText; // TODO: Exception...
+  // lstLanguages.ItemsEx.Sort; // TODO: Exception...
   for i := 0 to lstLanguages.ItemsEx.Count - 1 do
     if Language.CurrentLanguage.ID = TLanguage(lstLanguages.ItemsEx[i].Data).ID then
     begin
