@@ -438,7 +438,7 @@ begin
       Handle := ReadHandle;
 
       if Handle = 0 then
-        MsgBox(0, Format(_('You have tried to start %s but a previous instance is closing at the moment. Please try again in some seconds.'), [AppName]), _('Info'), MB_ICONINFORMATION)
+        MsgBox(Format(_('You have tried to start %s but a previous instance is closing at the moment. Please try again in some seconds.'), [AppName]), _('Info'), MB_ICONINFORMATION)
       else
       begin
         NotifyRunningInstance(Handle);
@@ -498,7 +498,7 @@ begin
         raise
       else
       begin
-        Res2 := MsgBox(Handle, _('An error occured while saving application settings. Please make sure you can write to ' +
+        Res2 := MsgBox(_('An error occured while saving application settings. Please make sure you can write to ' +
                                  'the registry if the application was installed or to the application path if it is used ' +
                                  'in portable mode. Click "Yes" to try again, "No" to exit without saving settings.'),
                                  _('Info'), MB_ICONEXCLAMATION or MB_YESNO or MB_DEFBUTTON1);

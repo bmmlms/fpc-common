@@ -251,7 +251,7 @@ begin
       RunProcess('"' + FUpdateFile + '" /NOICONS /SP /SILENT /UPDATE /PATH="' + AppGlobals.AppPath + '"')
     else
     begin
-      MsgBox(Handle, _('You do not have administrative rights.'#13#10'Please enter the credentials of a user with administrative rights now.'), _('Info'), MB_ICONINFORMATION);
+      MsgBox(_('You do not have administrative rights.'#13#10'Please enter the credentials of a user with administrative rights now.'), _('Info'), MB_ICONINFORMATION);
 
       FillChar(Info, SizeOf(Info), 0);
       Info.cbSize := SizeOf(SEI);

@@ -24,7 +24,7 @@ interface
 
 uses
   Windows, ShLwApi, SysUtils, Classes, StrUtils, Graphics, RegExpr,
-  DateUtils, PasZLib, IdURI, FileUtil, ZStream;
+  DateUtils, PasZLib, IdURI, FileUtil, ZStream, Forms;
 
 type
   TPatternReplace = record
@@ -52,7 +52,7 @@ type
 
   TReadCallback = procedure(Data: AnsiString) of object;
 
-function MsgBox(Handle: HWND; Text, Title: string; uType: Cardinal): Integer;
+function MsgBox(Text, Title: string; uType: Cardinal): Integer;
 function ValidURL(URL: string): Boolean;
 function StripURL(URL: string): string;
 function ParseURL(URL: string): TParseURLRes;
@@ -103,9 +103,13 @@ function VerSetConditionMask(dwlConditionMask: LONGLONG; TypeBitMask: DWORD; Con
 
 implementation
 
-function MsgBox(Handle: HWND; Text, Title: string; uType: Cardinal): Integer;
+function MsgBox(Text, Title: string; uType: Cardinal): Integer;
 begin
-  Result := MessageBoxW(Handle, PWideChar(UnicodeString(Text)), PWideChar(UnicodeString(Title)), uType);
+  if Application.MainForm = nil then
+    // Wichtig ist Handle 0, weil wir gerne einen Taskleistenknopf hätten
+    Result := MessageBoxW(0, PWideChar(UnicodeString(Text)), PWideChar(UnicodeString(Title)), uType)
+  else
+    Result := Application.MessageBox(PChar(Text), PChar(Title), uType);
 end;
 
 function ValidURL(URL: string): Boolean;

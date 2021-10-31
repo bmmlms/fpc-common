@@ -108,7 +108,7 @@ begin
 
   if AppGlobals.InstallUpdateOnStart then
   begin
-    Res := MsgBox(0, _('The update downloaded last time can now be installed.'#13#10'Do you want to install the new version now?'), _('Question'), MB_ICONQUESTION or MB_YESNO);
+    Res := MsgBox(_('The update downloaded last time can now be installed.'#13#10'Do you want to install the new version now?'), _('Question'), MB_ICONQUESTION or MB_YESNO);
     try
       if Res = IDYES then
       begin
@@ -170,7 +170,7 @@ begin
   Result := True;
   if WSAStartup($0101, Data) <> 0 then
   begin
-    MessageBox(0, 'The Application could not be started because Winsock could not be initialized.', 'Error', MB_ICONERROR);
+    MsgBox('The Application could not be started because Winsock could not be initialized.', 'Error', MB_ICONERROR);
     Result := False;
   end;
 end;

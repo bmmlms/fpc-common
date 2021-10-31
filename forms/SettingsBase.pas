@@ -217,7 +217,7 @@ var
 begin
   if ((AppGlobals.Portable = poYes) and (TSettingsInstalled.Active(AppGlobals.AppName)) or
       (AppGlobals.Portable = poNo) and (TSettingsPortable.Active(AppGlobals.AppName))) then
-    if MsgBox(Handle, _('All settings of the other profile will be replaced by the current profile''s settings.'#13#10 +
+    if MsgBox(_('All settings of the other profile will be replaced by the current profile''s settings.'#13#10 +
                         'Please be aware that existing settings and files containing data will be overwritten.'#13#10 +
                         'Proceed?'), 'Question', MB_ICONQUESTION or MB_YESNO or MB_DEFBUTTON2) = IDNO then
     begin
@@ -237,9 +237,9 @@ begin
       S2.Free;
     end;
 
-    MsgBox(Handle, _('The profile was copied successfully. To use the copied profile, restart the application.'), _('Info'), MB_ICONINFORMATION);
+    MsgBox(_('The profile was copied successfully. To use the copied profile, restart the application.'), _('Info'), MB_ICONINFORMATION);
   except
-    MsgBox(Handle, _('An error occured while copying the settings.'#13#10 +
+    MsgBox(_('An error occured while copying the settings.'#13#10 +
                      'It is possible that some settings were copied before the error occured.'), _('Error'), MB_ICONERROR);
   end;
 end;
@@ -252,12 +252,12 @@ end;
 
 procedure TfrmSettingsBase.btnDeleteProfileClick(Sender: TObject);
 begin
-  if MsgBox(Handle, _('All data saved in the currently used profile will be deleted.'#13#10 +
+  if MsgBox(_('All data saved in the currently used profile will be deleted.'#13#10 +
                       'Are you sure you want to delete this profile?'), _('Question'), MB_ICONQUESTION or MB_YESNO or MB_DEFBUTTON2) = IDYES then
   begin
     AppGlobals.Storage.DeleteProfile;
     AppGlobals.SkipSave := True;
-    MsgBox(Handle, _('The profile was deleted.'#13#10 +
+    MsgBox(_('The profile was deleted.'#13#10 +
                      'When you exit the application, no data will be saved so that the profil will not be recreated.'), _('Info'), MB_ICONINFORMATION);
   end;
 end;
@@ -288,7 +288,7 @@ begin
         Lst.Save(S);
         GetExportData(S);
         S.SaveToFile(Dlg.FileName);
-        MsgBox(Handle, _('The profile was exported successfully.'), _('Info'), MB_ICONINFORMATION);
+        MsgBox(_('The profile was exported successfully.'), _('Info'), MB_ICONINFORMATION);
       end;
     finally
       AppGlobals.Storage.IgnoreFields.Clear;
@@ -297,7 +297,7 @@ begin
       Dlg.Free;
     end;
   except
-    MsgBox(Handle, _('An error occured while exporting the profile.'), _('Error'), MB_ICONERROR);
+    MsgBox(_('An error occured while exporting the profile.'), _('Error'), MB_ICONERROR);
   end;
 end;
 
@@ -305,7 +305,7 @@ procedure TfrmSettingsBase.btnImportProfileClick(Sender: TObject);
 var
   Dlg: TOpenDialog;
 begin
-  if MsgBox(Handle, _('The profile currently in use will be replaced with the imported one. After successful import streamWriter will restart.'#13#10'Do you want to continue?'), _('Question'), MB_ICONQUESTION or MB_YESNO) = IDYES then
+  if MsgBox(_('The profile currently in use will be replaced with the imported one. After successful import streamWriter will restart.'#13#10'Do you want to continue?'), _('Question'), MB_ICONQUESTION or MB_YESNO) = IDYES then
   begin
     Dlg := TOpenDialog.Create(Self);
     Dlg.Filter := 'streamWriter profile (*.dat)|*.dat';
@@ -333,7 +333,7 @@ begin
   begin
     if (Trim(txtHost.Control.Text) = '') or (Trim(txtPort.Control.Text) = '') or (StrToIntDef(txtPort.Control.Text, 0) <= 0) then
     begin
-      MsgBox(Handle, _('You need to supply a host and a port (must be a positive number) to connect to if the use of a HTTP proxy is enabled.'), _('Info'), MB_ICONINFORMATION);
+      MsgBox(_('You need to supply a host and a port (must be a positive number) to connect to if the use of a HTTP proxy is enabled.'), _('Info'), MB_ICONINFORMATION);
       SetPage(FPageList.Find(TPanel(txtHost.Parent)));
       if Trim(txtHost.Control.Text) = '' then
         txtHost.ApplyFocus

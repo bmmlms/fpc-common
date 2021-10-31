@@ -21,7 +21,7 @@ initialization
   ShutdownBlockReasonCreate := nil;
   ShutdownBlockReasonDestroy := nil;
 
-  User32Handle := LoadLibrary(user32);
+  User32Handle := GetModuleHandle(user32);
   if User32Handle <> 0 then
   begin
     ShutdownBlockReasonCreate := GetProcAddress(User32Handle, 'ShutdownBlockReasonCreate');
