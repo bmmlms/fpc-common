@@ -28,7 +28,11 @@ unit LanguageIcons;
 interface
 
 uses
-  Windows, SysUtils, Classes, Graphics, ImgList, LanguageObjects;
+  Classes,
+  Graphics,
+  ImgList,
+  LanguageObjects,
+  SysUtils;
 
 type
   TLanguageIcon = class
@@ -46,7 +50,6 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-//    function CreateIcon(ID: string): TIcon;
     function GetIconIndex(ID: string): Integer;
     property List: TCustomImageList read FList;
   end;
@@ -62,13 +65,11 @@ begin
   FList := TCustomImageList.Create(nil);
   FLanguageIcons := TList.Create;
   for i := 0 to LanguageList.Count - 1 do
-  begin
     try
       Idx := FList.AddResourceName(HINSTANCE, 'FLAG_%s'.Format([LanguageList[i].ID]));
       FLanguageIcons.Add(TLanguageIcon.Create(LanguageList[i].ID, Idx));
     except
     end;
-  end;
 end;
 
 destructor TLanguageIcons.Destroy;
@@ -82,37 +83,17 @@ begin
   inherited;
 end;
 
-{
-function TLanguageIcons.CreateIcon(ID: string): TIcon;
-var
-  i: Integer;
-  Icon: TIcon;
-begin
-  Result := nil;
-  for i := 0 to FLanguageIcons.Count - 1 do
-    if TLanguageIcon(FLanguageIcons[i]).FID = ID then
-    begin
-      Icon := TIcon.Create;
-      FList.GetIcon(TLanguageIcon(FLanguageIcons[i]).FIndex, Icon);
-      Result := Icon;
-      Break;
-    end;
-end;
-}
-
 function TLanguageIcons.GetIconIndex(ID: string): Integer;
 var
   i: Integer;
 begin
   Result := -1;
   for i := 0 to FLanguageIcons.Count - 1 do
-  begin
     if TLanguageIcon(FLanguageIcons[i]).FID = ID then
     begin
       Result := i;
       Break;
     end;
-  end;
 end;
 
 { TLanguageIcon }
@@ -122,6 +103,5 @@ begin
   FID := ID;
   FIndex := Index;
 end;
-
 
 end.

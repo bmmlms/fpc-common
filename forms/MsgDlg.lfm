@@ -20,6 +20,7 @@ object frmMsgDlg: TfrmMsgDlg
   OnKeyUp = FormKeyUp
   OnShow = FormShow
   Position = poOwnerFormCenter
+  LCLVersion = '2.2.0.2'
   object imgIcon: TImage
     Left = 0
     Height = 111

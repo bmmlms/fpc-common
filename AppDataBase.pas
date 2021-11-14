@@ -23,9 +23,17 @@ unit AppDataBase;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Registry, SyncObjs, ShlObj, ActiveX,
-  LanguageObjects, SettingsStorage, Functions, GUIFunctions, Forms, Types,
-  CommandLine;
+  Classes,
+  CommandLine,
+  Forms,
+  Functions,
+  LanguageObjects,
+  Registry,
+  SettingsStorage,
+  SyncObjs,
+  SysUtils,
+  Types,
+  Windows;
 
 type
   TArrayElement = string;
@@ -39,7 +47,7 @@ type
 
   TAppDataBase = class(TObject)
   private
-    FCS: TCriticalSection;
+    FCS: SyncObjs.TCriticalSection;
     FOnlyOne: Boolean;
     FWasSetup: Boolean;
     FAutoUpdate: Boolean;
@@ -183,7 +191,7 @@ begin
 
   FLicense := License;
 
-  FCS := TCriticalSection.Create;
+  FCS := SyncObjs.TCriticalSection.Create;
   FAppPath := ExtractFilePath(ParamStr(0));
   FAppName := AppName;
   FOnlyOne := OnlyOne;
@@ -261,7 +269,8 @@ begin
   else
     try
       FStorage.Delete('InfoShown' + IntToStr(Idx), 'Infos');
-    except end;
+    except
+    end;
 end;
 
 procedure TAppDataBase.GetPortable;
@@ -275,20 +284,15 @@ begin
 
   try
     if EP and PortableAllowed then
-    begin
-      FSetPortable(poYes);
-    end else if EI then
-    begin
+      FSetPortable(poYes)
+    else if EI then
       FSetPortable(poNo);
-    end;
   except
 
   end;
 
   if FPortable = poUndefined then
-  begin
     FSetPortable(poUndefined);
-  end;
 end;
 
 procedure TAppDataBase.FSetPortable(Value: TPortable);
@@ -296,27 +300,27 @@ begin
   FPortable := Value;
   case Value of
     poYes:
-      begin
-        if FStorage <> nil then
-          FStorage.Free;
-        FStorage := TSettingsPortable.Create(FAppName, FAppPath, FCommandLine);
-        Load;
-      end;
+    begin
+      if FStorage <> nil then
+        FStorage.Free;
+      FStorage := TSettingsPortable.Create(FAppName, FAppPath, FCommandLine);
+      Load;
+    end;
     poNo:
-      begin
-        if FStorage <> nil then
-          FStorage.Free;
-        FStorage := TSettingsInstalled.Create(FAppName, FAppPath, FCommandLine);
-        Load;
-      end;
+    begin
+      if FStorage <> nil then
+        FStorage.Free;
+      FStorage := TSettingsInstalled.Create(FAppName, FAppPath, FCommandLine);
+      Load;
+    end;
     poUndefined:
-      begin
-        if FStorage <> nil then
-          FStorage.Free;
-        FStorage := TSettingsDummy.Create(FAppName, FAppPath, FCommandLine);
-        Load;
-        FWasSetup := False;
-      end;
+    begin
+      if FStorage <> nil then
+        FStorage.Free;
+      FStorage := TSettingsDummy.Create(FAppName, FAppPath, FCommandLine);
+      Load;
+      FWasSetup := False;
+    end;
   end;
 end;
 
@@ -340,7 +344,7 @@ begin
 
   // Wenn Fenster nicht auf Bildschirmen, Position zurücksetzen
   F := False;
-  R := Rect(FMainLeft + 20, FMainTop + 20, FMainLeft + FMainWidth - 40, FMainTop + FMainHeight - 40);
+  R := Classes.Rect(FMainLeft + 20, FMainTop + 20, FMainLeft + FMainWidth - 40, FMainTop + FMainHeight - 40);
   for i := 0 to Screen.MonitorCount - 1 do
     if IntersectRect(R2, R, Screen.Monitors[i].WorkareaRect) then
     begin
@@ -426,11 +430,11 @@ begin
   FFileMapping := 0;
   if FOnlyOne then
   begin
-    FMutexHandle := CreateMutex(nil, True, PChar(FAppName + 'Mutex'));
+    FMutexHandle := CreateMutexW(nil, True, PWideChar(FAppName + 'Mutex'));
     while (GetLastError = ERROR_ALREADY_EXISTS) and (ReadHandle > 0) and (ParamStr(1) = '/profileupdate') do
     begin
       Sleep(500);
-      FMutexHandle := CreateMutex(nil, True, PChar(FAppName + 'Mutex'));
+      FMutexHandle := CreateMutexW(nil, True, PWideChar(FAppName + 'Mutex'));
     end;
 
     if GetLastError = ERROR_ALREADY_EXISTS then
@@ -446,9 +450,7 @@ begin
 
       raise EAlreadyRunning.Create('');
     end else
-    begin
       WriteHandle(0);
-    end;
   end;
 end;
 
@@ -467,8 +469,7 @@ begin
   SA.nLength := SizeOf(SA);
   SA.lpSecurityDescriptor := @pSD;
   SA.bInheritHandle := True;
-  hFileMapping := CreateFileMapping(INVALID_HANDLE_VALUE, @SA,
-    PAGE_READONLY, 0, SizeOf(Result), PChar(FAppName + 'WndHandle'));
+  hFileMapping := CreateFileMapping(INVALID_HANDLE_VALUE, @SA, PAGE_READONLY, 0, SizeOf(Result), PChar(FAppName + 'WndHandle'));
   if hFileMapping <> 0 then
   begin
     Mem := MapViewOfFile(hFileMapping, FILE_MAP_READ, 0, 0, SizeOf(Result));
@@ -498,12 +499,10 @@ begin
         raise
       else
       begin
-        Res2 := MsgBox(_('An error occured while saving application settings. Please make sure you can write to ' +
-                                 'the registry if the application was installed or to the application path if it is used ' +
-                                 'in portable mode. Click "Yes" to try again, "No" to exit without saving settings.'),
-                                 _('Info'), MB_ICONEXCLAMATION or MB_YESNO or MB_DEFBUTTON1);
+        Res2 := MsgBox(_('An error occured while saving application settings. Please make sure you can write to ' + 'the registry if the application was installed or to the application path if it is used ' +
+          'in portable mode. Click "Yes" to try again, "No" to exit without saving settings.'), _('Info'), MB_ICONEXCLAMATION or MB_YESNO or MB_DEFBUTTON1);
         if Res2 = IDNO then
-          Res := True
+          Res := True;
       end;
     end;
 end;
@@ -523,13 +522,12 @@ begin
     Exit;
   if not InitializeSecurityDescriptor(@pSD, SECURITY_DESCRIPTOR_REVISION) then
     Exit;
-  if not SetSecurityDescriptorDacl(@pSD, true, nil, false) then
+  if not SetSecurityDescriptorDacl(@pSD, True, nil, False) then
     Exit;
   SA.nLength := SizeOf(SA);
   SA.lpSecurityDescriptor := @pSD;
   SA.bInheritHandle := True;
-  FFileMapping := CreateFileMapping(INVALID_HANDLE_VALUE, @SA,
-    PAGE_READWRITE, 0, SizeOf(Handle), PChar(FAppName + 'WndHandle'));
+  FFileMapping := CreateFileMapping(INVALID_HANDLE_VALUE, @SA, PAGE_READWRITE, 0, SizeOf(Handle), PChar(FAppName + 'WndHandle'));
   if FFileMapping <> 0 then
   begin
     Mem := MapViewOfFile(FFileMapping, FILE_MAP_WRITE, 0, 0, SizeOf(Handle));
@@ -542,6 +540,7 @@ begin
 end;
 
 procedure TAppDataBase.GetPortableAllowed;
+
   function GetRandomFile(Dir: string): string;
   var
     E: Boolean;
@@ -553,6 +552,7 @@ procedure TAppDataBase.GetPortableAllowed;
       E := FileExists(Result);
     end;
   end;
+
 var
   Dir, Filename: string;
   S: TMemoryStream;
@@ -571,7 +571,7 @@ begin
       Dir := ExtractFilePath(AppPath);
       Filename := GetRandomFile(Dir);
       S.SaveToFile(Filename);
-      DeleteFile(Filename);
+      SysUtils.DeleteFile(Filename);
     except
       FPortableAllowed := False;
     end;
@@ -603,8 +603,7 @@ begin
         if Reg.ValueExists('DisplayName') then
           if LowerCase(Reg.ReadString('DisplayName')) = LowerCase(AppName) then
           begin
-            if LowerCase(IncludeTrailingPathDelimiter(Reg.ReadString('InstallLocation'))) =
-               LowerCase(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)))) then
+            if LowerCase(IncludeTrailingPathDelimiter(Reg.ReadString('InstallLocation'))) = LowerCase(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)))) then
               FRunningFromInstalledLocation := True;
             Exit;
           end;
@@ -628,22 +627,18 @@ begin
     FTempDir := ConcatPaths([Functions.GetTempDir, FAppName]);
 
   if FTempDir <> '' then
-  begin
     if ForceDirectories(FTempDir) then
       if DirectoryExists(FTempDir) then
         FTempDir := FTempDir;
-  end;
 
-  if not DirectoryExists(FTempDir) then  
-    raise Exception.Create(Format(_('The folder for temporary files could not be determined.'#13#10 +
-                                    'Please ask for support at %s.'#13#10 +
-                                    'The application will be terminated.'), [FProjectForumLink]));
+  if not DirectoryExists(FTempDir) then
+    raise Exception.Create(Format(_('The folder for temporary files could not be determined.'#13#10 + 'Please ask for support at %s.'#13#10 + 'The application will be terminated.'), [FProjectForumLink]));
 end;
 
 procedure TAppDataBase.GetVersionInfo;
 begin
   try
-    FAppVersion := GetFileVersion(ParamStr(0));
+    FAppVersion := Functions.GetFileVersion(ParamStr(0));
   except
     FAppVersion.Major := 0;
     FAppVersion.Minor := 0;
@@ -651,13 +646,8 @@ begin
     FAppVersion.Build := 0;
   end;
 
-  if (FAppVersion.Major = 0) and (FAppVersion.Minor = 0) and
-     (FAppVersion.Revision = 0) and (FAppVersion.Build = 0) then
-  begin
-    raise Exception.Create(Format(_('The version of the application could not be determined.'#13#10 +
-                                    'Please ask for support at %s.'#13#10 +
-                                    'The application will be terminated.'), [FProjectForumLink]));
-  end;
+  if (FAppVersion.Major = 0) and (FAppVersion.Minor = 0) and (FAppVersion.Revision = 0) and (FAppVersion.Build = 0) then
+    raise Exception.Create(Format(_('The version of the application could not be determined.'#13#10 + 'Please ask for support at %s.'#13#10 + 'The application will be terminated.'), [FProjectForumLink]));
 end;
 
 end.

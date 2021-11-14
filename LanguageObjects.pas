@@ -32,7 +32,10 @@ unit LanguageObjects;
 interface
 
 uses
-  Windows, SysUtils, Classes, StrUtils, TypInfo, Types;
+  Classes,
+  SysUtils,
+  TypInfo,
+  Windows;
 
 type
   TOccurence = class;
@@ -262,8 +265,9 @@ var
   x: Cardinal;
 begin
   Result := 0;
-  for i := 1 To Length(Value) do begin
-    Result := (Result Shl 4) + Ord(Value[i]);
+  for i := 1 to Length(Value) do
+  begin
+    Result := (Result shl 4) + Ord(Value[i]);
     x := Result and $F0000000;
     if (x <> 0) then
       Result := Result xor (x shr 24);
@@ -362,9 +366,7 @@ begin
   end;
   Result := True;
   for i := 0 to Translations.Count - 1 do
-    if ((Trim(Translations[i].Translation) = '') or
-        (Translations[i].Translation = Name)) and
-       (Translations[i].Language <> FProject.PrimaryLanguage) then
+    if ((Trim(Translations[i].Translation) = '') or (Translations[i].Translation = Name)) and (Translations[i].Language <> FProject.PrimaryLanguage) then
     begin
       Result := False;
       Break;
@@ -440,6 +442,7 @@ begin
 end;
 
 constructor TProject.Create(Stream: TCustomMemoryStream);
+
   function LoadFromStream(Stream: TStream; Offset, Len: Integer): string;
   var
     P: PWideChar;
@@ -452,12 +455,14 @@ constructor TProject.Create(Stream: TCustomMemoryStream);
     Result := WideCharToString(P);
     FreeMemory(P);
   end;
+
   function GetSafe(const s: string): string;
   begin
     Result := s;
     Result := StringReplace(Result, '\r', #13, [rfReplaceAll]);
     Result := StringReplace(Result, '\n', #10, [rfReplaceAll]);
   end;
+
 type
   TFileSections = (fsNone, fsSettings, fsOptions, fsIgnoreStrings,
     fsIgnoreFiles, fsLanguages, fsEntries);
@@ -469,7 +474,7 @@ var
   LangFound, AlreadyExists: Boolean;
   Entry: TEntry;
   Occurence: TOccurence;
-  BOM: Array[0..1] of Byte;
+  BOM: array[0..1] of Byte;
 begin
   FChanged := False;
   FImportDir := '';
@@ -491,9 +496,7 @@ begin
   begin
     Stream.ReadBuffer(BOM[0], 2);
     if (Bom[0] = 255) and (Bom[1] = 254) then
-    begin
       LastNL := 2;
-    end;
   end;
 
   try
@@ -547,98 +550,81 @@ begin
       case Section of
         fsNone: ;
         fsSettings:
-          begin
-            if LowerCase(Copy(Line, 1, 5)) = 'name=' then
-              FName := Copy(Line, 6, Length(Line) - 5);
-            if LowerCase(Copy(Line, 1, 16)) = 'primarylanguage=' then
-              PriLang := Copy(Line, 17, 2);
-          end;
+        begin
+          if LowerCase(Copy(Line, 1, 5)) = 'name=' then
+            FName := Copy(Line, 6, Length(Line) - 5);
+          if LowerCase(Copy(Line, 1, 16)) = 'primarylanguage=' then
+            PriLang := Copy(Line, 17, 2);
+        end;
         fsOptions:
-          begin
-            if LowerCase(Copy(Line, 1, 10)) = 'importdir=' then
-              FImportDir := Copy(Line, 11, Length(Line) - 9);
-            if LowerCase(Copy(Line, 1, 11)) = 'importopts=' then
-              FImportOpts := StrToIntDef(Copy(Line, 12, 1), 0);
-          end;
+        begin
+          if LowerCase(Copy(Line, 1, 10)) = 'importdir=' then
+            FImportDir := Copy(Line, 11, Length(Line) - 9);
+          if LowerCase(Copy(Line, 1, 11)) = 'importopts=' then
+            FImportOpts := StrToIntDef(Copy(Line, 12, 1), 0);
+        end;
         fsIgnoreStrings:
-          begin
-            if LowerCase(Copy(Line, 1, 5)) = 'name=' then
-              if Trim(Copy(Line, 6, Length(Line) - 5)) <> '' then
-                FIgnoreStrings.Add(GetSafe(Copy(Line, 6, Length(Line) - 5)));
-          end;
+          if LowerCase(Copy(Line, 1, 5)) = 'name=' then
+            if Trim(Copy(Line, 6, Length(Line) - 5)) <> '' then
+              FIgnoreStrings.Add(GetSafe(Copy(Line, 6, Length(Line) - 5)));
         fsIgnoreFiles:
-          begin
-            if LowerCase(Copy(Line, 1, 5)) = 'name=' then
-              if Trim(Copy(Line, 6, Length(Line) - 5)) <> '' then
-                FIgnoreFiles.Add(Copy(Line, 6, Length(Line) - 5));
-          end;
+          if LowerCase(Copy(Line, 1, 5)) = 'name=' then
+            if Trim(Copy(Line, 6, Length(Line) - 5)) <> '' then
+              FIgnoreFiles.Add(Copy(Line, 6, Length(Line) - 5));
         fsLanguages:
-          begin
-            if LowerCase(Copy(Line, 1, 3)) = 'id=' then
-              LangID := Copy(Line, 4, Length(Line) - 3)
-            else
-              LangID := '';
+        begin
+          if LowerCase(Copy(Line, 1, 3)) = 'id=' then
+            LangID := Copy(Line, 4, Length(Line) - 3)
+          else
+            LangID := '';
 
-            if Length(LangID) = 2 then
-            begin
-              for i := 0 to LanguageList.Count - 1 do
+          if Length(LangID) = 2 then
+            for i := 0 to LanguageList.Count - 1 do
+              if LanguageList[i].FID = LangID then
               begin
-                if LanguageList[i].FID = LangID then
+                Languages.Add(LanguageList[i]);
+                LangID := '';
+                Break;
+              end;
+        end;
+        fsEntries:
+          if LowerCase(Copy(Line, 1, 8)) = 'text_id=' then
+          begin
+            if (Entry <> nil) and (Entry.Translations.Count = 0) then
+            begin
+              FEntries.Remove(Entry);
+              FreeAndNil(Entry);
+            end;
+            Entry := TEntry.Create(GetSafe(Copy(Line, 9, Length(Line) - 8)), Self);
+            FEntries.Add(Entry);
+          end else if (LowerCase(Copy(Line, 1, 10)) = 'occurence=') or (LowerCase(Copy(Line, 1, 10)) = 'occurance=') then // Hatte früher einen kleinen Rechtschreibfehler...
+          begin
+            if Entry <> nil then
+              try
+                Occurence := TOccurence.Create(Copy(Line, 11, Length(Line) - 10));
+                Entry.Occurences.Add(Occurence);
+              except
+              end;
+          end else if LowerCase(Copy(Line, 1, 5)) = 'text_' then
+          begin
+            LangID := Copy(Line, 6, 2);
+            LangFound := False;
+            for i := 0 to Languages.Count - 1 do
+              if Languages[i].ID = LangID then
+              begin
+                Entry.Translations.Add(TTranslation.Create(Languages[i], GetSafe(Copy(Line, 9, Length(Line) - 8))));
+                LangFound := True;
+                Break;
+              end;
+            if not LangFound then
+              for i := 0 to LanguageList.Count - 1 do
+                if LanguageList[i].ID = LangID then
                 begin
                   Languages.Add(LanguageList[i]);
+                  Entry.Translations.Add(TTranslation.Create(LanguageList[i], GetSafe(Copy(Line, 9, Length(Line) - 8))));
                   LangID := '';
                   Break;
                 end;
-              end;
-            end;
-          end;
-        fsEntries:
-          begin
-            if LowerCase(Copy(Line, 1, 8)) = 'text_id=' then
-            begin
-              if (Entry <> nil) and (Entry.Translations.Count = 0) then
-              begin
-                FEntries.Remove(Entry);
-                FreeAndNil(Entry);
-              end;
-              Entry := TEntry.Create(GetSafe(Copy(Line, 9, Length(Line) - 8)), Self);
-              FEntries.Add(Entry);
-            end else if (LowerCase(Copy(Line, 1, 10)) = 'occurence=') or
-                        (LowerCase(Copy(Line, 1, 10)) = 'occurance=') then // Hatte früher einen kleinen Rechtschreibfehler...
-            begin
-              if Entry <> nil then
-              begin
-                try
-                  Occurence := TOccurence.Create(Copy(Line, 11, Length(Line) - 10));
-                  Entry.Occurences.Add(Occurence);
-                except
-                end;
-              end;
-            end else if LowerCase(Copy(Line, 1, 5)) = 'text_' then
-            begin
-              LangID := Copy(Line, 6, 2);
-              LangFound := False;
-              for i := 0 to Languages.Count - 1 do
-                if Languages[i].ID = LangID then
-                begin
-                  Entry.Translations.Add(TTranslation.Create(Languages[i], GetSafe(Copy(Line, 9, Length(Line) - 8))));
-                  LangFound := True;
-                  Break;
-                end;
-              if not LangFound then
-              begin
-                for i := 0 to LanguageList.Count - 1 do
-                begin
-                  if LanguageList[i].ID = LangID then
-                  begin
-                    Languages.Add(LanguageList[i]);
-                    Entry.Translations.Add(TTranslation.Create(LanguageList[i], GetSafe(Copy(Line, 9, Length(Line) - 8))));
-                    LangID := '';
-                    Break;
-                  end;
-                end;
-              end;
-            end;
           end;
       end;
     end;
@@ -646,7 +632,7 @@ begin
       for i := 0 to Languages.Count - 1 do
         if Languages[i].ID = PriLang then
         begin
-          FPrimaryLanguage :=  Languages[i];
+          FPrimaryLanguage := Languages[i];
           Break;
         end;
     if FPrimaryLanguage = nil then
@@ -663,7 +649,7 @@ begin
             Break;
           end;
         if not LangFound then
-          Entries[n].Translations.Add(TTranslation.Create(Languages[i], ''))
+          Entries[n].Translations.Add(TTranslation.Create(Languages[i], ''));
       end;
   except
     FreeAndNil(FLanguages);
@@ -728,34 +714,37 @@ begin
 end;
 
 procedure TProject.Save(Stream: TMemoryStream; SaveMeta: Boolean);
+
   procedure WriteToStream(s: string; Stream: TStream);
   var
     Len: Integer;
-//    {$IF CompilerVersion < 18.5}
+    //    {$IF CompilerVersion < 18.5}
     P: Pointer;
-//    {$IFEND}
+    //    {$IFEND}
   begin
     s := s + #13#10;
     Len := Length(s) * 2;
-//    {$IF CompilerVersion >= 18.5}
+    //    {$IF CompilerVersion >= 18.5}
     Stream.WriteBuffer(s[1], Len);
-//    {$ELSE}
-//    P := GetMemory(Len);
-//    StringToWideChar(s, P, Len);
-//    Stream.WriteBuffer(P^, Len);
-//    FreeMemory(P);
-//    {$IFEND}
+    //    {$ELSE}
+    //    P := GetMemory(Len);
+    //    StringToWideChar(s, P, Len);
+    //    Stream.WriteBuffer(P^, Len);
+    //    FreeMemory(P);
+    //    {$IFEND}
   end;
+
   function MakeSafe(const s: string): string;
   begin
     Result := s;
     Result := StringReplace(Result, #13, '\r', [rfReplaceAll]);
     Result := StringReplace(Result, #10, '\n', [rfReplaceAll]);
   end;
+
 var
   i, n: Integer;
 const
-  BOM: Array[0..1] of Byte = (255, 254);
+  BOM: array[0..1] of Byte = (255, 254);
 begin
   Stream.Write(BOM[0], 2);
 
@@ -793,9 +782,7 @@ begin
   WriteToStream('[languages]', Stream);
 
   for i := 0 to FLanguages.Count - 1 do
-  begin
     WriteToStream('id' + '=' + FLanguages[i].ID, Stream);
-  end;
 
   WriteToStream('', Stream);
 
@@ -809,9 +796,7 @@ begin
         WriteToStream('occurence=' + FEntries[i].Occurences[n].GetString, Stream);
 
     for n := 0 to FEntries[i].Translations.Count - 1 do
-    begin
       WriteToStream('text_' + FEntries[i].Translations[n].FLanguage.ID + '=' + MakeSafe(FEntries[i].Translations[n].FTranslation), Stream);
-    end;
     WriteToStream('', Stream);
   end;
 
@@ -952,22 +937,16 @@ begin
         begin
           P := Pos('(', Items[i].FName);
           if P > 0 then
-          begin
             Items[i].FName := Copy(Items[i].FName, 1, P - 1);
-          end;
         end;
         for i := Count - 2 downto 0 do
-        begin
           for n := Count - 1 downto i + 1 do
-          begin
             if Items[i].ID = Items[n].ID then
             begin
               Items[i].Free;
               Delete(i);
               Break;
             end;
-          end;
-        end;
         for i := Count - 1 downto 0 do
           if Items[i].FID = '' then
           begin
@@ -987,10 +966,8 @@ var
   i: Integer;
 begin
   if FPopulated then
-  begin
     for i := 0 to Count - 1 do
       Items[i].Free;
-  end;
   inherited;
 end;
 
@@ -1058,9 +1035,7 @@ begin
   end;
   ZeroMemory(@szLangName[0], 255);
   if GetLocaleInfoA(LCID, LOCALE_SENGLANGUAGE, @szLangName[0], 255) > 0 then
-  begin
     LangName := szLangName;
-  end;
   FID := string(LangID);
   FName := string(LangName);
 end;
@@ -1095,16 +1070,16 @@ var
   Resources: TStringList;
 
 function EnumResNameProc(hModule: HINST; lpszType: PChar; lpszName: PChar; lParam: LPARAM): BOOL; stdcall;
+
   function IsIntResource(lpszType: PChar): Boolean;
   begin
     Result := ((DWORD(lpszType) shr 16) = 0);
   end;
+
 begin
   if not IsIntResource(lpszName) then
-  begin
     if (Copy(lpszName, 1, 10) = 'LINGUSLANG') and (lpszType = RT_RCDATA) then
       Resources.Add(lpszName);
-  end;
   Result := True;
 end;
 
@@ -1126,10 +1101,8 @@ begin
   begin
     Project := TProject(FProjects[n]);
     for i := 0 to Project.Languages.Count - 1 do
-    begin
       if LanguageList.FindLanguage(Project.Languages[i].ID) <> nil then
         LanguageList.FindLanguage(Project.Languages[i].ID).Available := True;
-    end;
   end;
 
   // Irgendeine Sprache suchen
@@ -1199,7 +1172,7 @@ begin
 
       for i := 0 to Resources.Count - 1 do
       begin
-        Res := TResourceStream.Create(HInstance, PChar(Resources[i]), RT_RCDATA);
+        Res := TResourceStream.Create(HInstance, Resources[i], RT_RCDATA);
         try
           Project := TProject.Create(Res);
           FProjects.Add(Project);
@@ -1292,6 +1265,7 @@ begin
 end;
 
 procedure TLanguageManager.TranslateProperty(C: TObject; Owner: TComponent; Prop: TPropInfo);
+
   function ReadString(C: TObject; Prop: TPropInfo): string;
   var
     Name: string;
@@ -1307,27 +1281,23 @@ procedure TLanguageManager.TranslateProperty(C: TObject; Owner: TComponent; Prop
         Result := GetUnicodeStrProp(C, Name);
     end;
   end;
+
 var
   OldValue, NewValue: string;
 begin
   if Prop.SetProc <> nil then
-  begin
     case Prop.PropType^.Kind of
       tkString, tkLString, tkAString, tkWString, tkUString:
-        begin
-          OldValue := ReadString(C, Prop);
-          NewValue := TranslateString(C, Owner, string(Prop.Name), OldValue);
-          if (NewValue <> '') then
-          begin
-            SetWideStrProp(C, @Prop, NewValue);
-          end;
-        end;
+      begin
+        OldValue := ReadString(C, Prop);
+        NewValue := TranslateString(C, Owner, string(Prop.Name), OldValue);
+        if (NewValue <> '') then
+          SetWideStrProp(C, @Prop, NewValue);
+      end;
     end;
-  end;
 end;
 
-function TLanguageManager.TranslateString(C: TObject; Owner: TComponent;
-  PropName, S: string): string;
+function TLanguageManager.TranslateString(C: TObject; Owner: TComponent; PropName, S: string): string;
 var
   OldValue: string;
   TM: TTranslationMarker;
@@ -1337,14 +1307,12 @@ begin
   TM := nil;
 
   for i := 0 to Owner.ComponentCount - 1 do
-  begin
     if Owner.Components[i] is TTranslationMarker then
       if TTranslationMarker(Owner.Components[i]).Obj = C then
       begin
         TM := TTranslationMarker(Owner.Components[i]);
         Break;
       end;
-  end;
 
   if TM <> nil then
   begin
@@ -1412,48 +1380,36 @@ begin
 
     case PropInfo^.PropType^.Kind of
       tkString, tkLString, tkAString, tkWString:
-        begin
-          if (PropInfo^.Name = 'Caption') or (PropInfo^.Name = 'Hint')
-             or (PropInfo^.Name = 'Title')  or (PropInfo^.Name = 'Description') // Steffen: ToolTip Komponente
-             or (PropInfo^.Name = 'DisplayLabel') then // Steffen: Database property
-          begin
-            TranslateProperty(C, Owner, PropInfo^);
-          end;
-        end;
+        if (PropInfo^.Name = 'Caption') or (PropInfo^.Name = 'Hint') or (PropInfo^.Name = 'Title') or (PropInfo^.Name = 'Description') // Steffen: ToolTip Komponente
+          or (PropInfo^.Name = 'DisplayLabel') then // Steffen: Database property
+          TranslateProperty(C, Owner, PropInfo^);
       tkClass:
+      begin
+        if C.ClassName <> 'TMenuItem' then
         begin
-          begin
-            if C.ClassName <> 'TMenuItem' then
+          Cl := GetObjectProp(C, string(PropInfo^.Name));
+          if (Cl <> nil) and (Cl.ClassName <> 'TAction') then
+            if Cl.InheritsFrom(TStrings) then
             begin
-              Cl := GetObjectProp(C, string(PropInfo^.Name));
-              if (Cl <> nil) and (Cl.ClassName <> 'TAction') then
-              begin
-                if Cl.InheritsFrom(TStrings) then
-                begin
-                  // Spezialbehandlung für TStrings, siehe
-                  // http://www.delphipraxis.net/152626-rtti-memo-lines-tstrings.html
-                  NewValue := TranslateString(Cl, Owner, 'Text', TStrings(Cl).Text);
-                  // Ohne <> Vergleich werden sonst bei z.B. TComboBox Index auf -1 gesetzt
-                  if (NewValue <> '') and (TStrings(Cl).Text <> NewValue) then
-                    TStrings(Cl).Text := NewValue;
-                end else if Cl.InheritsFrom(TCollection) then
-                begin
-                  for n := 0 to TCollection(Cl).Count - 1 do
-                    TranslateRecursive(TCollection(Cl).Items[n], Owner, Translated);
-                end else
-                  TranslateRecursive(Cl, Owner, Translated);
-              end;
-            end;
-          end;
+              // Spezialbehandlung für TStrings, siehe
+              // http://www.delphipraxis.net/152626-rtti-memo-lines-tstrings.html
+              NewValue := TranslateString(Cl, Owner, 'Text', TStrings(Cl).Text);
+              // Ohne <> Vergleich werden sonst bei z.B. TComboBox Index auf -1 gesetzt
+              if (NewValue <> '') and (TStrings(Cl).Text <> NewValue) then
+                TStrings(Cl).Text := NewValue;
+            end else if Cl.InheritsFrom(TCollection) then
+              for n := 0 to TCollection(Cl).Count - 1 do
+                TranslateRecursive(TCollection(Cl).Items[n], Owner, Translated)
+            else
+              TranslateRecursive(Cl, Owner, Translated);
         end;
+      end;
     end;
   end;
 
   if C is TComponent then
-  begin
     for i := 0 to TComponent(C).ComponentCount - 1 do
       TranslateRecursive(TComponent(C).Components[i], TComponent(C).Components[i], Translated);
-  end;
 end;
 
 procedure TLanguageManager.Translate(C: TComponent);
@@ -1471,8 +1427,7 @@ begin
   end;
 end;
 
-procedure TLanguageManager.Translate(C: TComponent;
-  PreTranslate, PostTranslate: TTranslateProc);
+procedure TLanguageManager.Translate(C: TComponent; PreTranslate, PostTranslate: TTranslateProc);
 begin
   try
     PreTranslate;
@@ -1540,8 +1495,7 @@ end;
 
 { TOccurence }
 
-constructor TOccurence.Create(Filename: string; Line: Cardinal;
-  Component: string);
+constructor TOccurence.Create(Filename: string; Line: Cardinal; Component: string);
 begin
   inherited Create;
 

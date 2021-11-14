@@ -23,8 +23,18 @@ unit SettingsStorage;
 interface
 
 uses
-  Windows, SysUtils, Classes, Registry, IniFiles, GUIFunctions, ShlObj,
-  Functions, Generics.Collections, ExtendedStream, CommandLine;
+  Classes,
+  CommandLine,
+  ExtendedStream,
+  FileUtil,
+  Functions,
+  Generics.Collections,
+  GUIFunctions,
+  IniFiles,
+  Registry,
+  ShlObj,
+  SysUtils,
+  Windows;
 
 const
   SETTINGS = 'Settings';
@@ -295,10 +305,8 @@ begin
     try
       FindFiles(ConcatPaths([FDataDir, FAppName + '_*']), Files);
       for i := 0 to Files.Count - 1 do
-      begin
-        if not DeleteFile(ConcatPaths([FDataDir, Files[i]])) then
+        if not SysUtils.DeleteFile(ConcatPaths([FDataDir, Files[i]])) then
           Result := False;
-      end;
     finally
       Files.Free;
     end;
@@ -349,7 +357,7 @@ begin
         Continue;
 
       DT := dtString;
-//      SV := Reg.GetDataAsString(Values[n], False);
+      // SV := Reg.GetDataAsString(Values[n], False);
       if SV <> '' then
       begin
         try
@@ -360,14 +368,12 @@ begin
         end;
 
         if DT = dtUnknown then
-        begin
           try
             BV := StrToBool(SV);
             DT := dtBoolean;
           except
 
           end;
-        end;
 
         case DT of
           dtUnknown:
@@ -406,8 +412,7 @@ begin
   Result := '\Software\mistake.ws\' + AppName + '\';
 end;
 
-procedure TSettingsInstalled.GetValues(Section: string;
-  var List: TStringList);
+procedure TSettingsInstalled.GetValues(Section: string; var List: TStringList);
 var
   Reg: TRegistry;
 begin
@@ -419,7 +424,8 @@ begin
     begin
       try
         Reg.GetValueNames(List);
-      except end;
+      except
+      end;
       Reg.CloseKey;
     end;
   finally
@@ -432,8 +438,7 @@ begin
   Result := CreatePath;
 end;
 
-procedure TSettingsInstalled.Read(Name: string; var Value: Boolean;
-  Default: Boolean; Section: string);
+procedure TSettingsInstalled.Read(Name: string; var Value: Boolean; Default: Boolean; Section: string);
 var
   Reg: TRegistry;
 begin
@@ -445,7 +450,8 @@ begin
     begin
       try
         Value := Reg.ReadBool(Name);
-      except end;
+      except
+      end;
       Reg.CloseKey;
     end;
   finally
@@ -453,8 +459,7 @@ begin
   end;
 end;
 
-procedure TSettingsInstalled.Read(Name: string; var Value: Cardinal;
-  Default: Cardinal; Section: string);
+procedure TSettingsInstalled.Read(Name: string; var Value: Cardinal; Default: Cardinal; Section: string);
 var
   I: Integer;
 begin
@@ -462,8 +467,7 @@ begin
   Value := I;
 end;
 
-procedure TSettingsInstalled.Read(Name: string; var Value: Integer;
-  Default: Integer; Section: string);
+procedure TSettingsInstalled.Read(Name: string; var Value: Integer; Default: Integer; Section: string);
 var
   Reg: TRegistry;
 begin
@@ -475,7 +479,8 @@ begin
     begin
       try
         Value := Reg.ReadInteger(Name);
-      except end;
+      except
+      end;
       Reg.CloseKey;
     end;
   finally
@@ -483,8 +488,7 @@ begin
   end;
 end;
 
-procedure TSettingsInstalled.Read(Name: string; var Value: string; Default,
-  Section: string);
+procedure TSettingsInstalled.Read(Name: string; var Value: string; Default, Section: string);
 var
   Reg: TRegistry;
 begin
@@ -497,7 +501,8 @@ begin
       try
         if Reg.ValueExists(Name) then
           Value := Reg.ReadString(Name);
-      except end;
+      except
+      end;
       Reg.CloseKey;
     end;
   finally
@@ -522,8 +527,7 @@ begin
   end;
 end;
 
-procedure TSettingsInstalled.Write(Name: string; Value: Integer;
-  Section: string);
+procedure TSettingsInstalled.Write(Name: string; Value: Integer; Section: string);
 var
   Reg: TRegistry;
 begin
@@ -540,8 +544,7 @@ begin
   end;
 end;
 
-procedure TSettingsInstalled.Write(Name: string; Value: Boolean;
-  Section: string);
+procedure TSettingsInstalled.Write(Name: string; Value: Boolean; Section: string);
 var
   Reg: TRegistry;
 begin
@@ -631,10 +634,8 @@ begin
   try
     FindFiles(ConcatPaths([FDataDir, FAppName + '_*']), Files);
     for i := 0 to Files.Count - 1 do
-    begin
-      if not DeleteFile(ConcatPaths([FDataDir, Files[i]])) then
+      if not SysUtils.DeleteFile(ConcatPaths([FDataDir, Files[i]])) then
         Result := False;
-    end;
   finally
     Files.Free;
   end;
@@ -701,14 +702,12 @@ begin
             end;
 
             if DT = dtUnknown then
-            begin
               try
                 BV := StrToBool(SV);
                 DT := dtBoolean;
               except
 
               end;
-            end;
 
             case DT of
               dtUnknown:
@@ -736,8 +735,7 @@ begin
   Result := ExtractFilePath(ParamStr(0));
 end;
 
-procedure TSettingsPortable.GetValues(Section: string;
-  var List: TStringList);
+procedure TSettingsPortable.GetValues(Section: string; var List: TStringList);
 var
   Ini: TIniFile;
 begin
@@ -750,7 +748,8 @@ begin
   try
     try
       Ini.ReadSection(Section, List);
-    except end;
+    except
+    end;
   finally
     Ini.Free;
   end;
@@ -761,8 +760,7 @@ begin
   Result := CreatePath;
 end;
 
-procedure TSettingsPortable.Read(Name: string; var Value: Boolean;
-  Default: Boolean; Section: string);
+procedure TSettingsPortable.Read(Name: string; var Value: Boolean; Default: Boolean; Section: string);
 var
   Ini: TIniFile;
 begin
@@ -775,14 +773,14 @@ begin
   try
     try
       Value := Ini.ReadBool(Section, Name, Default);
-    except end;
+    except
+    end;
   finally
     Ini.Free;
   end;
 end;
 
-procedure TSettingsPortable.Read(Name: string; var Value: Cardinal;
-  Default: Cardinal; Section: string);
+procedure TSettingsPortable.Read(Name: string; var Value: Cardinal; Default: Cardinal; Section: string);
 var
   I: Integer;
 begin
@@ -790,8 +788,7 @@ begin
   Value := I;
 end;
 
-procedure TSettingsPortable.Read(Name: string; var Value: Integer;
-  Default: Integer; Section: string);
+procedure TSettingsPortable.Read(Name: string; var Value: Integer; Default: Integer; Section: string);
 var
   Ini: TIniFile;
 begin
@@ -804,14 +801,14 @@ begin
   try
     try
       Value := Ini.ReadInteger(Section, Name, Default);
-    except end;
+    except
+    end;
   finally
     Ini.Free;
   end;
 end;
 
-procedure TSettingsPortable.Read(Name: string; var Value: string; Default,
-  Section: string);
+procedure TSettingsPortable.Read(Name: string; var Value: string; Default, Section: string);
 var
   Ini: TIniFile;
 begin
@@ -825,7 +822,8 @@ begin
     try
       if Ini.ValueExists(Section, Name) then
         Value := Ini.ReadString(Section, Name, Default);
-    except end;
+    except
+    end;
   finally
     Ini.Free;
   end;
@@ -844,8 +842,7 @@ begin
   end;
 end;
 
-procedure TSettingsPortable.Write(Name: string; Value: Integer;
-  Section: string);
+procedure TSettingsPortable.Write(Name: string; Value: Integer; Section: string);
 var
   Ini: TIniFile;
 begin
@@ -858,8 +855,7 @@ begin
   end;
 end;
 
-procedure TSettingsPortable.Write(Name: string; Value: Boolean;
-  Section: string);
+procedure TSettingsPortable.Write(Name: string; Value: Boolean; Section: string);
 var
   Ini: TIniFile;
 begin
@@ -896,7 +892,7 @@ begin
             if LowerCase(Files[i]) = LowerCase(ExtractFileName(TSettingsPortable(AssignFrom).FIniFile)) then
               Continue;
 
-          if not CopyFile(PChar(ConcatPaths([AssignFrom.FDataDir, Files[i]])), PChar(ConcatPaths([FDataDir, Files[i]])), False) then
+          if not FileUtil.CopyFile(ConcatPaths([AssignFrom.FDataDir, Files[i]]), ConcatPaths([FDataDir, Files[i]]), [cffOverwriteFile]) then
             raise Exception.Create('Error copying file');
         end;
       finally
@@ -915,17 +911,11 @@ begin
   for i := 0 to AssignFrom.Count - 1 do
   begin
     if AssignFrom[i] is TDataString then
-    begin
       Write(TDataString(AssignFrom[i]).Name, TDataString(AssignFrom[i]).Value, TDataString(AssignFrom[i]).Section);
-    end;
     if AssignFrom[i] is TDataInteger then
-    begin
       Write(TDataInteger(AssignFrom[i]).Name, TDataInteger(AssignFrom[i]).Value, TDataInteger(AssignFrom[i]).Section);
-    end;
     if AssignFrom[i] is TDataBoolean then
-    begin
       Write(TDataBoolean(AssignFrom[i]).Name, TDataBoolean(AssignFrom[i]).Value, TDataBoolean(AssignFrom[i]).Section);
-    end;
   end;
 end;
 
@@ -1004,26 +994,22 @@ begin
   Result := True;
 end;
 
-procedure TSettingsDummy.Read(Name: string; var Value: Cardinal;
-  Default: Cardinal; Section: string);
+procedure TSettingsDummy.Read(Name: string; var Value: Cardinal; Default: Cardinal; Section: string);
 begin
   Value := Default;
 end;
 
-procedure TSettingsDummy.Read(Name: string; var Value: Integer;
-  Default: Integer; Section: string);
+procedure TSettingsDummy.Read(Name: string; var Value: Integer; Default: Integer; Section: string);
 begin
   Value := Default;
 end;
 
-procedure TSettingsDummy.Read(Name: string; var Value: string; Default,
-  Section: string);
+procedure TSettingsDummy.Read(Name: string; var Value: string; Default, Section: string);
 begin
   Value := Default;
 end;
 
-procedure TSettingsDummy.Read(Name: string; var Value: Boolean;
-  Default: Boolean; Section: string);
+procedure TSettingsDummy.Read(Name: string; var Value: Boolean; Default: Boolean; Section: string);
 begin
   Value := Default;
 end;
@@ -1051,25 +1037,25 @@ var
   Name, Section: string;
 begin
   Stream.Read(T);
-//  Stream.Read(Name);
-//  Stream.Read(Section);
+  //  Stream.Read(Name);
+  //  Stream.Read(Section);
 
   case T of
     0:
-      begin
-        Result := TDataString.Create(Name, Section, '');
-        TDataString(Result).Load(Stream);
-      end;
+    begin
+      Result := TDataString.Create(Name, Section, '');
+      TDataString(Result).Load(Stream);
+    end;
     1:
-      begin
-        Result := TDataInteger.Create(Name, Section, 0);
-        TDataInteger(Result).Load(Stream);
-      end;
+    begin
+      Result := TDataInteger.Create(Name, Section, 0);
+      TDataInteger(Result).Load(Stream);
+    end;
     2:
-      begin
-        Result := TDataBoolean.Create(Name, Section, False);
-        TDataBoolean(Result).Load(Stream);
-      end;
+    begin
+      Result := TDataBoolean.Create(Name, Section, False);
+      TDataBoolean(Result).Load(Stream);
+    end;
     else
       raise Exception.Create('Unknown TDataEntry Type');
   end;
@@ -1099,7 +1085,7 @@ end;
 
 procedure TDataString.Load(Stream: TExtendedStream);
 begin
-//  Stream.Read(FValue);
+  //  Stream.Read(FValue);
 end;
 
 procedure TDataString.Save(Stream: TExtendedStream);
@@ -1173,7 +1159,7 @@ procedure TSettingsList.Save(Stream: TExtendedStream);
 var
   i: Integer;
 begin
-//  Stream.Write(Count);
+  //  Stream.Write(Count);
   for i := 0 to Count - 1 do
     Items[i].Save(Stream);
 end;

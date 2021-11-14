@@ -23,8 +23,19 @@ unit MsgDlg;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, AppData, LanguageObjects, ShellAPI, MControls;
+  AppData,
+  Classes,
+  Controls,
+  Dialogs,
+  ExtCtrls,
+  Forms,
+  Graphics,
+  LanguageObjects,
+  MControls,
+  StdCtrls,
+  SysUtils,
+  Variants,
+  Windows;
 
 const
   mrDontShow = 100;
@@ -42,8 +53,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure cmdYesOKClick(Sender: TObject);
     procedure cmdNoCancelClick(Sender: TObject);
-    procedure FormKeyUp(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
+    procedure FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormActivate(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
@@ -95,8 +105,7 @@ begin
       AppGlobals.InfoShown[FID] := True;
 end;
 
-procedure TfrmMsgDlg.FormKeyUp(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
+procedure TfrmMsgDlg.FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
   if Key = 27 then
   begin
@@ -117,15 +126,10 @@ var
   CheckButtons: TMsgDlgButtons;
 begin
   CheckButtons := Buttons + [DefButton];
-  if (mbAbort in CheckButtons) or (mbRetry in CheckButtons) or (mbIgnore in CheckButtons) or
-     (mbAll in CheckButtons) or (mbNoToAll in CheckButtons) or (mbYesToAll in CheckButtons) or
-     (mbClose in CheckButtons)
-  then
+  if (mbAbort in CheckButtons) or (mbRetry in CheckButtons) or (mbIgnore in CheckButtons) or (mbAll in CheckButtons) or (mbNoToAll in CheckButtons) or (mbYesToAll in CheckButtons) or (mbClose in CheckButtons) then
     raise Exception.Create('Unsupported button supplied');
 
-  if ((mbYes in Buttons) and (mbCancel in Buttons)) or
-     ((mbOK in Buttons) and (mbNo in Buttons))
-  then
+  if ((mbYes in Buttons) and (mbCancel in Buttons)) or ((mbOK in Buttons) and (mbNo in Buttons)) then
     raise Exception.Create('Unsupported button set supplied');
 
   if not (DefButton in Buttons) then
@@ -189,25 +193,25 @@ begin
   try
     case MsgType of
       mtWarning:
-        begin
-          Caption := 'Warning';
-          Icon.Handle := LoadIcon(Icon.Handle, PChar(IDI_EXCLAMATION));
-        end;
+      begin
+        Caption := 'Warning';
+        Icon.Handle := LoadIconA(Icon.Handle, PChar(IDI_EXCLAMATION));
+      end;
       mtError:
-        begin
-          Caption := 'Error';
-          Icon.Handle := LoadIcon(Icon.Handle, PChar(IDI_HAND));
-        end;
+      begin
+        Caption := 'Error';
+        Icon.Handle := LoadIconA(Icon.Handle, PChar(IDI_HAND));
+      end;
       mtInformation:
-        begin
-          Caption := 'Information';
-          Icon.Handle := LoadIcon(Icon.Handle, PChar(IDI_ASTERISK));
-        end;
+      begin
+        Caption := 'Information';
+        Icon.Handle := LoadIconA(Icon.Handle, PChar(IDI_ASTERISK));
+      end;
       mtConfirmation:
-        begin
-          Caption := 'Question';
-          Icon.Handle := LoadIcon(Icon.Handle, PChar(IDI_QUESTION));
-        end;
+      begin
+        Caption := 'Question';
+        Icon.Handle := LoadIconA(Icon.Handle, PChar(IDI_QUESTION));
+      end;
       mtCustom:
         raise Exception.Create('mtCustom not supported');
     end;

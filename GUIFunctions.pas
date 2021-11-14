@@ -41,7 +41,7 @@ function TruncateText(Text: string; MaxWidth: Integer; Font: TFont): string;
 function StringForWidth(const c: Char; const Width: Integer; const Font: TFont): string;
 function BrowseDialog(Owner: TComponent; Title: string): string;
 procedure PropertiesDialog(Filename: string);
-function GetShellFolder(CSIDL: Integer): string;
+function GetShellFolder(const CSIDL: Integer): string;
 function Recycle(Handle: Cardinal; Filename: string): Boolean; overload;
 function GetUserDir: string;
 function ResizeBitmap(Bitmap: TBitmap; MaxSize: Integer): TBitmap;
@@ -150,30 +150,14 @@ begin
   ShellExecuteExW(@Info);
 end;
 
-function GetShellFolder(CSIDL: Integer): string;
+function GetShellFolder(const CSIDL: Integer): string;
 var
-  pidl: PItemIdList;
-  SystemFolder: Integer;
-  Malloc: IMalloc;
+  Buf: UnicodeString;
 begin
-  Malloc := nil;
-  Result := '';
-  SHGetMalloc(Malloc);
-  if Malloc = nil then
-    Exit;
-  try
-    SystemFolder := CSIDL;
-    if SUCCEEDED(SHGetSpecialFolderLocation(0, SystemFolder, pidl)) then
-    begin
-      SetLength(Result, MAX_PATH);
-      if SHGetPathFromIDList(pidl, PChar(Result)) then
-        SetLength(Result, Length(PChar(Result)))
-      else
-        raise Exception.Create('GetShellFolder() error');
-    end;
-  finally
-    Malloc.Free(pidl);
-  end;
+  SetLength(Buf, 1024);
+  if Failed(SHGetFolderPathW(0, csidl, 0, SHGFP_TYPE_CURRENT, PWideChar(Buf))) then
+    raise Exception.Create('SHGetFolderPathW() failed');
+  Result := PWideChar(Buf);
 end;
 
 function Recycle(Handle: Cardinal; Filename: string): Boolean;
