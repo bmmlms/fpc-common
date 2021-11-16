@@ -23,8 +23,18 @@ unit Changelog;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, LanguageObjects, Buttons, ExtCtrls;
+  Buttons,
+  Classes,
+  Controls,
+  Dialogs,
+  ExtCtrls,
+  Forms,
+  Graphics,
+  LanguageObjects,
+  StdCtrls,
+  SysUtils,
+  Variants,
+  Windows;
 
 type
   TfrmChangeLog = class(TForm)
@@ -32,8 +42,7 @@ type
     pnlNav: TPanel;
     Bevel2: TBevel;
     btnClose: TBitBtn;
-    procedure FormKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure btnCloseClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -62,10 +71,9 @@ begin
   Language.Translate(Self);
 end;
 
-procedure TfrmChangeLog.FormKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
+procedure TfrmChangeLog.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
- if Key = 27 then
+  if Key = 27 then
   begin
     Key := 0;
     Close;

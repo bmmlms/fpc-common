@@ -23,8 +23,9 @@ unit CommandLine;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Generics.Collections,
-  Functions;
+  Classes,
+  Generics.Collections,
+  SysUtils;
 
 type
   TCommandLineRecord = class
@@ -90,15 +91,12 @@ begin
   try
     InDingens := False;
     for i := 1 to Length(Data) do
-    begin
       if Data[i] = '"' then
       begin
         if InDingens then
         begin
           if ParsedCount > 0 then
-          begin
             SL.Add(Arg);
-          end;
           Inc(ParsedCount);
           Arg := '';
         end;
@@ -108,32 +106,23 @@ begin
         if (not InDingens) and (Arg <> '') then
         begin
           if ParsedCount > 0 then
-          begin
             SL.Add(Arg);
-          end;
           Inc(ParsedCount);
           Arg := '';
         end else if Arg <> '' then
           Arg := Arg + Data[i];
       end else
-      begin
         Arg := Arg + Data[i];
-      end;
-    end;
 
     if Arg <> '' then
-    begin
       SL.Add(Arg);
-    end;
 
 
 
     LastParam := '';
 
     for i := 0 to SL.Count - 1 do
-    begin
       if Length(SL[i]) >= 1 then
-      begin
         if SL[i][1] = '-' then
         begin
           LastParam := LowerCase(SL[i]);
@@ -141,21 +130,15 @@ begin
           FoundRecord := GetParam(SL[i]);
 
           if FoundRecord = nil then
-          begin
             FRecords.Add(TCommandLineRecord.Create(SL[i]));
-          end;
 
         end else
         begin
           FoundRecord := GetParam(LastParam);
 
           if FoundRecord <> nil then
-          begin
             FoundRecord.Values.Add(SL[i]);
-          end;
         end;
-      end;
-    end;
 
   finally
     SL.Free;

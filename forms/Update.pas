@@ -23,9 +23,22 @@ unit Update;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, UpdateClient, AppData, StdCtrls, ComCtrls, LanguageObjects,
-  Functions, ChangeLog, ShellAPI, ExtCtrls;
+  AppData,
+  ChangeLog,
+  Classes,
+  ComCtrls,
+  Controls,
+  Dialogs,
+  ExtCtrls,
+  Forms,
+  Functions,
+  Graphics,
+  LanguageObjects,
+  StdCtrls,
+  SysUtils,
+  UpdateClient,
+  Variants,
+  Windows;
 
 type
 
@@ -49,8 +62,7 @@ type
     procedure cmdCancelClick(Sender: TObject);
     procedure cmdOKClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure FormKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure lblChangeLogClick(Sender: TObject);
   private
     Updater: TUpdateClient;
@@ -62,8 +74,7 @@ type
   public
     Exit: Boolean;
     Updated: Boolean;
-    constructor Create(AOwner: TComponent; Version: string = '';
-      UpdateURL: string = ''); reintroduce;
+    constructor Create(AOwner: TComponent; Version: string = ''; UpdateURL: string = ''); reintroduce;
   end;
 
 implementation
@@ -79,23 +90,21 @@ procedure TfrmUpdate.cmdOKClick(Sender: TObject);
 begin
   case cmdOK.Tag of
     0:
-      begin
-        lblState.Caption := _('Searching for new version...');
-        Updater.Start(uaVersion, True);
-      end;
+    begin
+      lblState.Caption := _('Searching for new version...');
+      Updater.Start(uaVersion, True);
+    end;
     1:
+      if AppGlobals.RunningFromInstalledLocation then
       begin
-        if AppGlobals.RunningFromInstalledLocation then
-        begin
-          lblState.Caption := _('Downloading update...');
-          ProgressBar1.Tag := -1;
-          ProgressBar1.Position := 0;
-          Updater.Start(uaUpdate, True);
-        end else
-        begin
-          ShellExecuteW(0, 'open', PWideChar(UnicodeString(AppGlobals.ProjectLink)), '', '', 1);
-          Close;
-        end;
+        lblState.Caption := _('Downloading update...');
+        ProgressBar1.Tag := -1;
+        ProgressBar1.Position := 0;
+        Updater.Start(uaUpdate, True);
+      end else
+      begin
+        ShellExecuteW(0, 'open', PWideChar(UnicodeString(AppGlobals.ProjectLink)), '', '', 1);
+        Close;
       end;
   end;
   cmdOK.Enabled := False;
@@ -144,10 +153,9 @@ begin
     ClientHeight := ClientHeight - ProgressBar1.Height;
 end;
 
-procedure TfrmUpdate.FormKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
+procedure TfrmUpdate.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
- if Key = 27 then
+  if Key = 27 then
   begin
     Key := 0;
     Close;
@@ -218,16 +226,14 @@ var
   Res: Integer;
 begin
   lblState.Caption := _('Download complete');
-  Res := MsgBox(_('The update was downloaded successfully. Do you want to exit the application and install the update now?'#13#10 +
-    'If you select "No", the update will be installed on the next start of the application.'), _('Question'), MB_ICONQUESTION or MB_YESNO);
+  Res := MsgBox(_('The update was downloaded successfully. Do you want to exit the application and install the update now?'#13#10 + 'If you select "No", the update will be installed on the next start of the application.'),
+    _('Question'), MB_ICONQUESTION or MB_YESNO);
   if Res = IDYES then
   begin
     Exit := True;
     Updated := True;
   end else
-  begin
     Updated := True;
-  end;
   Close;
 end;
 

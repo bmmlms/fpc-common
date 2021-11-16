@@ -23,9 +23,16 @@ unit UpdateClient;
 interface
 
 uses
-  Windows, SysUtils, StrUtils, Classes, AppData, AppDataBase,
-  HTTPThread, Functions, ShellApi, LanguageObjects, Sockets,
-  Forms;
+  AppData,
+  AppDataBase,
+  Classes,
+  Forms,
+  Functions,
+  HTTPThread,
+  LanguageObjects,
+  Sockets,
+  StrUtils,
+  SysUtils;
 
 type
   TUpdateAction = (uaVersion, uaUpdate);
@@ -152,7 +159,7 @@ begin
             FFoundVersion := ParseVersion(Version);
             FUpdateURL := string(GetValue(Data, 'updateurl'));
             CL := AnsiString(StringReplace(string(GetValue(Data, 'changelog')), '\r', #13#10, [rfReplaceAll]));
-         //   FChangeLog := UTF8ToUnicodeString(CL);
+            //   FChangeLog := UTF8ToUnicodeString(CL);
             if FUpdateURL = '' then
               raise Exception.Create('-');
             Sync(FOnVersionFound);
@@ -160,14 +167,11 @@ begin
             Sync(FOnError);
           end;
         end else
-        begin
           Sync(FOnError);
-        end;
       uaUpdate:
         if (RecvDataStream.Size = FTypedStream.ContentLength) and (RecvDataStream.Size > 1024) then
-        begin
-          Sync(FOnUpdateDownloaded);
-        end else if (not Terminated) then                 
+          Sync(FOnUpdateDownloaded)
+        else if (not Terminated) then
           Sync(FOnError);
     end;
   end else
@@ -284,7 +288,7 @@ begin
     else
       URL := AppGlobals.ProjectUpdateLinks[FURLIndex] + 'en/projekte/update/' + LowerCase(AppGlobals.AppName) + '/';
 
-    FThread := TUpdateThread.Create(Action, URL)
+    FThread := TUpdateThread.Create(Action, URL);
   end else
     FThread := TUpdateThread.Create(Action, FUpdateURL);
   if AppGlobals.ProxyEnabled then
@@ -313,11 +317,8 @@ begin
   begin
     if Assigned(FOnUpdateFound) then
       FOnUpdateFound(Self);
-  end else
-  begin
-    if Assigned(FOnNoUpdateFound) then
-      FOnNoUpdateFound(Self);
-  end;
+  end else if Assigned(FOnNoUpdateFound) then
+    FOnNoUpdateFound(Self);
 end;
 
 procedure TUpdateClient.ThreadEnded(Sender: TSocketThread);
@@ -361,10 +362,8 @@ begin
   FError := True;
 
   if FURLIndex = High(AppGlobals.ProjectUpdateLinks) then
-  begin
     if Assigned(FOnError) then
       FOnError(Self);
-  end;
 end;
 
 end.

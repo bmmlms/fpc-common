@@ -23,8 +23,12 @@ unit HTTPThread;
 interface
 
 uses
-  SysUtils, Windows, WinSock, Classes, Sockets, ExtendedStream, HTTPStream,
-  Functions;
+  Classes,
+  ExtendedStream,
+  Functions,
+  HTTPStream,
+  Sockets,
+  SysUtils;
 
 type
   THTTPThread = class(TSocketThread)
@@ -103,11 +107,9 @@ begin
   begin
     Self.Host := FProxyHost;
     Self.Port := FProxyPort;
-    SendData := SendData + AnsiString(FURL) + ' HTTP/1.1'#13#10
+    SendData := SendData + AnsiString(FURL) + ' HTTP/1.1'#13#10;
   end else
-  begin
     SendData := SendData + AnsiString(Res.Data) + ' HTTP/1.1'#13#10;
-  end;
   SendData := SendData + 'Host: ' + AnsiString(Host) + #13#10;
   SendData := SendData + 'Accept: */*'#13#10;
   SendData := SendData + 'Connection: close'#13#10;
@@ -192,9 +194,7 @@ begin
 
   if FTypedStream.ContentLength > -1 then
     if FTypedStream.ContentLength <> Received then
-    begin
       raise Exception.Create('ContentLength <> Received');
-    end;
 end;
 
 procedure THTTPThread.DoDownloadPercentProgress;
@@ -214,8 +214,7 @@ var
 begin
   inherited;
 
-  if (not Terminated) and (FTypedStream.HeaderRemoved) and
-     (FLastReceivedUpdate + 1000 < GetTickCount64) then
+  if (not Terminated) and (FTypedStream.HeaderRemoved) and (FLastReceivedUpdate + 1000 < GetTickCount64) then
   begin
     FSpeed := Received - FSpeedReceived;
     FLastReceivedUpdate := GetTickCount64;

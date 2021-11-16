@@ -23,8 +23,13 @@ unit Protocol;
 interface
 
 uses
-  Windows, SysUtils, Classes, Sockets, Generics.Collections, Commands,
-  ExtendedStream;
+  Classes,
+  Commands,
+  ExtendedStream,
+  Generics.Collections,
+  Sockets,
+  SysUtils,
+  Windows;
 
 type
   TTransferDirection = (tdReceive, tdSend);
@@ -65,8 +70,7 @@ type
     property Transferred: Cardinal read FTransferred write FTransferred;
   end;
 
-  TTransferProgressEvent = procedure(Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal;
-    CommandHeader: TCommandHeader; Transferred: UInt64) of object;
+  TTransferProgressEvent = procedure(Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal; CommandHeader: TCommandHeader; Transferred: UInt64) of object;
 
   TCommandStreamList = class(TList<TCommandStream>)
   public
@@ -291,26 +295,24 @@ begin
 
     case PRes of
       rrOk:
+      begin
+        P.FStream.Seek(0, soFromBeginning);
+        if FRecvCache.GetID(P.ID) = nil then
         begin
-          P.FStream.Seek(0, soFromBeginning);
-          if FRecvCache.GetID(P.ID) = nil then
-          begin
-            CHRes := TCommandHeader.Read(P.FStream, CommandHeader);
-            case CHRes of
-              rrOk:;
-              rrBadPacket:
-                raise Exception.Create('rrBadPacket');
-              rrMoreBytesNeeded:
-                raise Exception.Create('rrMoreBytesNeeded');
-            end;
+          CHRes := TCommandHeader.Read(P.FStream, CommandHeader);
+          case CHRes of
+            rrOk: ;
+            rrBadPacket:
+              raise Exception.Create('rrBadPacket');
+            rrMoreBytesNeeded:
+              raise Exception.Create('rrMoreBytesNeeded');
           end;
         end;
+      end;
       rrBadPacket:
         raise Exception.Create('rrBadPacket');
       rrMoreBytesNeeded:
-        begin
-          Break;
-        end;
+        Break;
     end;
 
     CS := FRecvCache.GetID(P.ID);
@@ -335,7 +337,6 @@ begin
 
   for i := FRecvCache.Count - 1 downto 0 do
     if FRecvCache[i].CommandHeader.CommandLength = FRecvCache[i].FCommandStream.Size then
-    begin
       try
         FRecvCache[i].FCommandStream.Seek(0, soFromBeginning);
         Cmd := TCommand.Read(FRecvCache[i].CommandHeader, FRecvCache[i].FCommandStream);
@@ -345,13 +346,10 @@ begin
           FRecvCache[i].Free;
           FRecvCache.Delete(i);
         end else
-        begin
           raise Exception.Create('Cmd = nil');
-        end;
       finally
 
       end;
-    end;
 end;
 
 { TPacket }
@@ -362,7 +360,7 @@ begin
   FID := ID;
 
   FStream := TExtendedStream.Create;
-  FStream.CopyFrom(Stream, DataLen)
+  FStream.CopyFrom(Stream, DataLen);
 end;
 
 destructor TPacket.Destroy;
@@ -372,8 +370,7 @@ begin
   inherited;
 end;
 
-class function TPacket.Read(Stream: TSocketStream;
-  var Packet: TPacket): TReadRes;
+class function TPacket.Read(Stream: TSocketStream; var Packet: TPacket): TReadRes;
 var
   IDx, PacketLen: Cardinal;
 begin
@@ -395,10 +392,8 @@ begin
 
       Result := rrOk;
     end else
-    begin
-      // Zurückspulen sonst epic fail
-      Stream.Seek((SizeOf(IDx) + SizeOf(PacketLen)) * -1, soFromCurrent);
-    end;
+      Stream.Seek((SizeOf(IDx) + SizeOf(PacketLen)) * -1, soFromCurrent)// Zurückspulen sonst epic fail
+    ;
   except
     Result := rrBadPacket;
   end;
@@ -457,8 +452,7 @@ end;
 
 { TReceivedCommand }
 
-constructor TReceivedCommand.Create(ID: Cardinal; CommandHeader: TCommandHeader;
-  Command: TCommand);
+constructor TReceivedCommand.Create(ID: Cardinal; CommandHeader: TCommandHeader; Command: TCommand);
 begin
   inherited Create;
 

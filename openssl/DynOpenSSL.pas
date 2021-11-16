@@ -23,8 +23,11 @@ unit DynOpenSSL;
 interface
 
 uses
-  Windows, SysUtils, Classes, Generics.Collections, Functions,
-  IdSSLOpenSSLHeadersCustom;
+  Classes,
+  Functions,
+  IdSSLOpenSSLHeadersCustom,
+  SysUtils,
+  Windows;
 
 type
   TOpenSSLLoader = class
@@ -43,8 +46,7 @@ type
     constructor Create;
     destructor Destroy; override;
     function InitializeOpenSSL(TempDir: string): Boolean;
-  property
-    Certs: TStringList read FCerts;
+    property Certs: TStringList read FCerts;
   end;
 
 var
@@ -86,7 +88,8 @@ begin
       SetLength(C, Res.Size);
       Res.Read(C[1], Res.Size);
       Explode(#13#10#13#10, C, FCerts);
-    except end;
+    except
+    end;
   finally
     Res.Free;
   end;
@@ -95,7 +98,8 @@ begin
   try
     try
       Res.SaveToFile(FLibEayDLLPath);
-    except end;
+    except
+    end;
   finally
     Res.Free;
   end;
@@ -104,7 +108,8 @@ begin
   try
     try
       Res.SaveToFile(FSSLEayDLLPath);
-    except end;
+    except
+    end;
   finally
     Res.Free;
   end;
@@ -133,19 +138,18 @@ begin
     Unload;
   except
   end;
-  
+
   try
     if FLibEayDLLPath <> '' then
-      DeleteFile(FLibEayDLLPath);
+      SysUtils.DeleteFile(FLibEayDLLPath);
   except
   end;
 
   try
     if FSSLEayDLLPath <> '' then
-      DeleteFile(FSSLEayDLLPath);
+      SysUtils.DeleteFile(FSSLEayDLLPath);
   except
   end;
 end;
 
 end.
-

@@ -23,10 +23,9 @@ unit About;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Windows, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, LanguageObjects, StdCtrls, AppData, ExtCtrls, ShellAPI, ComCtrls,
-  Buttons, AppDataBase, Functions, GUIFunctions, Math,
-  UITypes;
+  Buttons, AppDataBase, Functions, GUIFunctions;
 
 type
   TScrollText = class(TGraphicControl)

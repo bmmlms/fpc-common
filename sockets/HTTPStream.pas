@@ -23,7 +23,12 @@ unit HTTPStream;
 interface
 
 uses
-  SysUtils, Windows, Classes, StrUtils, ExtendedStream, Sockets;
+  Classes,
+  ExtendedStream,
+  Sockets,
+  StrUtils,
+  SysUtils,
+  Windows;
 
 type
   TTransferEncoding = (teNone, teChunked);
@@ -97,7 +102,6 @@ begin
     ProcessHeader;
 
   if FHeaderRemoved then
-  begin
     if (FTransferEncoding = teChunked) and (Size > 0) then
     begin
       FDeChunkedStream.Seek(0, soFromEnd);
@@ -132,7 +136,6 @@ begin
       until (Len = 0) or (Len = -1);
       RemoveRange(0, RemoveTo);
     end;
-  end;
 
   if (not HeaderRemoved) and (Size > 5192) then
     raise Exception.Create('Header could not be found');

@@ -23,7 +23,9 @@ unit MessageBus;
 interface
 
 uses
-  SysUtils, Classes, Generics.Collections;
+  Classes,
+  Generics.Collections,
+  SysUtils;
 
 type
   TMessageBase = class;

@@ -17,6 +17,7 @@ implementation
 
 var
   User32Handle: THandle;
+
 initialization
   ShutdownBlockReasonCreate := nil;
   ShutdownBlockReasonDestroy := nil;

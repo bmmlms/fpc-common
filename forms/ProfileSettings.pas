@@ -23,9 +23,22 @@ unit ProfileSettings;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Buttons, ExtCtrls, AppDataBase, AppData, Functions,
-  LanguageObjects, SettingsStorage;
+  AppData,
+  AppDataBase,
+  Buttons,
+  Classes,
+  Controls,
+  Dialogs,
+  ExtCtrls,
+  Forms,
+  Functions,
+  Graphics,
+  LanguageObjects,
+  SettingsStorage,
+  StdCtrls,
+  SysUtils,
+  Variants,
+  Windows;
 
 type
   TfrmProfileSettings = class(TForm)
@@ -58,14 +71,10 @@ var
   S: TSettingsInstalled;
   S2: TSettingsPortable;
 begin
-  if (((Sender = btnCopy) and (TSettingsPortable.Active(AppGlobals.AppName))) or
-      ((Sender = btnCopy2) and (TSettingsInstalled.Active(AppGlobals.AppName)))) then
-    if MsgBox(_('All settings of the other profile will be replaced by the current profile''s settings.'#13#10 +
-                        'Please be aware that existing settings and files containing data will be overwritten.'#13#10 +
-                        'Proceed?'), _('Question'), MB_ICONQUESTION or MB_YESNO or MB_DEFBUTTON2) = IDNO then
-    begin
+  if (((Sender = btnCopy) and (TSettingsPortable.Active(AppGlobals.AppName))) or ((Sender = btnCopy2) and (TSettingsInstalled.Active(AppGlobals.AppName)))) then
+    if MsgBox(_('All settings of the other profile will be replaced by the current profile''s settings.'#13#10 + 'Please be aware that existing settings and files containing data will be overwritten.'#13#10 +
+      'Proceed?'), _('Question'), MB_ICONQUESTION or MB_YESNO or MB_DEFBUTTON2) = IDNO then
       Exit;
-    end;
 
   try
     S := TSettingsInstalled.Create(AppGlobals.AppName, AppGlobals.AppPath, AppGlobals.CommandLine);
@@ -90,8 +99,7 @@ begin
       btnDelete2.Enabled := True;
     end;
   except
-    MsgBox(_('An error occured while copying the settings.'#13#10 +
-                     'It is possible that some settings were copied before the error occured.'), _('Error'), MB_ICONERROR);
+    MsgBox(_('An error occured while copying the settings.'#13#10 + 'It is possible that some settings were copied before the error occured.'), _('Error'), MB_ICONERROR);
     Exit;
   end;
 end;
@@ -109,8 +117,7 @@ procedure TfrmProfileSettings.btnDeleteClick(Sender: TObject);
 var
   S: TSettingsStorage;
 begin
-  if MsgBox(_('All data saved in this profile will be deleted.'#13#10 +
-                      'Are you sure you want to delete this profile?'), _('Question'), MB_ICONQUESTION or MB_YESNO or MB_DEFBUTTON2) = IDYES then
+  if MsgBox(_('All data saved in this profile will be deleted.'#13#10 + 'Are you sure you want to delete this profile?'), _('Question'), MB_ICONQUESTION or MB_YESNO or MB_DEFBUTTON2) = IDYES then
   begin
     if Sender = btnDelete then
       S := TSettingsInstalled.Create(AppGlobals.AppName, AppGlobals.AppPath, AppGlobals.CommandLine)
@@ -118,9 +125,7 @@ begin
       S := TSettingsPortable.Create(AppGlobals.AppName, AppGlobals.AppPath, AppGlobals.CommandLine);
     try
       if not S.DeleteProfile then
-      begin
-        MsgBox(_('An error occured deleting the profile, but parts of it may have been removed.'), _('Info'), MB_ICONEXCLAMATION)
-      end;
+        MsgBox(_('An error occured deleting the profile, but parts of it may have been removed.'), _('Info'), MB_ICONEXCLAMATION);
 
       if Sender = btnDelete then
       begin
@@ -137,8 +142,7 @@ begin
   end;
 end;
 
-procedure TfrmProfileSettings.FormClose(Sender: TObject;
-  var Action: TCloseAction);
+procedure TfrmProfileSettings.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   Action := caFree;
 end;
@@ -148,10 +152,8 @@ begin
   Language.Translate(Self);
 
   AppGlobals.Portable := poUndefined;
-  lblProfiles.Caption := _('It seems there are settings saved for this application in the registry/application ' +
-                           'data folder and in the application''s folder.'#13#10 +
-                           'If you do not want to see this dialog again, please delete one profile.'#13#10 +
-                           'Which profile do you want to use?');
+  lblProfiles.Caption := _('It seems there are settings saved for this application in the registry/application ' + 'data folder and in the application''s folder.'#13#10 +
+    'If you do not want to see this dialog again, please delete one profile.'#13#10 + 'Which profile do you want to use?');
   rbPortable.Enabled := AppGlobals.PortableAllowed;
 
   btnDelete.Enabled := not AppGlobals.Storage.DataDirOverridden;

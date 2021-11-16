@@ -23,8 +23,13 @@ unit Commands;
 interface
 
 uses
-  Windows, SysUtils, Classes, Sockets, Generics.Collections, ExtendedStream,
-  Functions;
+  Classes,
+  ExtendedStream,
+  Functions,
+  Generics.Collections,
+  Sockets,
+  SysUtils,
+  Windows;
 
 type
   TCommandTypes = (ctHandshake, ctHandshakeResponse,
@@ -82,11 +87,11 @@ type
 
   TCommand = class
   private
-    class var FCommands: TList<TCommandRegistration>;
+  class var FCommands: TList<TCommandRegistration>;
   protected
     FVersion: Cardinal;
     FCommandType: TCommandTypes; // Wird nicht von hier versendet im Stream oder so!
-                                 // analog zum commandtype hier drüber sollte hier auch noch die version gemirrort werden.
+    // analog zum commandtype hier drüber sollte hier auch noch die version gemirrort werden.
     FStream: TStream;
 
     procedure DoGet(S: TExtendedStream); virtual;
@@ -122,8 +127,7 @@ begin
   Result := TCommandHeader.Create(FVersion, FCommandLength, FCommandType);
 end;
 
-constructor TCommandHeader.Create(Version, CommandLen: Cardinal;
-  CommandType: TCommandTypes);
+constructor TCommandHeader.Create(Version, CommandLen: Cardinal; CommandType: TCommandTypes);
 begin
   inherited Create;
 
@@ -132,8 +136,7 @@ begin
   FCommandType := CommandType;
 end;
 
-class function TCommandHeader.Read(Stream: TExtendedStream;
-  var CommandHeader: TCommandHeader): TReadRes;
+class function TCommandHeader.Read(Stream: TExtendedStream; var CommandHeader: TCommandHeader): TReadRes;
 var
   T: Cardinal;
 begin
@@ -203,8 +206,7 @@ begin
   end;
 end;
 
-procedure TCommand.Load(CommandHeader: TCommandHeader;
-  Stream: TExtendedStream);
+procedure TCommand.Load(CommandHeader: TCommandHeader; Stream: TExtendedStream);
 begin
 
 end;
@@ -259,8 +261,7 @@ begin
   raise Exception.Create('Unknown CommandType');
 end;
 
-class procedure TCommand.RegisterCommand(CommandType: TCommandTypes;
-  CommandClass: TCommandClass);
+class procedure TCommand.RegisterCommand(CommandType: TCommandTypes; CommandClass: TCommandClass);
 var
   R: TCommandRegistration;
 begin
@@ -277,5 +278,3 @@ begin
 end;
 
 end.
-
-

@@ -23,7 +23,11 @@ unit PowerManagement;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Generics.Collections, DateUtils;
+  Classes,
+  DateUtils,
+  Generics.Collections,
+  SysUtils,
+  Windows;
 
 type
   TSetThreadExecutionState = function(ESFlags: DWORD): DWORD; stdcall;
@@ -88,9 +92,7 @@ begin
   FFunc := nil;
   H := GetModuleHandle('kernel32.dll');
   if H <> 0 then
-  begin
     @FFunc := GetProcAddress(H, 'SetThreadExecutionState');
-  end;
 end;
 
 destructor TPowerManagement.Destroy;
@@ -110,12 +112,10 @@ procedure TPowerManagement.FSetCritical(Value: Boolean);
 begin
   FCritical := Value;
   if Assigned(@FFunc) then
-  begin
     if Value then
       FFunc(ES_SYSTEM_REQUIRED or ES_CONTINUOUS)
     else
       FFunc(ES_CONTINUOUS);
-  end;
 end;
 
 procedure TPowerManagement.RemoveWakeup(Handle: Cardinal);
@@ -175,14 +175,14 @@ begin
 end;
 
 initialization
-begin
-  Power := TPowerManagement.Create;
-end;
+  begin
+    Power := TPowerManagement.Create;
+  end;
 
 finalization
-begin
-  Power.Free;
-  Power := nil;
-end;
+  begin
+    Power.Free;
+    Power := nil;
+  end;
 
 end.

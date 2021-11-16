@@ -55,6 +55,7 @@ object frmChangeLog: TfrmChangeLog
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poOwnerFormCenter
+  LCLVersion = '2.2.0.2'
   object txtChangeLog: TMemo
     Left = 0
     Height = 245

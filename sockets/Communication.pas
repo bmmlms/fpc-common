@@ -23,8 +23,14 @@ unit Communication;
 interface
 
 uses
-  Windows, SysUtils, Classes, Sockets, Protocol, Commands, Generics.Collections,
-  ExtendedStream, SyncObjs;
+  Classes,
+  Commands,
+  ExtendedStream,
+  Generics.Collections,
+  Protocol,
+  Sockets,
+  SyncObjs,
+  SysUtils;
 
 type
   TDynStringArray = array of string;
@@ -67,8 +73,7 @@ type
     procedure SyncTransferred;
 
     procedure PacketManagerLog(Sender: TSocketThread; Data: string);
-    procedure PacketManagerBytesTransferred(Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal;
-      CommandHeader: TCommandHeader; Transferred: UInt64);
+    procedure PacketManagerBytesTransferred(Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal; CommandHeader: TCommandHeader; Transferred: UInt64);
   protected
     procedure DoStuff; override;
 
@@ -114,8 +119,7 @@ type
     FHost: string;
     FCheckCertificate: Boolean;
 
-    procedure ThreadBytesTransferred(Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal;
-      CommandHeader: TCommandHeader; Transferred: UInt64);
+    procedure ThreadBytesTransferred(Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal; CommandHeader: TCommandHeader; Transferred: UInt64);
     procedure ThreadCommandReceived(Socket: TSocketThread; Command: TCommand);
   protected
     procedure ThreadConnected(Sender: TSocketThread); override;
@@ -144,16 +148,14 @@ implementation
 
 { TCommandThreadBase }
 
-constructor TCommandThreadBase.Create(Handle: Cardinal;
-  Stream: TSocketStream);
+constructor TCommandThreadBase.Create(Handle: Cardinal; Stream: TSocketStream);
 begin
   inherited;
 
   Initialize;
 end;
 
-constructor TCommandThreadBase.Create(Host: string; Port: Integer;
-  Stream: TSocketStream; Secure, CheckCertificate: Boolean);
+constructor TCommandThreadBase.Create(Host: string; Port: Integer; Stream: TSocketStream; Secure, CheckCertificate: Boolean);
 begin
   inherited;
 
@@ -231,17 +233,13 @@ begin
   begin
     if FPacketSender.SendCache.Count > 0 then
       for i := 0 to FPacketSender.SendCache.Count - 1 do
-      begin
         PacketManagerBytesTransferred(Self, tdSend, FPacketSender.SendCache[i].ID,
           FPacketSender.SendCache[i].CommandHeader, FPacketSender.SendCache[i].Transferred);
-      end;
 
     if FPacketReader.RecvCache.Count > 0 then
       for i := 0 to FPacketReader.RecvCache.Count - 1 do
-      begin
         PacketManagerBytesTransferred(Self, tdReceive, FPacketReader.RecvCache[i].ID,
           FPacketReader.RecvCache[i].CommandHeader, FPacketReader.RecvCache[i].Transferred);
-      end;
 
     FLastSyncedTransfer := GetTickCount64;
   end;
@@ -258,9 +256,7 @@ begin
   FPacketReader.OnBytesTransferred := PacketManagerBytesTransferred;
 end;
 
-procedure TCommandThreadBase.PacketManagerBytesTransferred(
-  Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal;
-  CommandHeader: TCommandHeader; Transferred: UInt64);
+procedure TCommandThreadBase.PacketManagerBytesTransferred(Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal; CommandHeader: TCommandHeader; Transferred: UInt64);
 begin
   FTransferredCommandID := CommandID;
   FTransferredCommandHeader := CommandHeader;
@@ -274,8 +270,7 @@ begin
       SyncTransferred;
 end;
 
-procedure TCommandThreadBase.PacketManagerLog(Sender: TSocketThread;
-  Data: string);
+procedure TCommandThreadBase.PacketManagerLog(Sender: TSocketThread; Data: string);
 begin
   WriteLog(Data, slDebug);
 end;
@@ -285,8 +280,7 @@ begin
   Result := FPacketSender.Send(Command);
 end;
 
-procedure TCommandThreadBase.SyncCommand(Proc: TCommandEvent;
-  ID: Cardinal; CommandHeader: TCommandHeader; Command: TCommand);
+procedure TCommandThreadBase.SyncCommand(Proc: TCommandEvent; ID: Cardinal; CommandHeader: TCommandHeader; Command: TCommand);
 begin
   if Assigned(Proc) then
   begin
@@ -346,16 +340,13 @@ begin
     FThread.Terminate;
 end;
 
-procedure TCommandClient.ThreadBytesTransferred(Sender: TObject;
-  Direction: TTransferDirection; CommandID: Cardinal; CommandHeader: TCommandHeader;
-  Transferred: UInt64);
+procedure TCommandClient.ThreadBytesTransferred(Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal; CommandHeader: TCommandHeader; Transferred: UInt64);
 begin
   if Assigned(FOnBytesTransferred) then
     FOnBytesTransferred(Sender, Direction, CommandID, CommandHeader, Transferred);
 end;
 
-procedure TCommandClient.ThreadCommandReceived(Socket: TSocketThread;
-  Command: TCommand);
+procedure TCommandClient.ThreadCommandReceived(Socket: TSocketThread; Command: TCommand);
 begin
   if Assigned(FOnCommandReceived) then
     FOnCommandReceived(Socket, Command);
@@ -397,4 +388,3 @@ begin
 end;
 
 end.
-

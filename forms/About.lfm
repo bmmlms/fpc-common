@@ -55,7 +55,7 @@ object frmAbout: TfrmAbout
   OnKeyDown = FormKeyDown
   OnResize = FormResize
   Position = poOwnerFormCenter
-  LCLVersion = '2.2.0.1'
+  LCLVersion = '2.2.0.2'
   object pagAbout: TPageControl
     Left = 0
     Height = 222

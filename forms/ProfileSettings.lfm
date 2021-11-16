@@ -16,7 +16,7 @@ object frmProfileSettings: TfrmProfileSettings
   OnCreate = FormCreate
   Position = poScreenCenter
   ShowInTaskBar = stAlways
-  LCLVersion = '2.2.0.1'
+  LCLVersion = '2.2.0.2'
   object lblProfiles: TLabel
     Left = 0
     Height = 0

@@ -23,8 +23,18 @@ unit Functions;
 interface
 
 uses
-  Windows, ShLwApi, SysUtils, Classes, StrUtils, Graphics, RegExpr,
-  DateUtils, PasZLib, IdURI, FileUtil, ZStream, Forms;
+  Classes,
+  DateUtils,
+  FileUtil,
+  Forms,
+  Graphics,
+  IdURI,
+  RegExpr,
+  shlwapi,
+  StrUtils,
+  SysUtils,
+  Windows,
+  ZStream;
 
 type
   TPatternReplace = record
@@ -67,8 +77,7 @@ function DownCase(ch: Char): Char;
 function MakeSize(Size: UInt64): string;
 function DiskSpaceOkay(Path: string; MinSpaceGB: Int64): Boolean;
 procedure FindFiles(PathPattern: string; Files: TStringList; SubDirs: Boolean = False; TerminateFlag: PByteBool = nil);
-function RunProcess(Filename, WorkingDir: string; Timeout: UInt64; var Output: AnsiString;
-  var ExitCode: DWORD; TerminateFlag: PByteBool; KillOnTimeout: Boolean; ReadCallback: TReadCallback = nil): TRunProcessResults; overload;
+function RunProcess(Filename, WorkingDir: string; Timeout: UInt64; var Output: AnsiString; var ExitCode: DWORD; TerminateFlag: PByteBool; KillOnTimeout: Boolean; ReadCallback: TReadCallback = nil): TRunProcessResults; overload;
 function RunProcess(Filename: string; var Handle: Cardinal; Hide: Boolean = False): Boolean; overload;
 function RunProcess(Filename: string; Hide: Boolean = False): Boolean; overload;
 function GetCPUCount: DWord;
@@ -160,21 +169,17 @@ begin
 
       Result.Port := 0;
       if Length(U.Port) > 0 then
-      begin
         try
           Result.Port := StrToInt(U.Port);
           Result.PortDetected := True;
         except
         end;
-      end;
 
       if not Result.PortDetected then
-      begin
         if U.Protocol = 'http' then
           Result.Port := 80
         else if U.Protocol = 'https' then
           Result.Port := 443;
-      end;
 
       Result.Success := (Length(Result.Host) > 0) and (Result.Port > 0);
     except
@@ -254,13 +259,11 @@ var
 begin
   Result := -1;
   for i := Length(S) - Length(SubStr) + 1 downto 1 do
-  begin
     if Copy(S, i, Length(SubStr)) = SubStr then
     begin
       Result := i;
       Exit;
     end;
-  end;
 end;
 
 function Like(AString, APattern: string): Boolean;
@@ -270,82 +273,91 @@ var
 begin
   AString := WideLowerCase(AString);
   APattern := WideLowerCase(APattern);
-  Result:=false;
-  StringPtr:=PChar(AString);
-  PatternPtr:=PChar(APattern);
-  StringRes:=nil;
-  PatternRes:=nil;
+  Result := False;
+  StringPtr := PChar(AString);
+  PatternPtr := PChar(APattern);
+  StringRes := nil;
+  PatternRes := nil;
   repeat
     repeat // ohne vorangegangenes "*"
       case PatternPtr^ of
-        #0: begin
-          Result:=StringPtr^=#0;
-          if Result or (StringRes=nil) or (PatternRes=nil) then
+        #0:
+        begin
+          Result := StringPtr^ = #0;
+          if Result or (StringRes = nil) or (PatternRes = nil) then
             Exit;
-          StringPtr:=StringRes;
-          PatternPtr:=PatternRes;
+          StringPtr := StringRes;
+          PatternPtr := PatternRes;
           Break;
         end;
-        '*': begin
-          inc(PatternPtr);
-          PatternRes:=PatternPtr;
+        '*':
+        begin
+          Inc(PatternPtr);
+          PatternRes := PatternPtr;
           Break;
         end;
-        '?': begin
-          if StringPtr^=#0 then
+        '?':
+        begin
+          if StringPtr^ = #0 then
             Exit;
-          inc(StringPtr);
-          inc(PatternPtr);
+          Inc(StringPtr);
+          Inc(PatternPtr);
         end;
-        else begin
-          if StringPtr^=#0 then
+        else
+        begin
+          if StringPtr^ = #0 then
             Exit;
-          if StringPtr^<>PatternPtr^ then begin
-            if (StringRes=nil) or (PatternRes=nil) then
+          if StringPtr^ <> PatternPtr^ then
+          begin
+            if (StringRes = nil) or (PatternRes = nil) then
               Exit;
-            StringPtr:=StringRes;
-            PatternPtr:=PatternRes;
+            StringPtr := StringRes;
+            PatternPtr := PatternRes;
             Break;
-          end
-          else begin
-            inc(StringPtr);
-            inc(PatternPtr);
+          end else
+          begin
+            Inc(StringPtr);
+            Inc(PatternPtr);
           end;
         end;
       end;
-    until false;
+    until False;
     repeat
       case PatternPtr^ of
-        #0: begin
-          Result:=true;
+        #0:
+        begin
+          Result := True;
           Exit;
         end;
-        '*': begin
-          inc(PatternPtr);
-          PatternRes:=PatternPtr;
+        '*':
+        begin
+          Inc(PatternPtr);
+          PatternRes := PatternPtr;
         end;
-        '?': begin
-          if StringPtr^=#0 then
+        '?':
+        begin
+          if StringPtr^ = #0 then
             Exit;
-          inc(StringPtr);
-          inc(PatternPtr);
+          Inc(StringPtr);
+          Inc(PatternPtr);
         end;
-        else begin
+        else
+        begin
           repeat
-            if StringPtr^=#0 then
+            if StringPtr^ = #0 then
               Exit;
-            if StringPtr^=PatternPtr^ then
+            if StringPtr^ = PatternPtr^ then
               Break;
-            inc(StringPtr);
-          until false;
-          inc(StringPtr);
-          StringRes:=StringPtr;
-          inc(PatternPtr);
+            Inc(StringPtr);
+          until False;
+          Inc(StringPtr);
+          StringRes := StringPtr;
+          Inc(PatternPtr);
           Break;
         end;
       end;
-    until false;
-  until false;
+    until False;
+  until False;
 end;
 
 function DownCase(ch: Char): Char;
@@ -367,7 +379,7 @@ begin
   else if Size < 1073741824 then
     Result := Format('%f MB', [Size / (1024 * 1024)])
   else
-    Result := Format('%f GB', [Size / (1024 * 1024 * 1024)])
+    Result := Format('%f GB', [Size / (1024 * 1024 * 1024)]);
 end;
 
 function DiskSpaceOkay(Path: string; MinSpaceGB: Int64): Boolean;
@@ -399,35 +411,29 @@ begin
   try
     repeat
       if (TerminateFlag <> nil) and TerminateFlag^ then
-      begin
         Exit;
-      end;
 
       if FindFirst(ConcatPaths([Dir, Pattern]), faAnyFile, SR) = 0 then
       begin
         repeat
           if (SR.Name <> '.') and (SR.Name <> '..') and (not (SR.Attr and faDirectory = faDirectory)) then
-          begin
             if SubDirs then
               Files.Add(ConcatPaths([Dir, SR.Name]))
             else
               Files.Add(SR.Name);
-          end;
         until FindNext(SR) <> 0;
-        FindClose(SR);
+        SysUtils.FindClose(SR);
       end;
 
       if SubDirs then
-      begin
         if FindFirst(ConcatPaths([Dir, '*']), faDirectory, SR) = 0 then
         begin
           repeat
             if (SR.Name <> '.') and (SR.Name <> '..') and (SR.Attr and faDirectory = faDirectory) then
               Dirs.Add(ConcatPaths([Dir, SR.Name]));
           until FindNext(SR) <> 0;
-          FindClose(SR);
+          SysUtils.FindClose(SR);
         end;
-      end;
 
       if Dirs.Count > 0 then
       begin
@@ -441,8 +447,7 @@ begin
   end;
 end;
 
-function RunProcess(Filename, WorkingDir: string; Timeout: UInt64; var Output: AnsiString;
-  var ExitCode: DWORD; TerminateFlag: PByteBool; KillOnTimeout: Boolean; ReadCallback: TReadCallback = nil): TRunProcessResults; overload;
+function RunProcess(Filename, WorkingDir: string; Timeout: UInt64; var Output: AnsiString; var ExitCode: DWORD; TerminateFlag: PByteBool; KillOnTimeout: Boolean; ReadCallback: TReadCallback = nil): TRunProcessResults; overload;
 var
   OK: Boolean;
   Handle: Cardinal;
@@ -490,9 +495,7 @@ begin
   SI.hStdOutput := WritePipeOut;
   SI.hStdError := WritePipeOut;
   SI.hStdInput := ReadPipeIn;
-  OK := CreateProcess(nil, @Filename[1], nil, nil, True,
-    CREATE_NEW_PROCESS_GROUP or NORMAL_PRIORITY_CLASS or CREATE_NO_WINDOW,
-    nil, @WorkingDir[1], SI, PI);
+  OK := CreateProcess(nil, @Filename[1], nil, nil, True, CREATE_NEW_PROCESS_GROUP or NORMAL_PRIORITY_CLASS or CREATE_NO_WINDOW, nil, @WorkingDir[1], SI, PI);
   try
     if OK then
     begin
@@ -511,7 +514,8 @@ begin
             Result := rpTerminated;
             Exit;
           end;
-        except end;
+        except
+        end;
 
         PeekNamedPipe(ReadPipeOut, nil, 0, nil, @Avail, nil);
         if Avail > 0 then
@@ -579,9 +583,7 @@ begin
     SI.dwFlags := STARTF_USESHOWWINDOW;
     SI.wShowWindow := SW_HIDE;
   end;
-  OK := CreateProcess(nil, @Filename[1], nil, nil, False,
-    CREATE_NEW_PROCESS_GROUP or NORMAL_PRIORITY_CLASS,
-    nil, nil, SI, PI);
+  OK := CreateProcess(nil, @Filename[1], nil, nil, False, CREATE_NEW_PROCESS_GROUP or NORMAL_PRIORITY_CLASS, nil, nil, SI, PI);
   Result := OK;
   if OK then
   begin
@@ -616,9 +618,7 @@ begin
 
   for i := 0 to Length(s) - 1 do
     if s[i] = '\' then
-    begin
       CharSep := i;
-    end;
 
   if CharSep > 0 then
     if CharSep - 1 > MaxPathChars then
@@ -635,8 +635,9 @@ var
   x: Cardinal;
 begin
   Result := 0;
-  for i := 1 To Length(Value) do begin
-    Result := (Result Shl 4) + Ord(Value[i]);
+  for i := 1 to Length(Value) do
+  begin
+    Result := (Result shl 4) + Ord(Value[i]);
     x := Result and $F0000000;
     if (x <> 0) then
       Result := Result xor (x shr 24);
@@ -689,14 +690,12 @@ begin
   SetLength(TokenIndices, 0);
   for i := 1 to Length(Result) - 1 do
     if Result[i] = '%' then
-    begin
       for j := 0 to High(ReplaceList) do
         if (Length(Result) >= i + 1) and (Result[i + 1] = ReplaceList[j].C) then
         begin
           SetLength(TokenIndices, Length(TokenIndices) + 1);
           TokenIndices[High(TokenIndices)] := i;
         end;
-    end;
 
   for n := 0 to High(TokenIndices) do
   begin
@@ -779,32 +778,29 @@ begin
   Result := False;
   TokenHandle := 0;
   if OpenProcessToken(GetCurrentProcess, TOKEN_QUERY, TokenHandle) then
-  try
-    ReturnLength := 0;
-    GetTokenInformation(TokenHandle, TokenGroups, nil, 0, ReturnLength);
-    TokenInformation := GetMemory(ReturnLength);
-    if Assigned(TokenInformation) then
     try
-      if GetTokenInformation(TokenHandle, TokenGroups, TokenInformation,
-        ReturnLength, ReturnLength) then
-      begin
-        AdminSid := GetAdminSid;
-        for Loop := 0 to TokenInformation^.GroupCount - 1 do
-        begin
-          if EqualSid(TokenInformation^.Groups[Loop].Sid, AdminSid) then
+      ReturnLength := 0;
+      GetTokenInformation(TokenHandle, TokenGroups, nil, 0, ReturnLength);
+      TokenInformation := GetMemory(ReturnLength);
+      if Assigned(TokenInformation) then
+        try
+          if GetTokenInformation(TokenHandle, TokenGroups, TokenInformation, ReturnLength, ReturnLength) then
           begin
-            Result := True;
-            Break;
+            AdminSid := GetAdminSid;
+            for Loop := 0 to TokenInformation^.GroupCount - 1 do
+              if EqualSid(TokenInformation^.Groups[Loop].Sid, AdminSid) then
+              begin
+                Result := True;
+                Break;
+              end;
+            FreeSid(AdminSid);
           end;
+        finally
+          FreeMemory(TokenInformation);
         end;
-        FreeSid(AdminSid);
-      end;
     finally
-      FreeMemory(TokenInformation);
+      CloseHandle(TokenHandle);
     end;
-  finally
-    CloseHandle(TokenHandle);
-  end;
 end;
 
 function HTML2Color(const HTML: string): Integer;
@@ -815,9 +811,7 @@ begin
     Offset := 1
   else
     Offset := 0;
-  Result := Integer(StrToInt('$' + Copy(HTML, Offset + 1, 2))) +
-    Integer(StrToInt('$' + Copy(HTML, Offset + 3, 2))) shl 8 +
-    Integer(StrToInt('$' + Copy(HTML, Offset + 5, 2))) shl 16;
+  Result := Integer(StrToInt('$' + Copy(HTML, Offset + 1, 2))) + Integer(StrToInt('$' + Copy(HTML, Offset + 3, 2))) shl 8 + Integer(StrToInt('$' + Copy(HTML, Offset + 5, 2))) shl 16;
 end;
 
 function GetFileSize(const AFileName: string): Int64;
@@ -850,15 +844,12 @@ begin
       Result := -1
     else
       Result := 0;
-  end else
-  begin
-    if A < B then
-      Result := 1
-    else if A > B then
-      Result := -1
-    else
-      Result := 0;
-  end;
+  end else if A < B then
+    Result := 1
+  else if A > B then
+    Result := -1
+  else
+    Result := 0;
 end;
 
 function CmpUInt64(const A, B: UInt64; R: Boolean): Integer;
@@ -871,15 +862,12 @@ begin
       Result := -1
     else
       Result := 0;
-  end else
-  begin
-    if A < B then
-      Result := 1
-    else if A > B then
-      Result := -1
-    else
-      Result := 0;
-  end;
+  end else if A < B then
+    Result := 1
+  else if A > B then
+    Result := -1
+  else
+    Result := 0;
 end;
 
 function ParseVersion(const Version: string): TAppVersion;
@@ -893,12 +881,11 @@ begin
   for i := 0 to Length(Dots) - 1 do
     if Dots[i] < i then
       raise Exception.Create('Error parsing version.');
-  Result.Major :=  StrToInt(Copy(string(Version), 0, Dots[0] - 1));
-  Result.Minor :=  StrToInt(Copy(string(Version), Dots[0] + 1, Dots[1] - 1 - Dots[0]));
-  Result.Revision :=  StrToInt(Copy(string(Version), Dots[1] + 1, Dots[2] - 1 - Dots[1]));
-  Result.Build :=  StrToInt(Copy(string(Version), Dots[2] + 1, Length(Version) - Dots[2]));
-  Result.AsString := AnsiString(Format('%d.%d.%d.%d', [Result.Major, Result.Minor,
-    Result.Revision, Result.Build]));
+  Result.Major := StrToInt(Copy(string(Version), 0, Dots[0] - 1));
+  Result.Minor := StrToInt(Copy(string(Version), Dots[0] + 1, Dots[1] - 1 - Dots[0]));
+  Result.Revision := StrToInt(Copy(string(Version), Dots[1] + 1, Dots[2] - 1 - Dots[1]));
+  Result.Build := StrToInt(Copy(string(Version), Dots[2] + 1, Length(Version) - Dots[2]));
+  Result.AsString := AnsiString(Format('%d.%d.%d.%d', [Result.Major, Result.Minor, Result.Revision, Result.Build]));
 end;
 
 function ParseVersion(const Major, Minor, Revision, Build: Cardinal): TAppVersion;
@@ -918,10 +905,7 @@ begin
   MinorEq := Found.Minor = Current.Minor;
   RevisionEq := Found.Revision = Current.Revision;
 
-  Result := (Found.Major > Current.Major) or
-            (MajorEq and (Found.Minor > Current.Minor)) or
-            (MajorEq and MinorEq and (Found.Revision > Current.Revision)) or
-            (MajorEq and MinorEq and RevisionEq and (Found.Build > Current.Build));
+  Result := (Found.Major > Current.Major) or (MajorEq and (Found.Minor > Current.Minor)) or (MajorEq and MinorEq and (Found.Revision > Current.Revision)) or (MajorEq and MinorEq and RevisionEq and (Found.Build > Current.Build));
 end;
 
 function TrimChars(const s: string; const c: Char): string;
@@ -936,9 +920,7 @@ begin
     if s[n] = c then
     begin
       if F then
-      begin
-
-      end else
+      else
       begin
         Result[Counter] := c;
         Inc(Counter);
@@ -1007,8 +989,7 @@ var
   From: string;
   OutData: array[0..MAX_PATH - 1] of Char;
 begin
-  if (((Length(s) >= 2) and (s[1] = '.') and (s[2] = '\')) or
-      ((Length(s) >= 3) and (s[1] = '.') and (s[2] = '.') and (s[3] = '\'))) then
+  if (((Length(s) >= 2) and (s[1] = '.') and (s[2] = '\')) or ((Length(s) >= 3) and (s[1] = '.') and (s[2] = '.') and (s[3] = '\'))) then
   begin
     From := IncludeTrailingBackslash(ExtractFilePath(ParamStr(0)));
 
@@ -1031,6 +1012,7 @@ var
     SetLength(Parts, Length(Parts) + 1);
     Parts[High(Parts)] := Trim(S);
   end;
+
 begin
   Result := '';
   Drive := '';
@@ -1064,9 +1046,7 @@ begin
 
   // Wenn am Ende noch Rest ist, ist das auch ein Part
   if Length(Path) > LastI then
-  begin
     AddPart(Copy(Path, LastI, Length(Path) - LastI + 1));
-  end;
 
   // '.' und ' ' am Anfang und am Ende entfernen
   for i := 0 to High(Parts) do
@@ -1090,12 +1070,10 @@ begin
   Result := Result + Drive;
   for i := 0 to High(Parts) do
     if Parts[i] <> '' then
-    begin
       if (Length(Result) > 1) and (Result[Length(Result)] <> '\') then
         Result := Result + '\' + Parts[i]
       else
-        Result := Result + Parts[i]
-    end;
+        Result := Result + Parts[i];
 
   // Wenn in der Eingangsvariable am Ende ein '\' war, dann auch anhängen
   if (Length(Path) >= 1) and (Path[Length(Path)] = '\') and (Result <> '') then
@@ -1121,7 +1099,6 @@ begin
     GetMem(VerInfo, VerInfoSize);
     try
       if GetFileVersionInfo(PChar(Filename), 0, VerInfoSize, VerInfo) then
-      begin
         if VerQueryValue(VerInfo, '\', Pointer(VerValue), VerValueSize) then
         begin
           with VerValue^ do
@@ -1131,29 +1108,22 @@ begin
             Result.Revision := dwFileVersionLS shr 16;
             Result.Build := dwFileVersionLS and $FFFF;
           end;
-          Result.AsString := AnsiString(Format('%d.%d.%d.%d', [Result.Major,
-            Result.Minor, Result.Revision, Result.Build]));
+          Result.AsString := AnsiString(Format('%d.%d.%d.%d', [Result.Major, Result.Minor, Result.Revision, Result.Build]));
         end;
-      end;
     finally
-      FreeMem(VerInfo,VerInfoSize);
+      FreeMem(VerInfo, VerInfoSize);
     end;
   end;
 
-  if (Result.Major = 0) and (Result.Minor = 0) and
-     (Result.Revision = 0) and (Result.Build = 0) then
-  begin
+  if (Result.Major = 0) and (Result.Minor = 0) and (Result.Revision = 0) and (Result.Build = 0) then
     raise Exception.Create('');
-  end;
 end;
 
 function ShortenString(Str: string; Len: Integer): string;
 begin
   Result := Trim(Str);
   if Length(Result) > Len then
-  begin
     Result := Trim(Copy(Result, 1, Len - 3)) + '...';
-  end;
 end;
 
 procedure Explode(const Separator, S: string; Lst: TStringList);
@@ -1233,8 +1203,8 @@ begin
 end;
 
 function ContainsRegEx(RegEx, Data: string): Boolean;
-//var
-//  R: TPerlRegEx;
+  //var
+  //  R: TPerlRegEx;
 begin
   {
   Result := False;

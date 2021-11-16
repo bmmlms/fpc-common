@@ -23,7 +23,10 @@ unit ExtendedStream;
 interface
 
 uses
-  SysUtils, Windows, Classes, lazutf16;
+  Classes,
+  lazutf16,
+  SysUtils,
+  Windows;
 
 type
   TExtendedStream = class(TMemoryStream)
@@ -245,9 +248,6 @@ begin
 end;
 
 function TExtendedStream.ToString(FromOffset, Count: Int64): AnsiString;
-var
-  i: Cardinal;
-  Res: Pointer;
 begin
   Result := '';
   if Count = 0 then

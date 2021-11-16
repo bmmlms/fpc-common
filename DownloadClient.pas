@@ -23,8 +23,14 @@ unit DownloadClient;
 interface
 
 uses
-  Windows, SysUtils, StrUtils, Classes, AppData, AppDataBase, HTTPThread,
-  Functions, ShellApi, LanguageObjects, Sockets;
+  AppData,
+  AppDataBase,
+  Classes,
+  HTTPThread,
+  LanguageObjects,
+  Sockets,
+  SysUtils,
+  Windows;
 
 type
   TDownloadThread = class(THTTPThread)
@@ -88,9 +94,8 @@ begin
   if FTypedStream.ResponseCode = 200 then
   begin
     if (RecvDataStream.Size = FTypedStream.ContentLength) and (RecvDataStream.Size > 1024) then
-    begin
-      Sync(FOnFileDownloaded);
-    end else
+      Sync(FOnFileDownloaded)
+    else
       Sync(FOnError);
   end else
     Sync(FOnError);

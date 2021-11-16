@@ -19,6 +19,7 @@ object frmUpdatedInfo: TfrmUpdatedInfo
   OnShow = FormShow
   Position = poScreenCenter
   ShowInTaskBar = stAlways
+  LCLVersion = '2.2.0.2'
   object txtInfo: TMemo
     Left = 0
     Height = 160

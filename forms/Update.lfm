@@ -57,7 +57,7 @@ object frmUpdate: TfrmUpdate
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
   Position = poOwnerFormCenter
-  LCLVersion = '2.2.0.1'
+  LCLVersion = '2.2.0.2'
   object lblState: TLabel
     Left = 0
     Height = 13

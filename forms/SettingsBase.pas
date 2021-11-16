@@ -23,11 +23,31 @@ unit SettingsBase;
 interface
 
 uses
-  Windows, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, Buttons, ComCtrls, LanguageObjects,
-  AppData, AppDataBase, SettingsStorage, Functions, ComboEx,
-  ImgList, MLabeledEdit, VirtualTrees, ExtendedStream, GUIFunctions,
-  MControls, Generics.Collections;
+  AppData,
+  AppDataBase,
+  Buttons,
+  Classes,
+  ComboEx,
+  ComCtrls,
+  Controls,
+  Dialogs,
+  ExtCtrls,
+  ExtendedStream,
+  Forms,
+  Functions,
+  Generics.Collections,
+  Graphics,
+  GUIFunctions,
+  ImgList,
+  LanguageObjects,
+  MControls,
+  MLabeledEdit,
+  SettingsStorage,
+  StdCtrls,
+  SysUtils,
+  Variants,
+  VirtualTrees,
+  Windows;
 
 type
   TPage = class
@@ -61,16 +81,13 @@ type
   protected
     procedure DoGetText(Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var Text: string); override;
     function DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var Index: Integer): TCustomImageList; override;
-    procedure DoInitNode(Parent: PVirtualNode; Node: PVirtualNode;
-      var InitStates: TVirtualNodeInitStates); override;
+    procedure DoInitNode(Parent: PVirtualNode; Node: PVirtualNode; var InitStates: TVirtualNodeInitStates); override;
     procedure Resize; override;
-    procedure DoMeasureItem(TargetCanvas: TCanvas; Node: PVirtualNode;
-      var NodeHeight: Integer); override;
+    procedure DoMeasureItem(TargetCanvas: TCanvas; Node: PVirtualNode; var NodeHeight: Integer); override;
     function DoCollapsing(Node: PVirtualNode): Boolean; override;
   public
     constructor Create(AOwner: TComponent; Pages: TPageList); reintroduce;
-    function AddChild(Parent: PVirtualNode;
-      UserData: Pointer = nil): PVirtualNode; override;
+    function AddChild(Parent: PVirtualNode; UserData: Pointer = nil): PVirtualNode; override;
     procedure Setup;
   end;
 
@@ -104,8 +121,7 @@ type
     procedure btnOKClick(Sender: TObject);
     procedure lstLanguagesChange(Sender: TObject);
     procedure btnCopyProfileClick(Sender: TObject);
-    procedure FormKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure chkProxyClick(Sender: TObject);
     procedure btnDeleteProfileClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -215,14 +231,10 @@ var
   S: TSettingsInstalled;
   S2: TSettingsPortable;
 begin
-  if ((AppGlobals.Portable = poYes) and (TSettingsInstalled.Active(AppGlobals.AppName)) or
-      (AppGlobals.Portable = poNo) and (TSettingsPortable.Active(AppGlobals.AppName))) then
-    if MsgBox(_('All settings of the other profile will be replaced by the current profile''s settings.'#13#10 +
-                        'Please be aware that existing settings and files containing data will be overwritten.'#13#10 +
-                        'Proceed?'), 'Question', MB_ICONQUESTION or MB_YESNO or MB_DEFBUTTON2) = IDNO then
-    begin
+  if ((AppGlobals.Portable = poYes) and (TSettingsInstalled.Active(AppGlobals.AppName)) or (AppGlobals.Portable = poNo) and (TSettingsPortable.Active(AppGlobals.AppName))) then
+    if MsgBox(_('All settings of the other profile will be replaced by the current profile''s settings.'#13#10 + 'Please be aware that existing settings and files containing data will be overwritten.'#13#10 +
+      'Proceed?'), 'Question', MB_ICONQUESTION or MB_YESNO or MB_DEFBUTTON2) = IDNO then
       Exit;
-    end;
 
   try
     S := TSettingsInstalled.Create(AppGlobals.AppName, AppGlobals.AppPath, AppGlobals.CommandLine);
@@ -239,8 +251,7 @@ begin
 
     MsgBox(_('The profile was copied successfully. To use the copied profile, restart the application.'), _('Info'), MB_ICONINFORMATION);
   except
-    MsgBox(_('An error occured while copying the settings.'#13#10 +
-                     'It is possible that some settings were copied before the error occured.'), _('Error'), MB_ICONERROR);
+    MsgBox(_('An error occured while copying the settings.'#13#10 + 'It is possible that some settings were copied before the error occured.'), _('Error'), MB_ICONERROR);
   end;
 end;
 
@@ -252,13 +263,11 @@ end;
 
 procedure TfrmSettingsBase.btnDeleteProfileClick(Sender: TObject);
 begin
-  if MsgBox(_('All data saved in the currently used profile will be deleted.'#13#10 +
-                      'Are you sure you want to delete this profile?'), _('Question'), MB_ICONQUESTION or MB_YESNO or MB_DEFBUTTON2) = IDYES then
+  if MsgBox(_('All data saved in the currently used profile will be deleted.'#13#10 + 'Are you sure you want to delete this profile?'), _('Question'), MB_ICONQUESTION or MB_YESNO or MB_DEFBUTTON2) = IDYES then
   begin
     AppGlobals.Storage.DeleteProfile;
     AppGlobals.SkipSave := True;
-    MsgBox(_('The profile was deleted.'#13#10 +
-                     'When you exit the application, no data will be saved so that the profil will not be recreated.'), _('Info'), MB_ICONINFORMATION);
+    MsgBox(_('The profile was deleted.'#13#10 + 'When you exit the application, no data will be saved so that the profil will not be recreated.'), _('Info'), MB_ICONINFORMATION);
   end;
 end;
 
@@ -330,7 +339,6 @@ begin
     Exit;
 
   if chkProxy.Checked then
-  begin
     if (Trim(txtHost.Control.Text) = '') or (Trim(txtPort.Control.Text) = '') or (StrToIntDef(txtPort.Control.Text, 0) <= 0) then
     begin
       MsgBox(_('You need to supply a host and a port (must be a positive number) to connect to if the use of a HTTP proxy is enabled.'), _('Info'), MB_ICONINFORMATION);
@@ -341,7 +349,6 @@ begin
         txtPort.ApplyFocus;
       Exit(False);
     end;
-  end;
 end;
 
 function TfrmSettingsBase.CheckImportFile(Filename: string): Boolean;
@@ -363,7 +370,8 @@ var
 begin
   inherited Create(AOwner);
 
-  FImages := Images;;
+  FImages := Images;
+  ;
 
   for i := FlowPanelPages.ControlCount - 1 downto 0 do
     FlowPanelPages.Controls[i].Parent := Self;
@@ -474,8 +482,7 @@ begin
   Language.CurrentLanguage := LanguageList.FindLanguage(AppGlobals.Language);
 end;
 
-procedure TfrmSettingsBase.FormKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
+procedure TfrmSettingsBase.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
   inherited;
 
@@ -528,8 +535,7 @@ begin
   end;
 end;
 
-procedure TfrmSettingsBase.TreeViewChange(Sender: TBaseVirtualTree;
-  Node: PVirtualNode);
+procedure TfrmSettingsBase.TreeViewChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
 var
   i: Integer;
 begin
@@ -548,7 +554,7 @@ end;
 
 procedure TfrmSettingsBase.RegisterGeneralPage(ImageIndex: Integer);
 begin
-  FPageList.Add(TPage.Create('General', pnlGeneral, ImageIndex))
+  FPageList.Add(TPage.Create('General', pnlGeneral, ImageIndex));
 end;
 
 procedure TfrmSettingsBase.SetPage(Page: TPage);
@@ -592,8 +598,7 @@ end;
 
 { TPageTree }
 
-function TPageTree.AddChild(Parent: PVirtualNode;
-  UserData: Pointer): PVirtualNode;
+function TPageTree.AddChild(Parent: PVirtualNode; UserData: Pointer): PVirtualNode;
 begin
   Result := inherited;
 
@@ -645,15 +650,13 @@ begin
         Text := FPages[i].Caption;
 end;
 
-procedure TPageTree.DoInitNode(Parent, Node: PVirtualNode;
-  var InitStates: TVirtualNodeInitStates);
+procedure TPageTree.DoInitNode(Parent, Node: PVirtualNode; var InitStates: TVirtualNodeInitStates);
 begin
   inherited;
 
 end;
 
-procedure TPageTree.DoMeasureItem(TargetCanvas: TCanvas;
-  Node: PVirtualNode; var NodeHeight: Integer);
+procedure TPageTree.DoMeasureItem(TargetCanvas: TCanvas; Node: PVirtualNode; var NodeHeight: Integer);
 begin
   inherited;
 

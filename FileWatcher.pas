@@ -205,39 +205,39 @@ begin
     FILE_ACTION_REMOVED:
       FDeleted.Add(Path);
     FILE_ACTION_ADDED:
-      begin
-        for i := 0 to FDeleted.Count - 1 do
-          if ExtractFileName(FDeleted[i]) = ExtractFileName(Path) then
-          begin
-            FAction := eaMoved;
-            FPath := FDeleted[i];
-            FPathNew := Path;
+    begin
+      for i := 0 to FDeleted.Count - 1 do
+        if ExtractFileName(FDeleted[i]) = ExtractFileName(Path) then
+        begin
+          FAction := eaMoved;
+          FPath := FDeleted[i];
+          FPathNew := Path;
 
-            FDeleted.Delete(i);
-            Exit;
-          end;
+          FDeleted.Delete(i);
+          Exit;
+        end;
 
-        FAction := eaAdded;
-        FPath := Path;
+      FAction := eaAdded;
+      FPath := Path;
 
-        Synchronize(TriggerEvent);
-      end;
+      Synchronize(TriggerEvent);
+    end;
     FILE_ACTION_MODIFIED:
-      begin
-        FAction := eaModified;
-        FPath := Path;
+    begin
+      FAction := eaModified;
+      FPath := Path;
 
-        Synchronize(TriggerEvent);
-      end;
+      Synchronize(TriggerEvent);
+    end;
     FILE_ACTION_RENAMED_OLD_NAME:
       FPath := Path;
     FILE_ACTION_RENAMED_NEW_NAME:
-      begin
-        FAction := eaMoved;
-        FPathNew := Path;
+    begin
+      FAction := eaMoved;
+      FPathNew := Path;
 
-        Synchronize(TriggerEvent);
-      end;
+      Synchronize(TriggerEvent);
+    end;
   end;
 end;
 

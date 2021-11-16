@@ -23,8 +23,15 @@ unit Sockets;
 interface
 
 uses
-  Windows, SysUtils, Classes, SyncObjs, Winsock2, ExtendedStream,
-  Generics.Collections, Logging, IdSSLOpenSSLHeadersCustom, DynOpenSSL;
+  Classes,
+  DynOpenSSL,
+  ExtendedStream,
+  Generics.Collections,
+  IdSSLOpenSSLHeadersCustom,
+  Logging,
+  SyncObjs,
+  SysUtils,
+  Winsock2;
 
 type
   TSocketThread = class;
@@ -232,8 +239,7 @@ begin
     raise Exception.Create('Function getpeername() failed');
 end;
 
-constructor TSocketThread.Create(Host: string; Port: Integer;
-  Stream: TSocketStream; Secure, CheckCertificate: Boolean);
+constructor TSocketThread.Create(Host: string; Port: Integer; Stream: TSocketStream; Secure, CheckCertificate: Boolean);
 begin
   inherited Create(True);
 
@@ -268,7 +274,7 @@ end;
 procedure TSocketThread.DoConnected;
 begin
   if Assigned(FOnConnected) then
-    Sync(FOnConnected)
+    Sync(FOnConnected);
 end;
 
 procedure TSocketThread.DoConnecting;
@@ -329,7 +335,7 @@ end;
 procedure TSocketThread.DoSecured;
 begin
   if Assigned(FOnSecured) then
-    Sync(FOnSecured)
+    Sync(FOnSecured);
 end;
 
 procedure TSocketThread.DoSSLError(Text: string);
@@ -492,10 +498,10 @@ begin
             DoSSLError('TLS handshake was not successful, certificate invalid');
 
           SSLWildcardValid := False;
-          if (Length(NE.value.data) > 2) and (NE.value.data[0] = '*') then
-            SSLWildcardValid := FHost.EndsWith(Copy(NE.value.data, 2), True);
+          if (Length(NE.Value.Data) > 2) and (NE.Value.Data[0] = '*') then
+            SSLWildcardValid := FHost.EndsWith(Copy(NE.Value.Data, 2), True);
 
-          if (LowerCase(NE.value.data) <> LowerCase(FHost)) and (not SSLWildcardValid) then
+          if (LowerCase(NE.Value.Data) <> LowerCase(FHost)) and (not SSLWildcardValid) then
             DoSSLError('TLS handshake was not successful, certificate invalid');
 
           Idx := X509_NAME_get_index_by_NID(SN, NID_commonName, Idx);
@@ -612,9 +618,7 @@ begin
 
             if not FSecure then
               if WSAGetLastError <> 0 then
-              begin
                 raise EExceptionParams.CreateFmt('Function send() returned error %d', [WSAGetLastError]);
-              end;
           finally
             FSendLock.Leave;
           end;
@@ -631,14 +635,14 @@ begin
     end;
   finally
     try
-      if SSL <> nil then      
+      if SSL <> nil then
         SSL_free(SSL);
     except
     end;
 
     try
       if Ctx <> nil then
-        SSL_CTX_free(Ctx);    
+        SSL_CTX_free(Ctx);
     except
     end;
 
@@ -683,14 +687,12 @@ end;
 procedure TSocketThread.Sync(Proc: TSocketEvent);
 begin
   if Assigned(Proc) then
-  begin
     if FUseSynchronize then
     begin
       FProc := Proc;
       Synchronize(Sync2);
     end else
       Proc(Self);
-  end;
 end;
 
 procedure TSocketThread.Sync2;

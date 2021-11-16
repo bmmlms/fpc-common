@@ -23,9 +23,25 @@ unit WizardBase;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Buttons, ExtCtrls, LanguageObjects, AppData, MControls,
-  Functions, ComCtrls, AppDataBase, SettingsStorage, ComboEx;
+  AppData,
+  AppDataBase,
+  Buttons,
+  Classes,
+  ComboEx,
+  ComCtrls,
+  Controls,
+  Dialogs,
+  ExtCtrls,
+  Forms,
+  Functions,
+  Graphics,
+  LanguageObjects,
+  MControls,
+  SettingsStorage,
+  StdCtrls,
+  SysUtils,
+  Variants,
+  Windows;
 
 type
   TStep = class
@@ -151,14 +167,11 @@ begin
   Action := caFree;
 end;
 
-procedure TfrmWizardBase.FormCloseQuery(Sender: TObject;
-  var CanClose: Boolean);
+procedure TfrmWizardBase.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
   if not AppGlobals.WasSetup then
-  begin
     if MsgBox(_('Closing the wizard will exit the application.'#13#10'Do you really want to exit now?'), _('Question'), MB_ICONQUESTION or MB_YESNO or MB_DEFBUTTON2) = IDNO then
       CanClose := False;
-  end;
 end;
 
 procedure TfrmWizardBase.FormCreate(Sender: TObject);
@@ -212,10 +225,9 @@ begin
   FStepList.Free;
 end;
 
-procedure TfrmWizardBase.FormKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
+procedure TfrmWizardBase.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
- if Key = 27 then
+  if Key = 27 then
   begin
     Key := 0;
     Close;
@@ -253,27 +265,21 @@ begin
       poNo:
         optAppData.Checked := True;
       poUndefined:
-        begin
-          if AppGlobals.RunningFromInstalledLocation then
-            optAppData.Checked := True
-          else if AppGlobals.PortableAllowed then
-            optPortable.Checked := True;
-        end;
+        if AppGlobals.RunningFromInstalledLocation then
+          optAppData.Checked := True
+        else if AppGlobals.PortableAllowed then
+          optPortable.Checked := True;
     end;
   end;
   if Step.Panel = pnlUpdates then
-  begin
     chkAutoUpdate.Checked := AppGlobals.AutoUpdate;
-  end;
 end;
 
 function TfrmWizardBase.IsValid(Step: TStep): Boolean;
 begin
   Result := True;
   if Step.Panel = pnlLanguage then
-  begin
-
-  end;
+  ;
   if Step.Panel = pnlStorage then
   begin
     if optAppData.Checked then
@@ -283,9 +289,7 @@ begin
     FInitializedSteps.Clear;
   end;
   if Step.Panel = pnlUpdates then
-  begin
-
-  end;
+  ;
 end;
 
 procedure TfrmWizardBase.lblAppDataClick(Sender: TObject);
@@ -383,8 +387,7 @@ begin
 
   lblAppData.Caption := Format(_('Settings will be saved to "%s" and/or to the registry to "%s".'#13#10'This makes sense if the application was installed.'),
     [TSettingsInstalled.GetDataDir(AppGlobals.AppName), 'HKCU' + TSettingsInstalled.GetRegPath(AppGlobals.AppName)]);
-  lblPortable.Caption := Format(_('Settings will be saved to application folder which is "%s" at the moment.'#13#10'This makes sense if the application will be used in portable mode.'),
-    [TSettingsPortable.GetDataDir]);
+  lblPortable.Caption := Format(_('Settings will be saved to application folder which is "%s" at the moment.'#13#10'This makes sense if the application will be used in portable mode.'), [TSettingsPortable.GetDataDir]);
   lblTop.Caption := _(FActiveSetup.FCaption);
 end;
 

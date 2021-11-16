@@ -23,7 +23,9 @@ unit Logging;
 interface
 
 uses
-  Windows, SysUtils, Classes;
+  Classes,
+  SysUtils,
+  Windows;
 
 type
   TLogger = class
@@ -44,7 +46,7 @@ implementation
 
 class procedure TLogger.SetFilename(LogFile: string);
 begin
-  LoggingFile :=  LogFile;
+  LoggingFile := LogFile;
 end;
 
 class procedure TLogger.Write(Data: string);
@@ -57,7 +59,7 @@ begin
   if LoggingFile = '' then
     Exit;
 
-//  EnterCriticalSection(CS);
+  //  EnterCriticalSection(CS);
   try
     H := CreateFile(PChar(LoggingFile), FILE_APPEND_DATA, FILE_SHARE_READ or FILE_SHARE_WRITE, nil, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     if H = INVALID_HANDLE_VALUE then
@@ -73,12 +75,12 @@ begin
       FileClose(H);
     end;
   finally
-//    LeaveCriticalSection(CS);
+    //    LeaveCriticalSection(CS);
   end;
 end;
 
 initialization
   LoggingFile := '';
-//  InitializeCriticalSection(CS);
+  //  InitializeCriticalSection(CS);
 
 end.
