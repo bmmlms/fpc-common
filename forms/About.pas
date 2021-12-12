@@ -23,9 +23,24 @@ unit About;
 interface
 
 uses
-  Windows, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, LanguageObjects, StdCtrls, AppData, ExtCtrls, ShellAPI, ComCtrls,
-  Buttons, AppDataBase, Functions, GUIFunctions;
+  AppData,
+  AppDataBase,
+  Buttons,
+  Classes,
+  ComCtrls,
+  Controls,
+  Dialogs,
+  ExtCtrls,
+  Forms,
+  FPCanvas,
+  Functions,
+  Graphics,
+  LanguageObjects,
+  ShellAPI,
+  StdCtrls,
+  SysUtils,
+  Variants,
+  Windows;
 
 type
   TScrollText = class(TGraphicControl)
@@ -34,8 +49,8 @@ type
     FTextHeight: Integer;
     FText: TStringList;
     FTimer: TTimer;
-    FBmp: TBitmap;
-    FBmps: array of TBitmap;
+    FBmp: Graphics.TBitmap;
+    FBmps: array of Graphics.TBitmap;
 
     procedure TimerOnTimer(Sender: TObject);
     procedure BuildBitmap;
@@ -124,26 +139,19 @@ begin
 
   case AppGlobals.License of
     alGPL:
-      txtAbout.Text := Format(_('%s'#13#10 +
-                                'Copyright © 2010-2021 Alexander Nottelmann et al.'#13#10#13#10 +
-                                'This program is free software: you can redistribute it and/or modify ' +
-                                'it under the terms of the GNU General Public License as published by ' +
-                                'the Free Software Foundation, either version 3 of the License, or ' +
-                                '(at your option) any later version.'#13#10#13#10 +
-                                'This program is distributed in the hope that it will be useful, ' +
-                                'but WITHOUT ANY WARRANTY; without even the implied warranty of ' +
-                                'MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the ' +
-                                'GNU General Public License for more details.'#13#10#13#10 +
-                                'You should have received a copy of the GNU General Public License ' +
-                                'along with this program. If not, see <http://www.gnu.org/licenses/>.'), [AppGlobals.AppName]);
+      txtAbout.Text := Format(_('%s'#13#10 + 'Copyright © 2010-2021 Alexander Nottelmann et al.'#13#10#13#10 +
+        'This program is free software: you can redistribute it and/or modify ' + 'it under the terms of the GNU General Public License as published by ' +
+        'the Free Software Foundation, either version 3 of the License, or ' + '(at your option) any later version.'#13#10#13#10 +
+        'This program is distributed in the hope that it will be useful, ' + 'but WITHOUT ANY WARRANTY; without even the implied warranty of ' +
+        'MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the ' + 'GNU General Public License for more details.'#13#10#13#10 +
+        'You should have received a copy of the GNU General Public License ' + 'along with this program. If not, see <http://www.gnu.org/licenses/>.'), [AppGlobals.AppName]);
     alProprietary:
-      begin
-        txtAbout.Text := Format(_('%s'#13#10 +
-                                  'Copyright © 2010-2021 Alexander Nottelmann'), [AppGlobals.AppName]);
-        lblGPL.Visible := False;
-        txtAbout.Height := txtAbout.Height + lblGPL.Height + (txtAbout.Top - lblGPL.Top - lblGPL.Height);
-        txtAbout.Top := lblGPL.Top;
-      end;
+    begin
+      txtAbout.Text := Format(_('%s'#13#10 + 'Copyright © 2010-2021 Alexander Nottelmann'), [AppGlobals.AppName]);
+      lblGPL.Visible := False;
+      txtAbout.Height := txtAbout.Height + lblGPL.Height + (txtAbout.Top - lblGPL.Top - lblGPL.Height);
+      txtAbout.Top := lblGPL.Top;
+    end;
   end;
 
   lblHomepage.Caption := AppGlobals.ProjectHomepageLink;
@@ -161,12 +169,10 @@ begin
   }
 
   if AppGlobals.ProjectDonateLink <> '' then
-  begin
     if Language.CurrentLanguage.ID = 'de' then
       btnDonateDe.Visible := True
     else
       btnDonateEn.Visible := True;
-  end;
 
   if AppGlobals.ProjectThanksText <> '' then
   begin
@@ -180,10 +186,9 @@ begin
   pagAbout.ActivePageIndex := 0;
 end;
 
-procedure TfrmAbout.FormKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
+procedure TfrmAbout.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
- if Key = 27 then
+  if Key = 27 then
   begin
     Key := 0;
     Close;
@@ -206,7 +211,7 @@ begin
     Icon.SetSize(96, 96);
     Icon.LoadFromResourceName(HINSTANCE, 'MAINICON');
 
-    GetMaxTransparent(Icon, TransparentTop, TransparentRight);
+    TFunctions.GetMaxTransparent(Icon, TransparentTop, TransparentRight);
 
     DrawIconEx(pbLogo.Canvas.Handle, pbLogo.ClientWidth - TransparentRight, -TransparentTop, Icon.Handle, 96, 96, 0, 0, DI_NORMAL);
   finally
@@ -227,9 +232,7 @@ end;
 procedure TfrmAbout.pagAboutChange(Sender: TObject);
 begin
   if pagAbout.ActivePage = tabThanks then
-  begin
     FScrollText.Start;
-  end;
 end;
 
 procedure TfrmAbout.pnlNavClick(Sender: TObject);
@@ -244,7 +247,7 @@ var
   i: Integer;
   ResStream: TResourceStream;
   Image: TJPEGImage;
-  Bmp: TBitmap;
+  Bmp: Graphics.TBitmap;
 begin
   inherited;
 
@@ -263,7 +266,7 @@ begin
         try
           Image.LoadFromStream(ResStream);
 
-          Bmp := TBitmap.Create;
+          Bmp := Graphics.TBitmap.Create;
           Bmp.Width := Image.Width;
           Bmp.Height := Image.Height;
           Bmp.Canvas.Draw(0, 0, Image);
@@ -335,6 +338,7 @@ begin
 end;
 
 procedure TScrollText.BuildBitmap;
+
   procedure DistortArea(Percent, YFrom, YTo: Integer);
   type
     TRGBLine = array[Word] of TRGBTriple;
@@ -366,6 +370,7 @@ procedure TScrollText.BuildBitmap;
       FBmp.EndUpdate;
     end;
   end;
+
 var
   R: TRect;
   i, L, Y, H, Idx, ImageHeight: Integer;
@@ -373,7 +378,7 @@ var
 begin
   if FBMP = nil then
   begin
-    FBmp := TBitmap.Create;
+    FBmp := Graphics.TBitmap.Create;
     FBmp.Height := ClientHeight;
     FBmp.Width := ClientWidth;
     FBmp.PixelFormat := pf24bit;
@@ -394,7 +399,6 @@ begin
 
   if FTextHeight = 0 then
     FTextHeight := GetTextHeight;
-
 
   H := FBmp.Canvas.TextHeight('Ay');
   for i := 0 to FText.Count - 1 do

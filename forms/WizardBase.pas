@@ -170,7 +170,7 @@ end;
 procedure TfrmWizardBase.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
   if not AppGlobals.WasSetup then
-    if MsgBox(_('Closing the wizard will exit the application.'#13#10'Do you really want to exit now?'), _('Question'), MB_ICONQUESTION or MB_YESNO or MB_DEFBUTTON2) = IDNO then
+    if TFunctions.MsgBox(_('Closing the wizard will exit the application.'#13#10'Do you really want to exit now?'), _('Question'), MB_ICONQUESTION or MB_YESNO or MB_DEFBUTTON2) = IDNO then
       CanClose := False;
 end;
 

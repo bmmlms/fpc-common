@@ -2669,7 +2669,7 @@ const
   EC_PKEY_NO_PARAMETERS = $001;
   {$EXTERNALSYM EC_PKEY_NO_PUBKEY}
   EC_PKEY_NO_PUBKEY = $002;
-//* Error codes for the EC functions. */
+//* Error codes for the EC TFunctions. */
 //* Function codes. */
   {$EXTERNALSYM EC_F_COMPUTE_WNAF}
   EC_F_COMPUTE_WNAF = 143;
@@ -9058,7 +9058,7 @@ const
 			 or TS_VFY_SIGNER
 			 or TS_VFY_TSA_NAME);
 
-//* Error codes for the TS functions. */
+//* Error codes for the TS TFunctions. */
 
 
 //* Function codes. */
@@ -9294,7 +9294,7 @@ const
   {$EXTERNALSYM CMS_USE_KEYID}
   CMS_USE_KEYID		 = $10000;
 
-//* Error codes for the CMS functions. */
+//* Error codes for the CMS TFunctions. */
 
 //* Function codes. */
   {$EXTERNALSYM CMS_F_CHECK_CONTENT}
@@ -13763,7 +13763,7 @@ _des_cblock = DES_cblock
 						   //time stamp token. */
 		flags : TIdC_UNSIGNED;		//* Optional info, see values above. */
 
-	//* Callback functions. */
+	//* Callback TFunctions. */
 	  serial_cb : TS_serial_cb;
 	  serial_cb_data : Pointer;	//* User data for serial_cb. */
 
@@ -19355,7 +19355,7 @@ end;
 {
 IMPORTANT!!!
 
-Indy DES support probably had been written to use some old "des_" functions.
+Indy DES support probably had been written to use some old "des_" TFunctions.
 The OpenSSL developers changed that interface to a new "des_*" API.  They have some
  "_ossl_old_des_*" for backwards compatability with the old functions
  which are defined in des_old.h.

@@ -61,10 +61,10 @@ begin
 
   //  EnterCriticalSection(CS);
   try
-    H := CreateFile(PChar(LoggingFile), FILE_APPEND_DATA, FILE_SHARE_READ or FILE_SHARE_WRITE, nil, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    H := CreateFileW(PWideChar(UnicodeString(LoggingFile)), FILE_APPEND_DATA, FILE_SHARE_READ or FILE_SHARE_WRITE, nil, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     if H = INVALID_HANDLE_VALUE then
     begin
-      H := CreateFile(PChar(LoggingFile), GENERIC_WRITE, FILE_SHARE_READ or FILE_SHARE_WRITE, nil, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+      H := CreateFileW(PWideChar(UnicodeString(LoggingFile)), GENERIC_WRITE, FILE_SHARE_READ or FILE_SHARE_WRITE, nil, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
       Data := UTF8Encode(#$FEFF) + Data;
     end;
 

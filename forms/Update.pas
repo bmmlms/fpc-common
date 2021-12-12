@@ -130,7 +130,7 @@ begin
   Updater.OnError := UpdaterError;
   if Version <> '' then
   begin
-    Updater.FoundVersion := ParseVersion(Version);
+    Updater.FoundVersion := TFunctions.ParseVersion(Version);
     UpdaterUpdateFound(nil);
     cmdOK.Click;
   end else
@@ -226,7 +226,7 @@ var
   Res: Integer;
 begin
   lblState.Caption := _('Download complete');
-  Res := MsgBox(_('The update was downloaded successfully. Do you want to exit the application and install the update now?'#13#10 + 'If you select "No", the update will be installed on the next start of the application.'),
+  Res := TFunctions.MsgBox(_('The update was downloaded successfully. Do you want to exit the application and install the update now?'#13#10 + 'If you select "No", the update will be installed on the next start of the application.'),
     _('Question'), MB_ICONQUESTION or MB_YESNO);
   if Res = IDYES then
   begin

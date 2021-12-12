@@ -29,12 +29,10 @@ uses
   FileUtil,
   Functions,
   Generics.Collections,
-  GUIFunctions,
   IniFiles,
   Registry,
   ShlObj,
-  SysUtils,
-  Windows;
+  SysUtils;
 
 const
   SETTINGS = 'Settings';
@@ -292,7 +290,7 @@ begin
   Reg := TRegistry.Create;
   try
     RegPath := Copy(FRegPath, 1, Length(FRegPath) - 1);
-    P := RPos('\', RegPath);
+    P := TFunctions.RPos('\', RegPath);
     if P > -1 then
     begin
       RegPath := Copy(RegPath, 1, P);
@@ -303,9 +301,9 @@ begin
 
     Files := TStringList.Create;
     try
-      FindFiles(ConcatPaths([FDataDir, FAppName + '_*']), Files);
+      TFunctions.FindFiles(ConcatPaths([FDataDir, FAppName + '_*']), Files);
       for i := 0 to Files.Count - 1 do
-        if not SysUtils.DeleteFile(ConcatPaths([FDataDir, Files[i]])) then
+        if not DeleteFile(ConcatPaths([FDataDir, Files[i]])) then
           Result := False;
     finally
       Files.Free;
@@ -402,7 +400,7 @@ end;
 
 class function TSettingsInstalled.GetDataDir(AppName: string): string;
 begin
-  Result := GetShellFolder(CSIDL_APPDATA);
+  Result := TFunctions.GetShellFolder(CSIDL_APPDATA);
   if (Trim(Result) <> '') then
     Result := ConcatPaths([Result, AppName]);
 end;
@@ -632,9 +630,9 @@ begin
 
   Files := TStringList.Create;
   try
-    FindFiles(ConcatPaths([FDataDir, FAppName + '_*']), Files);
+    TFunctions.FindFiles(ConcatPaths([FDataDir, FAppName + '_*']), Files);
     for i := 0 to Files.Count - 1 do
-      if not SysUtils.DeleteFile(ConcatPaths([FDataDir, Files[i]])) then
+      if not DeleteFile(ConcatPaths([FDataDir, Files[i]])) then
         Result := False;
   finally
     Files.Free;
@@ -885,7 +883,7 @@ begin
     begin
       Files := TStringList.Create;
       try
-        FindFiles(ConcatPaths([AssignFrom.FDataDir, AssignFrom.FAppName + '_*']), Files);
+        TFunctions.FindFiles(ConcatPaths([AssignFrom.FDataDir, AssignFrom.FAppName + '_*']), Files);
         for i := 0 to Files.Count - 1 do
         begin
           if AssignFrom is TSettingsPortable then

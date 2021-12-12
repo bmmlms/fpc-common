@@ -220,7 +220,7 @@ begin
   if FProjectThanksText = '' then
     FProjectThanksText := '';
 
-  FCommandLine := TCommandLine.Create(GetCommandLineW);
+  FCommandLine := TCommandLine.Create(GetCommandLineW); // TODO: hier gebe ich nen pwidechar an ne string funktion?! andere stellen auch prüfen.
 
   FWebLanguages := TStringList.Create;
   FWebLanguages.Add('de');
@@ -377,7 +377,7 @@ begin
   FStorage.Read('LastUsedVersion', LastUsedVersion, AppVersion.AsString);
   FStorage.Read('SuppressUpdatedInfo', FSuppressUpdatedInfo, False);
   try
-    FLastUsedVersion := ParseVersion(LastUsedVersion);
+    FLastUsedVersion := TFunctions.ParseVersion(LastUsedVersion);
   except
     FLastUsedVersion := AppVersion;
   end;
@@ -426,15 +426,17 @@ end;
 procedure TAppDataBase.InitOnlyOne;
 var
   Handle: Cardinal;
+  MutexName: string;
 begin
   FFileMapping := 0;
   if FOnlyOne then
   begin
-    FMutexHandle := CreateMutexW(nil, True, PWideChar(FAppName + 'Mutex'));
+    MutexName := FAppName + 'Mutex';
+    FMutexHandle := CreateMutexW(nil, True, PWideChar(UnicodeString(MutexName)));
     while (GetLastError = ERROR_ALREADY_EXISTS) and (ReadHandle > 0) and (ParamStr(1) = '/profileupdate') do
     begin
       Sleep(500);
-      FMutexHandle := CreateMutexW(nil, True, PWideChar(FAppName + 'Mutex'));
+      FMutexHandle := CreateMutexW(nil, True, PWideChar(UnicodeString(MutexName)));
     end;
 
     if GetLastError = ERROR_ALREADY_EXISTS then
@@ -442,7 +444,7 @@ begin
       Handle := ReadHandle;
 
       if Handle = 0 then
-        MsgBox(Format(_('You have tried to start %s but a previous instance is closing at the moment. Please try again in some seconds.'), [AppName]), _('Info'), MB_ICONINFORMATION)
+        TFunctions.MsgBox(Format(_('You have tried to start %s but a previous instance is closing at the moment. Please try again in some seconds.'), [AppName]), _('Info'), MB_ICONINFORMATION)
       else
       begin
         NotifyRunningInstance(Handle);
@@ -460,6 +462,7 @@ var
   SA: TSecurityAttributes;
   pSD: TSecurityDescriptor;
   Mem: PCardinal;
+  MappingName: string;
 begin
   Result := 0;
   if not InitializeSecurityDescriptor(@pSD, SECURITY_DESCRIPTOR_REVISION) then
@@ -469,7 +472,8 @@ begin
   SA.nLength := SizeOf(SA);
   SA.lpSecurityDescriptor := @pSD;
   SA.bInheritHandle := True;
-  hFileMapping := CreateFileMapping(INVALID_HANDLE_VALUE, @SA, PAGE_READONLY, 0, SizeOf(Result), PChar(FAppName + 'WndHandle'));
+  MappingName := FAppName + 'WndHandle';
+  hFileMapping := CreateFileMappingW(INVALID_HANDLE_VALUE, @SA, PAGE_READONLY, 0, SizeOf(Result), PWideChar(UnicodeString(MappingName)));
   if hFileMapping <> 0 then
   begin
     Mem := MapViewOfFile(hFileMapping, FILE_MAP_READ, 0, 0, SizeOf(Result));
@@ -499,7 +503,7 @@ begin
         raise
       else
       begin
-        Res2 := MsgBox(_('An error occured while saving application settings. Please make sure you can write to ' + 'the registry if the application was installed or to the application path if it is used ' +
+        Res2 := TFunctions.MsgBox(_('An error occured while saving application settings. Please make sure you can write to ' + 'the registry if the application was installed or to the application path if it is used ' +
           'in portable mode. Click "Yes" to try again, "No" to exit without saving settings.'), _('Info'), MB_ICONEXCLAMATION or MB_YESNO or MB_DEFBUTTON1);
         if Res2 = IDNO then
           Res := True;
@@ -517,6 +521,7 @@ var
   SA: TSecurityAttributes;
   pSD: TSecurityDescriptor;
   Mem: PCardinal;
+  MappingName: string;
 begin
   if FMutexHandle = 0 then
     Exit;
@@ -527,7 +532,8 @@ begin
   SA.nLength := SizeOf(SA);
   SA.lpSecurityDescriptor := @pSD;
   SA.bInheritHandle := True;
-  FFileMapping := CreateFileMapping(INVALID_HANDLE_VALUE, @SA, PAGE_READWRITE, 0, SizeOf(Handle), PChar(FAppName + 'WndHandle'));
+  MappingName := FAppName + 'WndHandle';
+  FFileMapping := CreateFileMappingW(INVALID_HANDLE_VALUE, @SA, PAGE_READWRITE, 0, SizeOf(Handle), PWideChar(UnicodeString(MappingName)));
   if FFileMapping <> 0 then
   begin
     Mem := MapViewOfFile(FFileMapping, FILE_MAP_WRITE, 0, 0, SizeOf(Handle));
@@ -624,7 +630,7 @@ begin
   if (Rec <> nil) and (Rec.Values.Count > 0) then
     FTempDir := Rec.Values[0]
   else
-    FTempDir := ConcatPaths([Functions.GetTempDir, FAppName]);
+    FTempDir := ConcatPaths([TFunctions.GetTempDir, FAppName]);
 
   if FTempDir <> '' then
     if ForceDirectories(FTempDir) then
@@ -638,7 +644,7 @@ end;
 procedure TAppDataBase.GetVersionInfo;
 begin
   try
-    FAppVersion := Functions.GetFileVersion(ParamStr(0));
+    FAppVersion := TFunctions.GetFileVersion(ParamStr(0));
   except
     FAppVersion.Major := 0;
     FAppVersion.Minor := 0;

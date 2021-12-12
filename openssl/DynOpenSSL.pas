@@ -87,7 +87,7 @@ begin
     try
       SetLength(C, Res.Size);
       Res.Read(C[1], Res.Size);
-      Explode(#13#10#13#10, C, FCerts);
+      TFunctions.Explode(#13#10#13#10, C, FCerts);
     except
     end;
   finally
@@ -114,10 +114,10 @@ begin
     Res.Free;
   end;
 
-  FLibEayDLLHandle := SafeLoadLibrary(PChar(FLibEayDLLPath));
+  FLibEayDLLHandle := SafeLoadLibrary(FLibEayDLLPath);
   if FLibEayDLLHandle <> 0 then
   begin
-    FSSLEayDLLHandle := SafeLoadLibrary(PChar(FSSLEayDLLPath));
+    FSSLEayDLLHandle := SafeLoadLibrary(FSSLEayDLLPath);
     if FSSLEayDLLHandle <> 0 then
     begin
       FreeLibrary(FSSLEayDLLHandle);

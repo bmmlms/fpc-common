@@ -39,7 +39,7 @@ uses
   UpdateClient,
   UpdatedInfo,
   Windows,
-  WinSock,
+  WinSock2,
   WizardBase;
 
 type
@@ -71,8 +71,8 @@ begin
   Ver.dwOSVersionInfoSize := SizeOf(Ver);
   if GetVersionEx(Ver) then
   begin
-    VerRec := ParseVersion(Ver.dwMajorVersion, Ver.dwMinorVersion, 0, 0);
-    if not IsVersionNewer(ParseVersion('5.0.0.0'), VerRec) then
+    VerRec := TFunctions.ParseVersion(Ver.dwMajorVersion, Ver.dwMinorVersion, 0, 0);
+    if not TFunctions.IsVersionNewer(TFunctions.ParseVersion('5.0.0.0'), VerRec) then
       TfrmMsgDlg.ShowMsg(nil, Format(_('%s requires at least Windows Vista, earlier versions of windows are not supported.'#13#10 +
         'If you continue running %s using a not supported operating system I am not responsible for any problems that might occur.'), [AppGlobals.AppName, AppGlobals.AppName]),
         mtWarning, [mbOK], mbOK, 12);
@@ -108,7 +108,7 @@ begin
 
   if AppGlobals.InstallUpdateOnStart then
   begin
-    Res := MsgBox(_('The update downloaded last time can now be installed.'#13#10'Do you want to install the new version now?'), _('Question'), MB_ICONQUESTION or MB_YESNO);
+    Res := TFunctions.MsgBox(_('The update downloaded last time can now be installed.'#13#10'Do you want to install the new version now?'), _('Question'), MB_ICONQUESTION or MB_YESNO);
     try
       if Res = IDYES then
       begin
@@ -130,7 +130,7 @@ begin
     end;
   end;
 
-  if IsVersionNewer(AppGlobals.LastUsedVersion, AppGlobals.AppVersion) and (not AppGlobals.SuppressUpdatedInfo) and (AppGlobals.ProjectDonateLink <> '') then
+  if TFunctions.IsVersionNewer(AppGlobals.LastUsedVersion, AppGlobals.AppVersion) and (not AppGlobals.SuppressUpdatedInfo) and (AppGlobals.ProjectDonateLink <> '') then
   begin
     UpdatedInfo := TfrmUpdatedInfo.Create(nil);
     try
@@ -170,7 +170,7 @@ begin
   Result := True;
   if WSAStartup($0101, Data) <> 0 then
   begin
-    MsgBox('The Application could not be started because Winsock could not be initialized.', 'Error', MB_ICONERROR);
+    TFunctions.MsgBox('The Application could not be started because Winsock could not be initialized.', 'Error', MB_ICONERROR);
     Result := False;
   end;
 end;

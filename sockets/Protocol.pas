@@ -392,8 +392,8 @@ begin
 
       Result := rrOk;
     end else
-      Stream.Seek((SizeOf(IDx) + SizeOf(PacketLen)) * -1, soFromCurrent)// Zurückspulen sonst epic fail
-    ;
+      // Zurückspulen sonst epic fail
+      Stream.Seek((SizeOf(IDx) + SizeOf(PacketLen)) * -1, soFromCurrent);
   except
     Result := rrBadPacket;
   end;

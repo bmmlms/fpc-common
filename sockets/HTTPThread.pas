@@ -94,7 +94,7 @@ var
   SendData: string;
   Res: TParseURLRes;
 begin
-  Res := ParseURL(FURL);
+  Res := TFunctions.ParseURL(FURL);
 
   FURLHost := Res.Host;
 
@@ -142,7 +142,7 @@ var
   Res: TParseURLRes;
 begin
   FURL := URL;
-  Res := ParseURL(URL);
+  Res := TFunctions.ParseURL(URL);
 
   inherited Create(Res.Host, Res.Port, Stream, Res.Secure, CheckCertificate);
   FTypedStream := THTTPStream(FRecvStream);

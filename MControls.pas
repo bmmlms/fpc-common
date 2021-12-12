@@ -23,7 +23,6 @@ unit MControls;
 interface
 
 uses
-  Windows,
   Buttons,
   Classes,
   ComboEx,
@@ -32,10 +31,10 @@ uses
   DragDrop,
   DragDropFile,
   Forms,
+  Functions,
   Generics.Collections,
   Graphics,
   GraphType,
-  GUIFunctions,
   ImgList,
   LanguageObjects,
   LMessages,
@@ -46,7 +45,8 @@ uses
   SysUtils,
   Themes,
   Types,
-  VirtualTrees;
+  VirtualTrees,
+  Windows;
 
 type
 
@@ -141,7 +141,7 @@ type
     FShowCaption: string;
     FHideCaption: string;
 
-    FBuffer: TBitmap;
+    FBuffer: Graphics.TBitmap;
   protected
     procedure Paint; override;
     procedure Resize; override;
@@ -238,7 +238,7 @@ begin
   if TabRect.Height = 0 then
     Exit;
 
-  ButtonWidth := GetTextSize('Wyg', PageControl.Font).Height - 2;
+  ButtonWidth := TFunctions.GetTextSize('Wyg', PageControl.Font).Height - 2;
 
   FButtonRect := TRect.Create(TPoint.Create(TabRect.Right - ButtonWidth - 5, TabRect.Top + (TabRect.Height div 2) - Math.Floor(ButtonWidth / 2)), ButtonWidth, ButtonWidth);
 
@@ -246,11 +246,11 @@ begin
     FButtonRect.Offset(0, -2);
 
   if (TMPageControl(PageControl).FMaxTabWidth = 0) and FShowCloseButton then
-    inherited Caption := FCaption + StringForWidth(' ', FButtonRect.Width, PageControl.Font)
+    inherited Caption := FCaption + TFunctions.StringForWidth(' ', FButtonRect.Width, PageControl.Font)
   else if (TMPageControl(PageControl).FMaxTabWidth > 0) and FShowCloseButton then
-    inherited Caption := TruncateText(FCaption, TMPageControl(PageControl).FMaxTabWidth - (TabRect.Width - FButtonRect.Left), PageControl.Font) + StringForWidth(' ', FButtonRect.Width, PageControl.Font)
+    inherited Caption := TFunctions.TruncateText(FCaption, TMPageControl(PageControl).FMaxTabWidth - (TabRect.Width - FButtonRect.Left), PageControl.Font) + TFunctions.StringForWidth(' ', FButtonRect.Width, PageControl.Font)
   else if (TMPageControl(PageControl).FMaxTabWidth > 0) and (not FShowCloseButton) then
-    inherited Caption := TruncateText(FCaption, TMPageControl(PageControl).FMaxTabWidth, PageControl.Font)
+    inherited Caption := TFunctions.TruncateText(FCaption, TMPageControl(PageControl).FMaxTabWidth, PageControl.Font)
   else
     inherited Caption := FCaption;
 end;
@@ -634,12 +634,12 @@ begin
     Exit;
 
   FBuffer.Canvas.Brush.Color := clRed;
-  FBuffer.Canvas.FillRect(Rect(0, 0, 10, 10));
+  FBuffer.Canvas.FillRect(Classes.Rect(0, 0, 10, 10));
 
   SetBkMode(FBuffer.Canvas.Handle, TRANSPARENT);
   FBuffer.Canvas.TextOut(20, 0, 'Show filters...');
 
-  FBuffer.Canvas.PenPos := Point(30, 8);
+  FBuffer.Canvas.PenPos := Classes.Point(30, 8);
   FBuffer.Canvas.LineTo(100, 8);
 
   Canvas.Draw(0, 0, FBuffer);
@@ -652,7 +652,7 @@ begin
   if FBuffer <> nil then
     FBuffer.Free;
 
-  FBuffer := TBitmap.Create;
+  FBuffer := Graphics.TBitmap.Create;
   FBuffer.Width := ClientWidth;
   FBuffer.Height := ClientHeight;
 end;

@@ -23,16 +23,23 @@ unit Functions;
 interface
 
 uses
+  ActiveX,
   Classes,
+  ComObj,
+  Controls,
   DateUtils,
+  Dialogs,
   FileUtil,
   Forms,
   Graphics,
   IdURI,
-  RegExpr,
+  regexpr,
+  ShellAPI,
+  ShlObj,
   shlwapi,
   StrUtils,
   SysUtils,
+  Types,
   Windows,
   ZStream;
 
@@ -62,57 +69,82 @@ type
 
   TReadCallback = procedure(Data: AnsiString) of object;
 
-function MsgBox(Text, Title: string; uType: Cardinal): Integer;
-function ValidURL(URL: string): Boolean;
-function StripURL(URL: string): string;
-function ParseURL(URL: string): TParseURLRes;
-function GetSystemDir: string;
-function GetTempDir: string;
-function ExtractLastDirName(s: string): string;
-function RemoveFileExt(const s: string): string;
-function StringToMask(s: string): string;
-function RPos(SubStr, S: string): Integer;
-function Like(AString, APattern: string): Boolean;
-function DownCase(ch: Char): Char;
-function MakeSize(Size: UInt64): string;
-function DiskSpaceOkay(Path: string; MinSpaceGB: Int64): Boolean;
-procedure FindFiles(PathPattern: string; Files: TStringList; SubDirs: Boolean = False; TerminateFlag: PByteBool = nil);
-function RunProcess(Filename, WorkingDir: string; Timeout: UInt64; var Output: AnsiString; var ExitCode: DWORD; TerminateFlag: PByteBool; KillOnTimeout: Boolean; ReadCallback: TReadCallback = nil): TRunProcessResults; overload;
-function RunProcess(Filename: string; var Handle: Cardinal; Hide: Boolean = False): Boolean; overload;
-function RunProcess(Filename: string; Hide: Boolean = False): Boolean; overload;
-function GetCPUCount: DWord;
-function BeautifyFilePath(const s: string; MaxPathChars: Integer): string;
-function HashString(Value: string): Cardinal;
-function IsAnsi(const s: string): Boolean;
-function OccurenceCount(C: Char; Str: string): Integer;
-function PatternReplace(S: string; ReplaceList: TPatternReplaceArray): string;
-function PatternReplaceNew(S: string; ReplaceList: TPatternReplaceArray): string;
-function IsAdmin: LongBool;
-function HTML2Color(const HTML: string): Integer;
-function GetFileSize(const AFilename: string): Int64;
-function CmpInt(const A, B: Int64; R: Boolean = False): Integer;
-function CmpUInt64(const A, B: UInt64; R: Boolean = False): Integer;
-function ParseVersion(const Version: string): TAppVersion; overload;
-function ParseVersion(const Major, Minor, Revision, Build: Cardinal): TAppVersion; overload;
-function IsVersionNewer(const Current, Found: TAppVersion): Boolean;
-function BuildPattern(const s: string; var Hash: Cardinal; var NumChars: Integer; AlwaysAlter: Boolean): string;
-function TryRelativePath(const s: string; IsFile: Boolean; OnlyIfRemovable: Boolean): string;
-function TryUnRelativePath(const s: string): string;
-function FixPathName(Path: string): string;
-function GetFileVersion(Filename: string): TAppVersion;
-function ShortenString(Str: string; Len: Integer): string;
-procedure Explode(const Separator, S: string; Lst: TStringList);
-function RegExReplace(RegEx, ReplaceWith, Data: string): string;
-function ContainsRegEx(RegEx, Data: string): Boolean;
-procedure CompressStream(InStream, OutStream: TStream; CompressionLevel: TCompressionLevel);
-procedure DecompressStream(InStream, OutStream: TStream);
+  TShutdownBlockReasonCreate = function(hWnd: HWND; pwszReason: LPCWSTR): BOOL; stdcall;
+  TShutdownBlockReasonDestroy = function(hWnd: HWND): BOOL; stdcall;
 
-function VerSetConditionMask(dwlConditionMask: LONGLONG; TypeBitMask: DWORD; ConditionMask: Byte): LONGLONG; stdcall;
-  external 'kernel32.dll';
+  { TFunctions }
+
+  TFunctions = class
+    private class var
+    FShutdownBlockReasonCreate: TShutdownBlockReasonCreate;
+    FShutdownBlockReasonDestroy: TShutdownBlockReasonDestroy;
+  public
+    class function MsgBox(Text, Title: string; uType: Cardinal): Integer; static;
+    class function ValidURL(URL: string): Boolean; static;
+    class function StripURL(URL: string): string; static;
+    class function ParseURL(URL: string): TParseURLRes; static;
+    class function GetSystemDir: string; static;
+    class function GetTempDir: string; static;
+    class function ExtractLastDirName(s: string): string; static;
+    class function RemoveFileExt(const s: string): string; static;
+    class function StringToMask(s: string): string; static;
+    class function RPos(SubStr, S: string): Integer; static;
+    class function Like(AString, APattern: string): Boolean; static;
+    class function DownCase(ch: Char): Char; static;
+    class function MakeSize(Size: UInt64): string; static;
+    class function DiskSpaceOkay(Path: string; MinSpaceGB: Int64): Boolean; static;
+    class procedure FindFiles(PathPattern: string; Files: TStringList; SubDirs: Boolean = False; TerminateFlag: PByteBool = nil); static;
+    class function RunProcess(Filename, WorkingDir: string; Timeout: UInt64; var Output: AnsiString; var ExitCode: DWORD; TerminateFlag: PByteBool; KillOnTimeout: Boolean; ReadCallback: TReadCallback = nil): TRunProcessResults; overload; static;
+    class function RunProcess(Filename: string; var Handle: Cardinal; Hide: Boolean = False): Boolean; overload; static;
+    class function RunProcess(Filename: string; Hide: Boolean = False): Boolean; overload; static;
+    class function GetCPUCount: DWord; static;
+    class function BeautifyFilePath(const s: string; MaxPathChars: Integer): string; static;
+    class function HashString(Value: string): Cardinal; static;
+    class function IsAnsi(const s: string): Boolean; static;
+    class function OccurenceCount(C: Char; Str: string): Integer; static;
+    class function PatternReplace(S: string; ReplaceList: TPatternReplaceArray): string; static;
+    class function PatternReplaceNew(S: string; ReplaceList: TPatternReplaceArray): string; static;
+    class function IsAdmin: LongBool; static;
+    class function HTML2Color(const HTML: string): Integer; static;
+    class function GetFileSize(const AFilename: string): Int64; static;
+    class function CmpInt(const A, B: Int64; R: Boolean = False): Integer; static;
+    class function CmpUInt64(const A, B: UInt64; R: Boolean = False): Integer; static;
+    class function ParseVersion(const Version: string): TAppVersion; overload; static;
+    class function ParseVersion(const Major, Minor, Revision, Build: Cardinal): TAppVersion; overload; static;
+    class function IsVersionNewer(const Current, Found: TAppVersion): Boolean; static;
+    class function BuildPattern(const s: string; var Hash: Cardinal; var NumChars: Integer; AlwaysAlter: Boolean): string; static;
+    class function TryRelativePath(const s: string; IsFile: Boolean; OnlyIfRemovable: Boolean): string; static;
+    class function TryUnRelativePath(const s: string): string; static;
+    class function FixPathName(Path: string): string; static;
+    class function GetFileVersion(Filename: string): TAppVersion; static;
+    class function ShortenString(Str: string; Len: Integer): string; static;
+    class procedure Explode(const Separator, S: string; Lst: TStringList); static;
+    class function RegExReplace(RegEx, ReplaceWith, Data: string): string; static;
+    class function ContainsRegEx(RegEx, Data: string): Boolean; static;
+    class procedure CompressStream(InStream, OutStream: TStream; CompressionLevel: TCompressionLevel); static;
+    class procedure DecompressStream(InStream, OutStream: TStream); static;
+    class function MoveFile(const Source, Dest: string; const ReplaceIfExists: Boolean): Boolean; static;
+
+    class function GetTextSize(Text: string; Font: TFont): TSize; static;
+    class function TruncateText(Text: string; MaxWidth: Integer; Font: TFont): string; static;
+    class function StringForWidth(const c: Char; const Width: Integer; const Font: TFont): string; static;
+    class function BrowseDialog(Owner: TComponent; Title: string): string; static;
+    class procedure PropertiesDialog(Filename: string); static;
+    class function GetShellFolder(const CSIDL: Integer): string; static;
+    class function Recycle(Handle: Cardinal; Filename: string): Boolean; overload; static;
+    class function GetUserDir: string; static;
+    class function ResizeBitmap(Bitmap: Graphics.TBitmap; MaxSize: Integer): Graphics.TBitmap; static;
+    class function CreateLink(Executable, Dir, Name, Args: string; Delete: Boolean): Boolean; static;
+    class procedure GetMaxTransparent(Icon: TIcon; var Top, Right: Integer); static;
+    class function WindowIsFullscreen: Boolean; static;
+
+    class function ShutdownBlockReasonCreate(hWnd: HWND; pwszReason: string): Boolean; static;
+    class function ShutdownBlockReasonDestroy(hWnd: HWND): Boolean; static;
+  end;
 
 implementation
 
-function MsgBox(Text, Title: string; uType: Cardinal): Integer;
+class function TFunctions.MsgBox(Text, Title: string; uType: Cardinal): Integer;
 begin
   if Application.MainForm = nil then
     // Wichtig ist Handle 0, weil wir gerne einen Taskleistenknopf hätten
@@ -121,14 +153,14 @@ begin
     Result := Application.MessageBox(PChar(Text), PChar(Title), uType);
 end;
 
-function ValidURL(URL: string): Boolean;
+class function TFunctions.ValidURL(URL: string): Boolean;
 begin
   Result := IsAnsi(URL);
   if Result then
     Result := ParseURL(URL).Success;
 end;
 
-function StripURL(URL: string): string;
+class function TFunctions.StripURL(URL: string): string;
 var
   i: Integer;
 begin
@@ -142,7 +174,7 @@ begin
   end;
 end;
 
-function ParseURL(URL: string): TParseURLRes;
+class function TFunctions.ParseURL(URL: string): TParseURLRes;
 var
   U: TIdURI;
 begin
@@ -189,7 +221,7 @@ begin
   end;
 end;
 
-function GetSystemDir: string;
+class function TFunctions.GetSystemDir: string;
 var
   Dir: array [0..MAX_PATH] of Char;
 begin
@@ -202,7 +234,7 @@ begin
   end;
 end;
 
-function GetTempDir: string;
+class function TFunctions.GetTempDir: string;
 var
   Dir: array [0..MAX_PATH] of Char;
 begin
@@ -215,7 +247,7 @@ begin
   end;
 end;
 
-function ExtractLastDirName(s: string): string;
+class function TFunctions.ExtractLastDirName(s: string): string;
 var
   i: Integer;
 begin
@@ -235,7 +267,7 @@ begin
     Result := s;
 end;
 
-function RemoveFileExt(const s: string): string;
+class function TFunctions.RemoveFileExt(const s: string): string;
 var
   i: Integer;
 begin
@@ -248,12 +280,12 @@ begin
   Result := s;
 end;
 
-function StringToMask(s: string): string;
+class function TFunctions.StringToMask(s: string): string;
 begin
   Result := '*' + StringReplace(Trim(s), ' ', '*', [rfReplaceAll]) + '*';
 end;
 
-function RPos(SubStr, S: string): Integer;
+class function TFunctions.RPos(SubStr, S: string): Integer;
 var
   i: Integer;
 begin
@@ -266,7 +298,7 @@ begin
     end;
 end;
 
-function Like(AString, APattern: string): Boolean;
+class function TFunctions.Like(AString, APattern: string): Boolean;
 var
   StringPtr, PatternPtr: PChar;
   StringRes, PatternRes: PChar;
@@ -360,7 +392,7 @@ begin
   until False;
 end;
 
-function DownCase(ch: Char): Char;
+class function TFunctions.DownCase(ch: Char): Char;
 begin
   case ch of
     'Ä': Result := 'ä';
@@ -372,7 +404,7 @@ begin
   end;
 end;
 
-function MakeSize(Size: UInt64): string;
+class function TFunctions.MakeSize(Size: UInt64): string;
 begin
   if Size < 1048576 then
     Result := Format('%f KB', [Size / (1024)])
@@ -382,7 +414,7 @@ begin
     Result := Format('%f GB', [Size / (1024 * 1024 * 1024)]);
 end;
 
-function DiskSpaceOkay(Path: string; MinSpaceGB: Int64): Boolean;
+class function TFunctions.DiskSpaceOkay(Path: string; MinSpaceGB: Int64): Boolean;
 var
   Res: Int64;
 begin
@@ -397,7 +429,7 @@ begin
   Result := Res > MinSpaceGB * 1073741824;
 end;
 
-procedure FindFiles(PathPattern: string; Files: TStringList; SubDirs: Boolean = False; TerminateFlag: PByteBool = nil);
+class procedure TFunctions.FindFiles(PathPattern: string; Files: TStringList; SubDirs: Boolean = False; TerminateFlag: PByteBool = nil);
 var
   SR: TSearchRec;
   Dir, Pattern: string;
@@ -447,7 +479,8 @@ begin
   end;
 end;
 
-function RunProcess(Filename, WorkingDir: string; Timeout: UInt64; var Output: AnsiString; var ExitCode: DWORD; TerminateFlag: PByteBool; KillOnTimeout: Boolean; ReadCallback: TReadCallback = nil): TRunProcessResults; overload;
+class function TFunctions.RunProcess(Filename, WorkingDir: string; Timeout: UInt64; var Output: AnsiString; var ExitCode: DWORD; TerminateFlag: PByteBool; KillOnTimeout: Boolean;
+  ReadCallback: TReadCallback = nil): TRunProcessResults; overload;
 var
   OK: Boolean;
   Handle: Cardinal;
@@ -565,7 +598,7 @@ begin
   end;
 end;
 
-function RunProcess(Filename: string; var Handle: Cardinal; Hide: Boolean): Boolean;
+class function TFunctions.RunProcess(Filename: string; var Handle: Cardinal; Hide: Boolean): Boolean;
 var
   OK: Boolean;
   SI: TStartupInfo;
@@ -593,14 +626,14 @@ begin
   end;
 end;
 
-function RunProcess(Filename: string; Hide: Boolean): Boolean;
+class function TFunctions.RunProcess(Filename: string; Hide: Boolean): Boolean;
 var
   Dummy: Cardinal;
 begin
-  Result := RunProcess(Filename, Dummy, Hide);
+  Result := TFunctions.RunProcess(Filename, Dummy, Hide);
 end;
 
-function GetCPUCount: DWord;
+class function TFunctions.GetCPUCount: DWord;
 var
   SysInfo: TSystemInfo;
 begin
@@ -608,7 +641,7 @@ begin
   Result := SysInfo.dwNumberOfProcessors;
 end;
 
-function BeautifyFilePath(const s: string; MaxPathChars: Integer): string;
+class function TFunctions.BeautifyFilePath(const s: string; MaxPathChars: Integer): string;
 var
   i: Integer;
   CharSep: Integer;
@@ -629,7 +662,7 @@ begin
     end;
 end;
 
-function HashString(Value: string): Cardinal;
+class function TFunctions.HashString(Value: string): Cardinal;
 var
   i: Integer;
   x: Cardinal;
@@ -645,7 +678,7 @@ begin
   end;
 end;
 
-function IsAnsi(const s: string): Boolean;
+class function TFunctions.IsAnsi(const s: string): Boolean;
 var
   s2: AnsiString;
   i: Integer;
@@ -668,7 +701,7 @@ begin
   end;
 end;
 
-function OccurenceCount(C: Char; Str: string): Integer;
+class function TFunctions.OccurenceCount(C: Char; Str: string): Integer;
 var
   i: Integer;
 begin
@@ -678,7 +711,7 @@ begin
       Inc(Result);
 end;
 
-function PatternReplace(S: string; ReplaceList: TPatternReplaceArray): string;
+class function TFunctions.PatternReplace(S: string; ReplaceList: TPatternReplaceArray): string;
 var
   C: Char;
   i, n, j: Integer;
@@ -714,7 +747,7 @@ begin
   end;
 end;
 
-function PatternReplaceNew(S: string; ReplaceList: TPatternReplaceArray): string;
+class function TFunctions.PatternReplaceNew(S: string; ReplaceList: TPatternReplaceArray): string;
 var
   i, n, j: Integer;
   D: Integer;
@@ -755,19 +788,20 @@ begin
   end;
 end;
 
-function GetAdminSid: PSID;
-const
-  SECURITY_NT_AUTHORITY: TSIDIdentifierAuthority = (Value: (0, 0, 0, 0, 0, 5));
-  SECURITY_BUILTIN_DOMAIN_RID: DWORD = $00000020;
-  DOMAIN_ALIAS_RID_ADMINS: DWORD = $00000220;
-begin
-  Result := nil;
-  AllocateAndInitializeSid(SECURITY_NT_AUTHORITY, 2,
-    SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS,
-    0, 0, 0, 0, 0, 0, Result);
-end;
+class function TFunctions.IsAdmin: LongBool;
 
-function IsAdmin: LongBool;
+  function GetAdminSid: PSID;
+  const
+    SECURITY_NT_AUTHORITY: TSIDIdentifierAuthority = (Value: (0, 0, 0, 0, 0, 5));
+    SECURITY_BUILTIN_DOMAIN_RID: DWORD = $00000020;
+    DOMAIN_ALIAS_RID_ADMINS: DWORD = $00000220;
+  begin
+    Result := nil;
+    AllocateAndInitializeSid(SECURITY_NT_AUTHORITY, 2,
+      SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS,
+      0, 0, 0, 0, 0, 0, Result);
+  end;
+
 var
   TokenHandle: THandle;
   ReturnLength: DWORD;
@@ -803,7 +837,7 @@ begin
     end;
 end;
 
-function HTML2Color(const HTML: string): Integer;
+class function TFunctions.HTML2Color(const HTML: string): Integer;
 var
   Offset: Integer;
 begin
@@ -814,7 +848,7 @@ begin
   Result := Integer(StrToInt('$' + Copy(HTML, Offset + 1, 2))) + Integer(StrToInt('$' + Copy(HTML, Offset + 3, 2))) shl 8 + Integer(StrToInt('$' + Copy(HTML, Offset + 5, 2))) shl 16;
 end;
 
-function GetFileSize(const AFileName: string): Int64;
+class function TFunctions.GetFileSize(const AFilename: string): Int64;
 var
   FileStream: TFileStream;
 begin
@@ -834,7 +868,7 @@ begin
   end;
 end;
 
-function CmpInt(const A, B: Int64; R: Boolean): Integer;
+class function TFunctions.CmpInt(const A, B: Int64; R: Boolean): Integer;
 begin
   if not R then
   begin
@@ -852,7 +886,7 @@ begin
     Result := 0;
 end;
 
-function CmpUInt64(const A, B: UInt64; R: Boolean): Integer;
+class function TFunctions.CmpUInt64(const A, B: UInt64; R: Boolean): Integer;
 begin
   if not R then
   begin
@@ -870,7 +904,7 @@ begin
     Result := 0;
 end;
 
-function ParseVersion(const Version: string): TAppVersion;
+class function TFunctions.ParseVersion(const Version: string): TAppVersion;
 var
   Dots: array[0..2] of Integer;
   i: Integer;
@@ -888,7 +922,7 @@ begin
   Result.AsString := AnsiString(Format('%d.%d.%d.%d', [Result.Major, Result.Minor, Result.Revision, Result.Build]));
 end;
 
-function ParseVersion(const Major, Minor, Revision, Build: Cardinal): TAppVersion;
+class function TFunctions.ParseVersion(const Major, Minor, Revision, Build: Cardinal): TAppVersion;
 begin
   Result.Major := Major;
   Result.Minor := Minor;
@@ -897,7 +931,7 @@ begin
   Result.AsString := AnsiString(Format('%d.%d.%d.%d', [Major, Minor, Revision, Build]));
 end;
 
-function IsVersionNewer(const Current, Found: TAppVersion): Boolean;
+class function TFunctions.IsVersionNewer(const Current, Found: TAppVersion): Boolean;
 var
   MajorEq, MinorEq, RevisionEq: Boolean;
 begin
@@ -908,36 +942,37 @@ begin
   Result := (Found.Major > Current.Major) or (MajorEq and (Found.Minor > Current.Minor)) or (MajorEq and MinorEq and (Found.Revision > Current.Revision)) or (MajorEq and MinorEq and RevisionEq and (Found.Build > Current.Build));
 end;
 
-function TrimChars(const s: string; const c: Char): string;
-var
-  n, Counter: Integer;
-  F: Boolean;
-begin
-  F := False;
-  Counter := 1;
-  SetLength(Result, Length(s));
-  for n := 1 to Length(s) do
-    if s[n] = c then
-    begin
-      if F then
-      else
+class function TFunctions.BuildPattern(const s: string; var Hash: Cardinal; var NumChars: Integer; AlwaysAlter: Boolean): string;
+
+  function TrimChars(const s: string; const c: Char): string;
+  var
+    n, Counter: Integer;
+    F: Boolean;
+  begin
+    F := False;
+    Counter := 1;
+    SetLength(Result, Length(s));
+    for n := 1 to Length(s) do
+      if s[n] = c then
       begin
-        Result[Counter] := c;
+        if F then
+        else
+        begin
+          Result[Counter] := c;
+          Inc(Counter);
+        end;
+        F := True;
+      end else
+      begin
+        F := False;
+        Result[Counter] := s[n];
         Inc(Counter);
       end;
-      F := True;
-    end else
-    begin
-      F := False;
-      Result[Counter] := s[n];
-      Inc(Counter);
-    end;
-  if Counter = 0 then
-    Exit;
-  SetLength(Result, Counter - 1);
-end;
+    if Counter = 0 then
+      Exit;
+    SetLength(Result, Counter - 1);
+  end;
 
-function BuildPattern(const s: string; var Hash: Cardinal; var NumChars: Integer; AlwaysAlter: Boolean): string;
 var
   P: Integer;
 begin
@@ -961,7 +996,7 @@ begin
   Hash := HashString(Result);
 end;
 
-function TryRelativePath(const s: string; IsFile: Boolean; OnlyIfRemovable: Boolean): string;
+class function TFunctions.TryRelativePath(const s: string; IsFile: Boolean; OnlyIfRemovable: Boolean): string;
 var
   From: string;
   T: Integer;
@@ -984,7 +1019,7 @@ begin
     Result := s;
 end;
 
-function TryUnRelativePath(const s: string): string;
+class function TFunctions.TryUnRelativePath(const s: string): string;
 var
   From: string;
   OutData: array[0..MAX_PATH - 1] of Char;
@@ -1001,7 +1036,7 @@ begin
     Result := s;
 end;
 
-function FixPathName(Path: string): string;
+class function TFunctions.FixPathName(Path: string): string;
 var
   i, LastI: Integer;
   Drive: string;
@@ -1080,7 +1115,7 @@ begin
     Result := Result + '\';
 end;
 
-function GetFileVersion(Filename: string): TAppVersion;
+class function TFunctions.GetFileVersion(Filename: string): TAppVersion;
 var
   VerInfoSize: Integer;
   VerValueSize: DWord;
@@ -1088,7 +1123,7 @@ var
   VerInfo: Pointer;
   VerValue: PVSFixedFileInfo;
 begin
-  VerInfoSize := GetFileVersionInfoSize(PChar(Filename), Dummy);
+  VerInfoSize := GetFileVersionInfoSizeW(PWideChar(UnicodeString(Filename)), Dummy);
   Result.Major := 0;
   Result.Minor := 0;
   Result.Revision := 0;
@@ -1098,7 +1133,7 @@ begin
   begin
     GetMem(VerInfo, VerInfoSize);
     try
-      if GetFileVersionInfo(PChar(Filename), 0, VerInfoSize, VerInfo) then
+      if GetFileVersionInfoW(PWideChar(UnicodeString(Filename)), 0, VerInfoSize, VerInfo) then
         if VerQueryValue(VerInfo, '\', Pointer(VerValue), VerValueSize) then
         begin
           with VerValue^ do
@@ -1119,14 +1154,14 @@ begin
     raise Exception.Create('');
 end;
 
-function ShortenString(Str: string; Len: Integer): string;
+class function TFunctions.ShortenString(Str: string; Len: Integer): string;
 begin
   Result := Trim(Str);
   if Length(Result) > Len then
     Result := Trim(Copy(Result, 1, Len - 3)) + '...';
 end;
 
-procedure Explode(const Separator, S: string; Lst: TStringList);
+class procedure TFunctions.Explode(const Separator, S: string; Lst: TStringList);
 var
   SepLen: Integer;
   F, P: PChar;
@@ -1180,7 +1215,7 @@ begin
   end;
 end;
 
-function RegExReplace(RegEx, ReplaceWith, Data: string): string;
+class function TFunctions.RegExReplace(RegEx, ReplaceWith, Data: string): string;
 var
   R: TRegExpr;
   LastResult: string;
@@ -1202,27 +1237,23 @@ begin
   end;
 end;
 
-function ContainsRegEx(RegEx, Data: string): Boolean;
-  //var
-  //  R: TPerlRegEx;
+class function TFunctions.ContainsRegEx(RegEx, Data: string): Boolean;
+var
+  R: TRegExpr;
 begin
-  {
   Result := False;
-  R := TPerlRegEx.Create;
+  R := TRegExpr.Create(RegEx);
   try
-    R.Options := R.Options + [preCaseLess];
-    R.Subject := Data;
-    R.RegEx := RegEx;
+    R.ModifierI := True;
     try
-      Result := R.Match;
+      Result := R.Exec(Data);
     except end;
   finally
     R.Free;
   end;
-  }
 end;
 
-procedure CompressStream(InStream, OutStream: TStream; CompressionLevel: TCompressionLevel);
+class procedure TFunctions.CompressStream(InStream, OutStream: TStream; CompressionLevel: TCompressionLevel);
 var
   ZStream: TCompressionStream;
 begin
@@ -1234,7 +1265,7 @@ begin
   end;
 end;
 
-procedure DecompressStream(InStream, OutStream: TStream);
+class procedure TFunctions.DecompressStream(InStream, OutStream: TStream);
 const
   BufferSize = 32768;
 var
@@ -1257,4 +1288,273 @@ begin
   end;
 end;
 
+class function TFunctions.MoveFile(const Source, Dest: string; const ReplaceIfExists: Boolean): Boolean;
+begin
+  if FileExists(Dest) and ((ReplaceIfExists and (not SysUtils.DeleteFile(Dest))) or (not ReplaceIfExists)) then
+    Exit(False);
+
+  Exit(RenameFile(Source, Dest))
+end;
+
+class function TFunctions.TruncateText(Text: string; MaxWidth: Integer; Font: TFont): string;
+var
+  Canvas: TCanvas;
+  EW: Integer;
+begin
+  Text := Text.Trim;
+  Canvas := TCanvas.Create;
+  try
+    Canvas.Handle := GetDC(GetDesktopWindow);
+    try
+      Canvas.Font.Assign(Font);
+
+      if Canvas.TextWidth(Text) <= MaxWidth then
+        Exit(Text);
+
+      EW := Canvas.TextWidth('...');
+
+      Exit(Text.Substring(0, Canvas.TextFitInfo(Text, MaxWidth - EW)).Trim + '...');
+    finally
+      ReleaseDC(GetDesktopWindow, Canvas.Handle);
+    end;
+  finally
+    Canvas.Free;
+  end;
+end;
+
+class function TFunctions.StringForWidth(const c: Char; const Width: Integer; const Font: TFont): string;
+var
+  Canvas: TCanvas;
+
+begin
+  Canvas := TCanvas.Create;
+  try
+    Canvas.Handle := GetDC(GetDesktopWindow);
+    try
+      Canvas.Font.Assign(Font);
+
+      Result := c;
+      while Canvas.TextWidth(Result) < Width do
+        Result += c;
+    finally
+      ReleaseDC(GetDesktopWindow, Canvas.Handle);
+    end;
+  finally
+    Canvas.Free;
+  end;
+end;
+
+class function TFunctions.GetTextSize(Text: string; Font: TFont): TSize;
+var
+  Canvas: TCanvas;
+begin
+  Canvas := TCanvas.Create;
+  try
+    Canvas.Handle := GetDC(GetDesktopWindow);
+    try
+      Canvas.Font.Assign(Font);
+
+      Exit(Canvas.TextExtent(Text));
+    finally
+      ReleaseDC(GetDesktopWindow, Canvas.Handle);
+    end;
+  finally
+    Canvas.Free;
+  end;
+end;
+
+class function TFunctions.BrowseDialog(Owner: TComponent; Title: string): string;
+var
+  Dlg: TSelectDirectoryDialog;
+begin
+  Result := '';
+  Dlg := TSelectDirectoryDialog.Create(Owner);
+  try
+    Dlg.Options := [ofEnableSizing, ofPathMustExist];
+    Dlg.Title := Title;
+
+    if not Dlg.Execute then
+      Exit;
+
+    Result := Dlg.FileName;
+  finally
+    Dlg.Free;
+  end;
+end;
+
+class procedure TFunctions.PropertiesDialog(Filename: string);
+var
+  Info: TSHELLEXECUTEINFOW;
+begin
+  FillChar(Info, SizeOf(Info), 0);
+  Info.cbSize := SizeOf(Info);
+  Info.lpFile := PWideChar(UnicodeString(Filename));
+  Info.lpVerb := 'properties';
+  Info.fMask := SEE_MASK_INVOKEIDLIST;
+  ShellExecuteExW(@Info);
+end;
+
+class function TFunctions.GetShellFolder(const CSIDL: Integer): string;
+var
+  Buf: UnicodeString;
+begin
+  SetLength(Buf, 1024);
+  if Failed(SHGetFolderPathW(0, csidl, 0, SHGFP_TYPE_CURRENT, PWideChar(Buf))) then
+    raise Exception.Create('SHGetFolderPathW() failed');
+  Result := PWideChar(Buf);
+end;
+
+class function TFunctions.Recycle(Handle: Cardinal; Filename: string): Boolean;
+var
+  Ret: Integer;
+  Operation: TSHFileOpStructW;
+  Buf: array[0..MAX_PATH] of Char;
+begin
+  FillChar(Buf, SizeOf(Buf), #0);
+  StrPCopy(@Buf[0], PWideChar(UnicodeString(Filename)));
+  with Operation do
+  begin
+    Wnd := Handle;
+    wFunc := FO_DELETE;
+    pFrom := @Buf[0];
+    pTo := nil;
+    fFlags := FOF_ALLOWUNDO or FOF_NOCONFIRMATION or FOF_SILENT;
+    hNameMappings := nil;
+    lpszProgressTitle := nil;
+  end;
+  Ret := SHFileOperationW(@Operation);
+  // True wenn Erfolg oder Datei nicht gefunden
+  Result := (Ret = 0) or (Ret = 2);
+end;
+
+class function TFunctions.GetUserDir: string;
+begin
+  Result := GetShellFolder(CSIDL_APPDATA);
+end;
+
+class function TFunctions.ResizeBitmap(Bitmap: Graphics.TBitmap; MaxSize: Integer): Graphics.TBitmap;
+var
+  FW, FH: Integer;
+  Res: Graphics.TBitmap;
+begin
+  if Bitmap.Width >= Bitmap.Height then
+  begin
+    FW := MaxSize;
+    FH := Trunc((Bitmap.Height / Bitmap.Width) * MaxSize);
+  end else
+  begin
+    FH := MaxSize;
+    FW := Trunc((Bitmap.Width / Bitmap.Height) * MaxSize);
+  end;
+
+  Res := Graphics.TBitmap.Create;
+  Res.Width := FW;
+  Res.Height := FH;
+  Res.Canvas.StretchDraw(Classes.Rect(0, 0, FW, FH), Bitmap);
+  Result := Res;
+end;
+
+class function TFunctions.CreateLink(Executable, Dir, Name, Args: string; Delete: Boolean): Boolean;
+var
+  IObject: IUnknown;
+  ISLink: IShellLinkW;
+  IPFile: IPersistFile;
+  Filename: string;
+begin
+  Filename := ConcatPaths([Dir, '%s.lnk'.Format([Name])]);
+  if Delete then
+    Result := SysUtils.DeleteFile(Filename)
+  else
+  begin
+    SysUtils.DeleteFile(Filename);
+
+    IObject := CreateComObject(CLSID_ShellLink);
+    ISLink := IObject as IShellLinkW;
+    IPFile := IObject as IPersistFile;
+
+    ISLink.SetPath(PWideChar(WideString(Executable)));
+    ISLink.SetWorkingDirectory(PWideChar(WideString(ExtractFilePath(Executable))));
+    ISLink.SetArguments(PWideChar(WideString(Args)));
+
+    Result := IPFile.Save(PWideChar(WideString(Filename)), False) = S_OK;
+  end;
+end;
+
+class procedure TFunctions.GetMaxTransparent(Icon: TIcon; var Top, Right: Integer);
+var
+  i, n: Integer;
+  C: TColor;
+begin
+  Top := Icon.Height;
+  Right := -1;
+
+  C := Icon.Canvas.Pixels[0, 0];
+  for i := 0 to Icon.Height - 1 do
+    for n := 0 to Icon.Width - 1 do
+      if Icon.Canvas.Pixels[n, i] <> C then
+        if n > Right then
+          Right := n;
+
+  for i := Icon.Height - 1 downto 0 do
+    for n := 0 to Icon.Width - 1 do
+      if Icon.Canvas.Pixels[n, i] <> C then
+        if i < Top then
+          Top := i;
+end;
+
+class function TFunctions.WindowIsFullscreen: Boolean;
+
+  function RectMatches(R: TRect; R2: TRect): Boolean;
+  begin
+    Result := (R.Left = R2.Left) and (R.Top = R2.Top) and (R.Right = R2.Right) and (R.Bottom = R2.Bottom);
+  end;
+
+type
+  TGetShellWindow = function(): HWND; stdcall;
+var
+  i: Integer;
+  H, Handle: Cardinal;
+  R: TRect;
+  GetShellWindow: TGetShellWindow;
+begin
+  H := GetForegroundWindow;
+  @GetShellWindow := nil;
+  Handle := GetModuleHandle('user32.dll');
+  if (Handle > 0) then
+    @GetShellWindow := GetProcAddress(Handle, 'GetShellWindow');
+
+  if ((H <> GetDesktopWindow) and ((@GetShellWindow <> nil) and (H <> GetShellWindow))) then
+  begin
+    GetWindowRect(H, R);
+    for i := 0 to Screen.MonitorCount - 1 do
+      if RectMatches(Screen.Monitors[i].BoundsRect, R) then
+        Exit(True);
+  end;
+
+  Exit(False);
+end;
+
+class function TFunctions.ShutdownBlockReasonCreate(hWnd: HWND; pwszReason: string): Boolean;
+begin
+  if not Assigned(FShutdownBlockReasonCreate) then
+    Exit(False);
+  Exit(FShutdownBlockReasonCreate(hWnd, PWideChar(UnicodeString(pwszReason))));
+end;
+
+class function TFunctions.ShutdownBlockReasonDestroy(hWnd: HWND): Boolean;
+begin
+  if not Assigned(FShutdownBlockReasonDestroy) then
+    Exit(False);
+  Exit(FShutdownBlockReasonDestroy(hWnd));
+end;
+
+var
+  User32Handle: THandle;
+initialization
+  User32Handle := GetModuleHandle(user32);
+  if User32Handle <> 0 then
+  begin
+    TFunctions.FShutdownBlockReasonCreate := GetProcAddress(User32Handle, 'ShutdownBlockReasonCreate');
+    TFunctions.FShutdownBlockReasonDestroy := GetProcAddress(User32Handle, 'ShutdownBlockReasonDestroy');
+  end;
 end.

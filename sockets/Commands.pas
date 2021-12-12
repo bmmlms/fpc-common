@@ -221,7 +221,7 @@ begin
   if Stream.Position < Stream.Size then
   begin
     DecompressedStream := TExtendedStream.Create;
-    DecompressStream(Stream, DecompressedStream);
+    TFunctions.DecompressStream(Stream, DecompressedStream);
     FStream := DecompressedStream;
 
     FStream.Seek(0, soFromBeginning);

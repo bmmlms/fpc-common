@@ -31,7 +31,12 @@ uses
   HTTPThread,
   LanguageObjects,
   Sockets,
+  JwaWinBase,
+  JwaWinType,
+  JwaWinNT,
+  ShellApi,
   StrUtils,
+  Windows,
   SysUtils;
 
 type
@@ -156,7 +161,7 @@ begin
           try
             Data := RecvDataStream.ToString(0, RecvDataStream.Size);
             Version := GetValue(Data, 'version');
-            FFoundVersion := ParseVersion(Version);
+            FFoundVersion := TFunctions.ParseVersion(Version);
             FUpdateURL := string(GetValue(Data, 'updateurl'));
             CL := AnsiString(StringReplace(string(GetValue(Data, 'changelog')), '\r', #13#10, [rfReplaceAll]));
             //   FChangeLog := UTF8ToUnicodeString(CL);
@@ -222,23 +227,20 @@ begin
   end;
 end;
 
-// TODO: ...
 procedure TUpdateClient.RunUpdate(Handle: Cardinal);
-{
 var
-  osvi: _OSVERSIONINFOEXW;
-  ConditionMask: DWORDLONG;
+  osvi: OSVERSIONINFOEXW;
+  ConditionMask: ULONGLONG;
   op: Integer;
-  Info: TShellExecuteInfo;
-}
+  Info: TSHELLEXECUTEINFOW;
+  Verb, Parameters: string;
 const
   VER_GREATER_EQUAL = 3;
 begin
-  {
   op := VER_GREATER_EQUAL;
 
-  ZeroMemory(@osvi, SizeOf(_OSVERSIONINFOW));
-  osvi.dwOSVersionInfoSize := SizeOf(_OSVERSIONINFOW);
+  FillChar(osvi, SizeOf(osvi), #0);
+  osvi.dwOSVersionInfoSize := SizeOf(osvi);
   osvi.dwMajorVersion := 6;
   osvi.dwMinorVersion := 0;
 
@@ -247,28 +249,30 @@ begin
   ConditionMask := VerSetConditionMask(ConditionMask, VER_MINORVERSION, op);
 
   // Bei >= Vista gehts über das Manifest, ansonsten 'runas'...
-  if IsAdmin then
-    RunProcess('"' + FUpdateFile + '" /NOICONS /SP /SILENT /UPDATE /RUN /PATH="' + AppGlobals.AppPath + '"')
+  if TFunctions.IsAdmin then
+    TFunctions.RunProcess('"' + FUpdateFile + '" /NOICONS /SP /SILENT /UPDATE /RUN /PATH="' + AppGlobals.AppPath + '"')
   else
   begin
-    if VerifyVersionInfo(osvi, VER_MAJORVERSION or VER_MINORVERSION, ConditionMask) then
-      RunProcess('"' + FUpdateFile + '" /NOICONS /SP /SILENT /UPDATE /PATH="' + AppGlobals.AppPath + '"')
+    if VerifyVersionInfoW(osvi, VER_MAJORVERSION or VER_MINORVERSION, ConditionMask) then
+      TFunctions.RunProcess('"' + FUpdateFile + '" /NOICONS /SP /SILENT /UPDATE /PATH="' + AppGlobals.AppPath + '"')
     else
     begin
-      MsgBox(_('You do not have administrative rights.'#13#10'Please enter the credentials of a user with administrative rights now.'), _('Info'), MB_ICONINFORMATION);
+      TFunctions.MsgBox(_('You do not have administrative rights.'#13#10'Please enter the credentials of a user with administrative rights now.'), _('Info'), MB_ICONINFORMATION);
+
+      Verb := 'runas';
+      Parameters := '/NOICONS /SP /SILENT /UPDATE /PATH="' + AppGlobals.AppPath + '"';
 
       FillChar(Info, SizeOf(Info), 0);
-      Info.cbSize := SizeOf(SEI);
-      SEI.Wnd := Handle;
-      SEI.fMask := SEE_MASK_FLAG_DDEWAIT or SEE_MASK_FLAG_NO_UI;
-      SEI.lpVerb := 'runas';
-      SEI.lpFile := PChar(FUpdateFile);
-      SEI.lpParameters := PChar('/NOICONS /SP /SILENT /UPDATE /PATH="' + AppGlobals.AppPath + '"');
-      SEI.nShow := SW_SHOWNORMAL;
-      ShellExecuteEx(@SEI);
+      Info.cbSize := SizeOf(Info);
+      Info.Wnd := Handle;
+      Info.fMask := SEE_MASK_FLAG_DDEWAIT or SEE_MASK_FLAG_NO_UI;
+      Info.lpVerb := PWideChar(UnicodeString(Verb));
+      Info.lpFile := PWideChar(UnicodeString(FUpdateFile));
+      Info.lpParameters := PWideChar(UnicodeString(Parameters));
+      Info.nShow := SW_SHOWNORMAL;
+      ShellExecuteExW(@Info);
     end;
   end;
-  }
 end;
 
 procedure TUpdateClient.Start(Action: TUpdateAction; StartOver: Boolean);
@@ -313,7 +317,7 @@ begin
   FUpdateURL := FThread.FUpdateURL;
   FChangeLog := FThread.FChangeLog;
 
-  if IsVersionNewer(AppGlobals.AppVersion, FFoundVersion) then
+  if TFunctions.IsVersionNewer(AppGlobals.AppVersion, FFoundVersion) then
   begin
     if Assigned(FOnUpdateFound) then
       FOnUpdateFound(Self);

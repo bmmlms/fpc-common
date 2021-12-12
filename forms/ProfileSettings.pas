@@ -72,7 +72,7 @@ var
   S2: TSettingsPortable;
 begin
   if (((Sender = btnCopy) and (TSettingsPortable.Active(AppGlobals.AppName))) or ((Sender = btnCopy2) and (TSettingsInstalled.Active(AppGlobals.AppName)))) then
-    if MsgBox(_('All settings of the other profile will be replaced by the current profile''s settings.'#13#10 + 'Please be aware that existing settings and files containing data will be overwritten.'#13#10 +
+    if TFunctions.MsgBox(_('All settings of the other profile will be replaced by the current profile''s settings.'#13#10 + 'Please be aware that existing settings and files containing data will be overwritten.'#13#10 +
       'Proceed?'), _('Question'), MB_ICONQUESTION or MB_YESNO or MB_DEFBUTTON2) = IDNO then
       Exit;
 
@@ -99,7 +99,7 @@ begin
       btnDelete2.Enabled := True;
     end;
   except
-    MsgBox(_('An error occured while copying the settings.'#13#10 + 'It is possible that some settings were copied before the error occured.'), _('Error'), MB_ICONERROR);
+    TFunctions.MsgBox(_('An error occured while copying the settings.'#13#10 + 'It is possible that some settings were copied before the error occured.'), _('Error'), MB_ICONERROR);
     Exit;
   end;
 end;
@@ -117,7 +117,7 @@ procedure TfrmProfileSettings.btnDeleteClick(Sender: TObject);
 var
   S: TSettingsStorage;
 begin
-  if MsgBox(_('All data saved in this profile will be deleted.'#13#10 + 'Are you sure you want to delete this profile?'), _('Question'), MB_ICONQUESTION or MB_YESNO or MB_DEFBUTTON2) = IDYES then
+  if TFunctions.MsgBox(_('All data saved in this profile will be deleted.'#13#10 + 'Are you sure you want to delete this profile?'), _('Question'), MB_ICONQUESTION or MB_YESNO or MB_DEFBUTTON2) = IDYES then
   begin
     if Sender = btnDelete then
       S := TSettingsInstalled.Create(AppGlobals.AppName, AppGlobals.AppPath, AppGlobals.CommandLine)
@@ -125,7 +125,7 @@ begin
       S := TSettingsPortable.Create(AppGlobals.AppName, AppGlobals.AppPath, AppGlobals.CommandLine);
     try
       if not S.DeleteProfile then
-        MsgBox(_('An error occured deleting the profile, but parts of it may have been removed.'), _('Info'), MB_ICONEXCLAMATION);
+        TFunctions.MsgBox(_('An error occured deleting the profile, but parts of it may have been removed.'), _('Info'), MB_ICONEXCLAMATION);
 
       if Sender = btnDelete then
       begin
