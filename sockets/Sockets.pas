@@ -24,13 +24,13 @@ interface
 
 uses
   Classes,
-  DynOpenSSL,
   ExtendedStream,
   Generics.Collections,
-  IdSSLOpenSSLHeadersCustom,
   Logging,
+  mbedTLS,
   SyncObjs,
   SysUtils,
+  Windows,
   Winsock2;
 
 type
@@ -85,7 +85,28 @@ type
 
   TSocketList = TList<TSocketThread>;
 
-  TSocketThread = class(TThread)
+  { TSocketBaseThread }
+
+  TSocketBaseThread = class(TThread)
+  protected
+    FTerminatedEvent: TSimpleEvent;
+
+    class function NetSend(ctx: Pointer; buf: Pointer; len: size_t): Integer; cdecl; static;
+    class function NetRecv(ctx: Pointer; buf: Pointer; len: size_t): Integer; cdecl; static;
+    class function NetRecvTimeout(ctx: Pointer; buf: Pointer; len: size_t; timeout: uint32_t): Integer; cdecl; static;
+
+    procedure TerminatedSet; override;
+  public
+    constructor Create(CreateSuspended: Boolean);
+    destructor Destroy; override;
+  end;
+
+  { TSocketThread }
+
+  TSocketThread = class(TSocketBaseThread)
+  private
+  class var
+    FCertChain: mbedtls_x509_crt;
   private
     FSocketHandle: TSocket;
     FHost: string;
@@ -93,7 +114,6 @@ type
     FSecure: Boolean;
     FCheckCertificate: Boolean;
     FUseSynchronize: Boolean;
-    FSSLError: Boolean;
     FRaisedException: Exception;
 
     FLogMsg: string;
@@ -110,11 +130,10 @@ type
     FOnCommunicationEstablished: TSocketEvent;
 
     function HostToAddress(Host: string): u_long;
-    function SSLErrorToText(Err: Integer): string;
   protected
     FRecvStream: TSocketStream;
     FSendStream: TExtendedStream;
-    FSendLock: TCriticalSection;
+    FSendLock: SyncObjs.TCriticalSection;
     FDataTimeout: Cardinal;
     FLastTimeReceived, FLastTimeSent: UInt64;
 
@@ -146,11 +165,13 @@ type
     procedure DoException(E: Exception); virtual;
     procedure DoSecured; virtual;
     procedure DoCommunicationEstablished; virtual;
-    procedure DoSSLError(Text: string); virtual;
   public
     constructor Create(SocketHandle: Cardinal; Stream: TSocketStream); overload; virtual;
     constructor Create(Host: string; Port: Integer; Stream: TSocketStream; Secure, CheckCertificate: Boolean); overload; virtual;
     destructor Destroy; override;
+
+    class procedure LoadCertificates(const ResourceName: string);
+    class procedure FreeCertificates;
 
     property Host: string read FHost write FHost;
     property Port: Integer read FPort write FPort;
@@ -165,7 +186,7 @@ type
     property Received: UInt64 read FReceived;
     property Error: Boolean read FError write FError;
 
-    property SendLock: TCriticalSection read FSendLock;
+    property SendLock: SyncObjs.TCriticalSection read FSendLock;
     property SendStream: TExtendedStream read FSendStream;
 
     property OnLog: TSocketEvent read FOnLog write FOnLog;
@@ -178,7 +199,7 @@ type
     property OnCommunicationEstablished: TSocketEvent read FOnCommunicationEstablished write FOnCommunicationEstablished;
   end;
 
-  TSocketServerThread = class(TThread)
+  TSocketServerThread = class(TSocketBaseThread)
   private
     FPort: Cardinal;
 
@@ -212,6 +233,83 @@ type
 
 implementation
 
+{ TSocketBaseThread }
+
+class function TSocketBaseThread.NetSend(ctx: Pointer; buf: Pointer; len: size_t): Integer; cdecl;
+var
+  Socket: TSocket absolute ctx;
+begin
+  Result := send(Socket, buf, len, 0);
+
+  if Result = SOCKET_ERROR then
+  begin
+    Result := WSAGetLastError;
+    if Result = WSAEWOULDBLOCK then
+      Result := -MBEDTLS_ERR_SSL_WANT_WRITE
+    else
+      Result := -MBEDTLS_ERR_NET_SEND_FAILED;
+  end;
+end;
+
+class function TSocketBaseThread.NetRecv(ctx: Pointer; buf: Pointer; len: size_t): Integer; cdecl;
+var
+  Socket: TSocket absolute ctx;
+begin
+  Result := recv(Socket, Buf, len, 0);
+
+  if Result = 0 then
+    Result := -MBEDTLS_ERR_NET_CONN_RESET
+  else if Result = SOCKET_ERROR then
+  begin
+    Result := WSAGetLastError;
+    if Result = WSAEWOULDBLOCK then
+      Result := -MBEDTLS_ERR_SSL_WANT_READ
+    else
+      Result := -MBEDTLS_ERR_NET_RECV_FAILED;
+  end;
+end;
+
+class function TSocketBaseThread.NetRecvTimeout(ctx: Pointer; buf: Pointer; len: size_t; timeout: uint32_t): Integer; cdecl;
+var
+  Socket: TSocket absolute ctx;
+  TimeoutVal: TimeVal;
+  ReadFds: TFdSet;
+  Res: Integer;
+begin
+  TimeoutVal.tv_sec := Trunc(timeout / 1000);
+  TimeoutVal.tv_usec := (timeout div 1000) * 1000;
+
+  FD_ZERO(ReadFds);
+  FD_SET(Socket, ReadFds);
+  Res := select(0, @readfds, nil, nil, @timeout);
+  if Res = 0 then
+    Exit(-MBEDTLS_ERR_SSL_TIMEOUT)  // TODO: das "-" vor den errorcodes. sollte direkt zu den konstanten...
+  else if Res = SOCKET_ERROR then
+    Exit(-MBEDTLS_ERR_NET_RECV_FAILED);
+
+  Result := NetRecv(ctx, buf, len);
+end;
+
+procedure TSocketBaseThread.TerminatedSet;
+begin
+  inherited;
+
+  FTerminatedEvent.SetEvent;
+end;
+
+constructor TSocketBaseThread.Create(CreateSuspended: Boolean);
+begin
+  inherited Create(CreateSuspended);
+
+  FTerminatedEvent := TSimpleEvent.Create;
+end;
+
+destructor TSocketBaseThread.Destroy;
+begin
+  FTerminatedEvent.Free;
+
+  inherited Destroy;
+end;
 
 { TSocketThread }
 
@@ -227,7 +325,7 @@ begin
   FRecvStream := Stream;
   FRecvStream.OnLog := StreamLog;
   FSendStream := TExtendedStream.Create;
-  FSendLock := TCriticalSection.Create;
+  FSendLock := SyncObjs.TCriticalSection.Create;
   FUseSynchronize := False;
 
   Len := SizeOf(Addr);
@@ -251,7 +349,7 @@ begin
   FRecvStream := Stream;
   FRecvStream.OnLog := StreamLog;
   FSendStream := TExtendedStream.Create;
-  FSendLock := TCriticalSection.Create;
+  FSendLock := SyncObjs.TCriticalSection.Create;
   FUseSynchronize := False;
   FSecure := Secure;
   FCheckCertificate := CheckCertificate;
@@ -263,6 +361,25 @@ begin
   FSendStream.Free;
   FSendLock.Free;
   inherited;
+end;
+
+class procedure TSocketThread.LoadCertificates(const ResourceName: string);
+var
+  Stream: TResourceStream;
+begin
+  Stream := TResourceStream.Create(HINSTANCE, ResourceName, RT_RCDATA);
+  try
+    mbedtls_x509_crt_init(@FCertChain);
+    if mbedtls_x509_crt_parse(@FCertChain, Stream.Memory, Stream.Size) < 0 then
+      raise Exception.Create('Error loading certificates');
+  finally
+    Stream.Free;
+  end;
+end;
+
+class procedure TSocketThread.FreeCertificates;
+begin
+  mbedtls_x509_crt_free(@FCertChain);
 end;
 
 procedure TSocketThread.DoCommunicationEstablished;
@@ -338,16 +455,6 @@ begin
     Sync(FOnSecured);
 end;
 
-procedure TSocketThread.DoSSLError(Text: string);
-begin
-  FSSLError := True;
-
-  if FCheckCertificate then
-    raise ESSLException.Create(Text)
-  else
-    WriteLog(Text, slWarning);
-end;
-
 procedure TSocketThread.DoStuff;
 begin
 
@@ -360,25 +467,25 @@ const
   TLSTimeout = 10000;
 var
   Addr: sockaddr_in;
-  Res, ErrRes, RecvRes, SendRes, Idx: Integer;
-  readfds, writefds, exceptfds: TFdSet;
-  SSLWildcardValid: Boolean;
-  timeout: TimeVal;
+  Res: Integer;
+  ReadFds, WriteFds, ExceptFds: TFdSet;
+  TimeoutVal: TimeVal;
   Buf: array[0..BufSize - 1] of Byte;
-  i: Integer;
   Ticks, StartTime: UInt64;
   HostAddress, NonBlock: u_long;
 
-  Method: PSSL_METHOD;
-  Ctx: PSSL_CTX;
-  SSL: PSSL;
-  Cert: PX509;
-  CBIO: PBIO;
-  SN: PX509_NAME;
-  NE: PX509_NAME_ENTRY;
+  ssl: mbedtls_ssl_context;
+  conf: mbedtls_ssl_config;
+  entropy: mbedtls_entropy_context;
+  ctr_drbg: mbedtls_ctr_drbg_context;
 begin
-  Ctx := nil;
-  SSL := nil;
+  if FSecure then
+  begin
+    mbedtls_ssl_init(@ssl);
+    mbedtls_ssl_config_init(@conf);
+    mbedtls_ctr_drbg_init(@ctr_drbg);
+    mbedtls_entropy_init(@entropy);
+  end;
 
   try
     try
@@ -389,7 +496,7 @@ begin
         HostAddress := HostToAddress(FHost);
 
         FSocketHandle := socket(AF_INET, SOCK_STREAM, 0);
-        if FSocketHandle = SOCKET_ERROR then
+        if FSocketHandle = INVALID_SOCKET then
           raise Exception.Create('Function socket() failed');
 
         NonBlock := 1;
@@ -409,18 +516,18 @@ begin
             Exit;
 
           Ticks := GetTickCount64;
-          timeout.tv_sec := 0;
-          timeout.tv_usec := 100000; // 100ms
-          FD_ZERO(writefds);
-          FD_ZERO(exceptfds);
-          FD_SET(FSocketHandle, writefds);
-          FD_SET(FSocketHandle, exceptfds);
-          Res := select(0, nil, @writefds, @exceptfds, @timeout);
+          TimeoutVal.tv_sec := 0;
+          TimeoutVal.tv_usec := 100000; // 100ms
+          FD_ZERO(WriteFds);
+          FD_ZERO(ExceptFds);
+          FD_SET(FSocketHandle, WriteFds);
+          FD_SET(FSocketHandle, ExceptFds);
+          Res := select(0, nil, @WriteFds, @ExceptFds, @TimeoutVal);
           if (Res = SOCKET_ERROR) then
             raise Exception.Create('Error while connecting');
-          if (Res > 0) and (FD_ISSET(FSocketHandle, exceptfds)) then
+          if (Res > 0) and (FD_ISSET(FSocketHandle, ExceptFds)) then
             raise Exception.Create('Error while connecting');
-          if (Res > 0) and (FD_ISSET(FSocketHandle, writefds)) then
+          if (Res > 0) and (FD_ISSET(FSocketHandle, WriteFds)) then
             Break;
           if (Ticks > ConnectTimeout) and (StartTime < Ticks - ConnectTimeout) then
             raise Exception.Create('Timeout while connecting');
@@ -431,88 +538,54 @@ begin
 
       if FSecure then
       begin
-        Method := SSLv23_method();
-        Ctx := SSL_CTX_new(Method);
+        Res := mbedtls_ssl_config_defaults(@conf, MBEDTLS_SSL_IS_CLIENT, MBEDTLS_SSL_TRANSPORT_STREAM, MBEDTLS_SSL_PRESET_DEFAULT);
+        if Res <> 0 then
+          raise EExceptionParams.CreateFmt('Function mbedtls_ssl_config_defaults() returned error %d', [WSAGetLastError]);
 
-        for i := 0 to OpenSSL.Certs.Count - 1 do
+        res := mbedtls_ctr_drbg_seed(@ctr_drbg, mbedtls_entropy_func, @entropy, nil, 0);
+        if Res <> 0 then
+          raise EExceptionParams.CreateFmt('Function mbedtls_ctr_drbg_seed() returned error %d', [Res]);
+
+        mbedtls_ssl_conf_ca_chain(@conf, @FCertChain, nil);
+        mbedtls_ssl_conf_rng(@conf, mbedtls_ctr_drbg_random, @ctr_drbg);
+        mbedtls_ssl_conf_authmode(@conf, MBEDTLS_SSL_VERIFY_OPTIONAL);
+
+        Res := mbedtls_ssl_setup(@ssl, @conf);
+        if Res <> 0 then
+          raise EExceptionParams.CreateFmt('Function mbedtls_ssl_setup() returned error %d', [Res]);
+
+        Res := mbedtls_ssl_set_hostname(@ssl, PChar(fhost));
+        if Res <> 0 then
+          raise EExceptionParams.CreateFmt('Function mbedtls_ssl_set_hostname() returned error %d', [Res]);
+
+        mbedtls_ssl_set_bio(@ssl, Pointer(FSocketHandle), @TSocketThread.NetSend, nil, @TSocketThread.NetRecvTimeout);
+        mbedtls_ssl_conf_read_timeout(@ssl, TLSTimeout);
+
+        Res := mbedtls_ssl_handshake(@ssl);
+        while Res <> 0 do
         begin
-          CBIO := BIO_new_mem_buf(@AnsiString(OpenSSL.Certs[i])[1], Length(OpenSSL.Certs[i]));
-          Cert := PEM_read_bio_X509(CBIO, nil, nil, nil);
-          if Cert = nil then
-            raise Exception.Create('');
-          BIO_free(CBIO);
-          X509_STORE_add_cert(Ctx.cert_store, Cert);
+          if (Res <> -MBEDTLS_ERR_SSL_WANT_READ) and (Res <> -MBEDTLS_ERR_SSL_WANT_WRITE) and (Res <> -MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS) then
+            if Res = -MBEDTLS_ERR_SSL_TIMEOUT then
+              raise Exception.Create('TLS handshake timed out')
+            else
+              raise EExceptionParams.CreateFmt('TLS handshake was not successful, error %d', [Res]);
+
+          Res := mbedtls_ssl_handshake(@ssl);
         end;
-
-        SSL := SSL_new(Ctx);
-        SSL_set_fd(SSL, FSocketHandle);
-
-        // SNI
-        SSL_set_tlsext_host_name(SSL, Host);
-
-        StartTime := GetTickCount64;
-        while True do
-        begin
-          if Terminated then
-            Exit;
-
-          Ticks := GetTickCount64;
-          Res := SSL_connect(SSL);
-          if Res = 1 then
-            Break
-          else if Res = 0 then
-          begin
-            ErrRes := SSL_get_error(SSL, Res);
-            raise EExceptionParams.CreateFmt('TLS handshake was not successful, error %s', [SSLErrorToText(ErrRes)]);
-          end else if Res < 0 then
-          begin
-            ErrRes := SSL_get_error(SSL, Res);
-            if (ErrRes <> SSL_ERROR_WANT_READ) and (ErrRes <> SSL_ERROR_WANT_WRITE) and (ErrRes <> SSL_ERROR_WANT_CONNECT) then
-              raise EExceptionParams.CreateFmt('TLS handshake was not successful, error %s', [SSLErrorToText(ErrRes)]);
-          end;
-          if (Ticks > TLSTimeout) and (StartTime < Ticks - TLSTimeout) then
-            raise Exception.Create('TLS handshake timed out');
-          Sleep(10);
-        end;
-
-        Cert := SSL_get_peer_certificate(SSL);
-        if Cert <> nil then
-          X509_free(Cert)
-        else
-          DoSSLError('TLS handshake was not successful, no certificate received');
-
-        Res := SSL_get_verify_result(SSL);
-        if Res <> X509_V_OK then
-          DoSSLError('TLS handshake was not successful, certificate invalid');
-
-        SN := X509_get_subject_name(Cert);
-        if SN = nil then
-          DoSSLError('TLS handshake was not successful, certificate invalid');
-
-        NE := nil;
-        Idx := X509_NAME_get_index_by_NID(SN, NID_commonName, -1);
-        while Idx <> -1 do
-        begin
-          NE := X509_NAME_get_entry(SN, Idx);
-          if NE = nil then
-            DoSSLError('TLS handshake was not successful, certificate invalid');
-
-          SSLWildcardValid := False;
-          if (Length(NE.Value.Data) > 2) and (NE.Value.Data[0] = '*') then
-            SSLWildcardValid := FHost.EndsWith(Copy(NE.Value.Data, 2), True);
-
-          if (LowerCase(NE.Value.Data) <> LowerCase(FHost)) and (not SSLWildcardValid) then
-            DoSSLError('TLS handshake was not successful, certificate invalid');
-
-          Idx := X509_NAME_get_index_by_NID(SN, NID_commonName, Idx);
-        end;
-
-        if NE = nil then
-          DoSSLError('TLS handshake was not successful, certificate invalid');
       end;
 
-      if (not FSSLError) and FSecure then
-        DoSecured;
+      if FSecure then
+      begin
+        Res := mbedtls_ssl_get_verify_result(@ssl);
+        if Res <> 0 then
+        begin
+          if FCheckCertificate then
+            raise ESSLException.Create('TLS handshake was not successful, certificate invalid')
+          else
+            WriteLog('TLS handshake was not successful, certificate invalid', slWarning);
+        end else
+          DoSecured;
+      end;
 
       DoCommunicationEstablished;
 
@@ -523,110 +596,99 @@ begin
       begin
         DoStuff;
 
-        timeout.tv_sec := 0;
-        timeout.tv_usec := 100000; // 100ms
+        TimeoutVal.tv_sec := 0;
+        TimeoutVal.tv_usec := 100000; // 100ms
 
-        FD_ZERO(readfds);
-        FD_ZERO(writefds);
-        FD_ZERO(exceptfds);
-        FD_SET(FSocketHandle, readfds);
+        FD_ZERO(ReadFds);
+        FD_ZERO(WriteFds);
+        FD_ZERO(ExceptFds);
+        FD_SET(FSocketHandle, ReadFds);
         FSendLock.Enter;
         if FSendStream.Size > 0 then
-          FD_SET(FSocketHandle, writefds);
+          FD_SET(FSocketHandle, WriteFds);
         FSendLock.Leave;
-        FD_SET(FSocketHandle, exceptfds);
+        FD_SET(FSocketHandle, ExceptFds);
 
         if Terminated then
           Exit;
 
-        Res := select(0, @readfds, @writefds, @exceptfds, @timeout);
+        Res := select(0, @ReadFds, @WriteFds, @ExceptFds, @TimeoutVal);
 
         if Res = SOCKET_ERROR then
           raise EExceptionParams.CreateFmt('Function select() returned error %d', [WSAGetLastError]);
 
-        if (Res > 0) and (FD_ISSET(FSocketHandle, exceptfds)) then
+        if (Res > 0) and (FD_ISSET(FSocketHandle, ExceptFds)) then
           raise Exception.Create('Function select() failed');
 
         Ticks := GetTickCount64;
 
-        {
-        if (FDataTimeout > 0) and (Ticks > FDataTimeout) then
-          if (FLastTimeReceived < Ticks - FDataTimeout) and
-             (FLastTimeSent < Ticks - FDataTimeout) then
-          begin
-            raise EExceptionParams.CreateFmt('No data received/sent for more than %d seconds', [FDataTimeout div 1000]);
-          end;
-        }
+        if (FDataTimeout > 0) and (Ticks > FDataTimeout) and (FLastTimeReceived < Ticks - FDataTimeout) and (FLastTimeSent < Ticks - FDataTimeout) then
+          raise EExceptionParams.CreateFmt('No data received/sent for more than %d seconds', [FDataTimeout div 1000]);
 
-        if FD_ISSET(FSocketHandle, readfds) then
+        if FD_ISSET(FSocketHandle, ReadFds) then
         begin
           if FSecure then
-            RecvRes := SSL_read(SSL, @Buf[0], BufSize)
+            Res := mbedtls_ssl_read(@SSL, @Buf[0], BufSize)
           else
-            RecvRes := recv(FSocketHandle, Buf, BufSize, 0);
+            Res := recv(FSocketHandle, Buf, BufSize, 0);
 
-          if RecvRes = 0 then
+          if (Res = 0) or (FSecure and (Res = -MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY)) then
           begin
             // Verbindung wurde geschlossen
             FClosed := True;
             Break;
-          end else if RecvRes < 0 then
+          end else if Res < 0 then
           begin
             // Fehler
             if FSecure then
             begin
-              ErrRes := SSL_get_error(SSL, RecvRes);
-              if (ErrRes <> SSL_ERROR_WANT_READ) and (ErrRes <> SSL_ERROR_WANT_WRITE) then
-                raise EExceptionParams.CreateFmt('Function SSL_read() returned error %d', [ErrRes]);
+              if (Res <> -MBEDTLS_ERR_SSL_WANT_READ) and (Res <> -MBEDTLS_ERR_SSL_WANT_READ) then
+                raise EExceptionParams.CreateFmt('Function mbedtls_ssl_read() returned error %d', [Res]);
             end else
               raise EExceptionParams.CreateFmt('Function recv() returned error %d', [WSAGetLastError]);
-          end else if RecvRes > 0 then
+          end else if Res > 0 then
           begin
             // Alles cremig
-            FReceived := FReceived + RecvRes;
+            FReceived := FReceived + Res;
             FLastTimeReceived := Ticks;
             FRecvStream.Seek(0, soFromEnd);
-            FRecvStream.WriteBuffer(Buf, RecvRes);
-            FRecvStream.Process(RecvRes);
-            DoReceivedData(@Buf[1], RecvRes);
+            FRecvStream.WriteBuffer(Buf, Res);
+            FRecvStream.Process(Res);
+            DoReceivedData(@Buf[1], Res);
           end;
         end;
 
-        if FD_ISSET(FSocketHandle, writefds) then
+        if FD_ISSET(FSocketHandle, WriteFds) then
         begin
           FSendLock.Enter;
           try
             if FSecure then
-              SendRes := SSL_write(SSL, FSendStream.Memory, FSendStream.Size)
+              Res := mbedtls_ssl_write(@SSL, FSendStream.Memory, FSendStream.Size)
             else
-              SendRes := send(FSocketHandle, FSendStream.Memory^, FSendStream.Size, 0);
+              Res := send(FSocketHandle, FSendStream.Memory^, FSendStream.Size, 0);
 
-            if SendRes < 0 then
+            if Res < 0 then
             begin
               if FSecure then
               begin
-                ErrRes := SSL_get_error(SSL, SendRes);
-                if (ErrRes <> SSL_ERROR_WANT_READ) and (ErrRes <> SSL_ERROR_WANT_WRITE) then
-                  raise EExceptionParams.CreateFmt('Function SSL_write() returned error %d', [ErrRes]);
+                if (Res <> -MBEDTLS_ERR_SSL_WANT_READ) and (Res <> -MBEDTLS_ERR_SSL_WANT_READ) then
+                  raise EExceptionParams.CreateFmt('Function mbedtls_ssl_write() returned error %d', [Res]);
               end else
                 raise EExceptionParams.CreateFmt('Function send() returned error %d', [WSAGetLastError]);
-            end else if SendRes > 0 then
+            end else if Res > 0 then
             begin
               FLastTimeSent := Ticks;
-              FSendStream.RemoveRange(0, SendRes);
+              FSendStream.RemoveRange(0, Res);
             end;
-
-            if not FSecure then
-              if WSAGetLastError <> 0 then
-                raise EExceptionParams.CreateFmt('Function send() returned error %d', [WSAGetLastError]);
           finally
             FSendLock.Leave;
           end;
         end;
 
-        if (not FD_ISSET(FSocketHandle, readfds)) and (not FD_ISSET(FSocketHandle, writefds)) then
+        if (not FD_ISSET(FSocketHandle, ReadFds)) and (not FD_ISSET(FSocketHandle, WriteFds)) then
           Sleep(30);
       end;
+
       DoDisconnected;
       DoDisconnectedEvent;
     except
@@ -634,16 +696,12 @@ begin
         DoException(E);
     end;
   finally
-    try
-      if SSL <> nil then
-        SSL_free(SSL);
-    except
-    end;
-
-    try
-      if Ctx <> nil then
-        SSL_CTX_free(Ctx);
-    except
+    if FSecure then
+    begin
+      mbedtls_ssl_free(@ssl);
+      mbedtls_ssl_config_free(@conf);
+      mbedtls_ctr_drbg_free(@ctr_drbg);
+      mbedtls_entropy_free(@entropy);
     end;
 
     try
@@ -713,16 +771,6 @@ begin
   {$ENDIF}
 
   DoLog(Text, Data, Level);
-end;
-
-function TSocketThread.SSLErrorToText(Err: Integer): string;
-begin
-  Result := 'SSL_ERROR_UNKNOWN';
-  case Err of
-    1: Result := 'SSL_ERROR_SSL';
-    5: Result := 'SSL_ERROR_SYSCALL';
-    6: Result := 'SSL_ERROR_ZERO_RETURN';
-  end;
 end;
 
 procedure TSocketThread.StreamLog(Sender: TObject);
@@ -914,10 +962,5 @@ begin
   for i := 0 to High(Args) do
     FArgs[i] := Args[i];
 end;
-
-initialization
-
-finalization
-  WSACleanup;
 
 end.

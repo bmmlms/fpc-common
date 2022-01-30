@@ -23,7 +23,6 @@ unit Logging;
 interface
 
 uses
-  Classes,
   SysUtils,
   Windows;
 
