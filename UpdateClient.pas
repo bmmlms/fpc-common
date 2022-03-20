@@ -32,7 +32,6 @@ uses
   LanguageObjects,
   Sockets,
   JwaWinBase,
-  JwaWinType,
   JwaWinNT,
   ShellApi,
   StrUtils,
@@ -288,9 +287,9 @@ begin
   if Action = uaVersion then
   begin
     if (FLanguage <> '') and (AppGlobals.WebLanguages.IndexOf(LowerCase(FLanguage)) > -1) then
-      URL := AppGlobals.ProjectUpdateLinks[FURLIndex] + Trim(FLanguage) + '/projekte/update/' + LowerCase(AppGlobals.AppName) + '/'
+      URL := AppGlobals.ProjectUpdateLinks[FURLIndex] + '/' + Trim(FLanguage) + '/projekte/update/' + LowerCase(AppGlobals.AppName)
     else
-      URL := AppGlobals.ProjectUpdateLinks[FURLIndex] + 'en/projekte/update/' + LowerCase(AppGlobals.AppName) + '/';
+      URL := AppGlobals.ProjectUpdateLinks[FURLIndex] + '/en/projekte/update/' + LowerCase(AppGlobals.AppName);
 
     FThread := TUpdateThread.Create(Action, URL);
   end else

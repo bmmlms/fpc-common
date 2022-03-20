@@ -201,20 +201,20 @@ begin
   begin
     SetLength(FProjectUpdateLinks, 1);
     {$IFDEF DEBUG}
-    FProjectUpdateLinks[0] := 'http://mistake.gaia/';
+    FProjectUpdateLinks[0] := 'http://mistake.gaia';
     {$ELSE}
-    FProjectUpdateLinks[0] := 'http://mistake.ws/';
+    FProjectUpdateLinks[0] := 'http://mistake.ws';
     {$ENDIF}
   end;
 
   if FProjectHomepageLink = '' then
-    FProjectHomepageLink := 'http://mistake.ws/';
+    FProjectHomepageLink := 'http://mistake.ws';
   if FProjectLink = '' then
-    FProjectLink := 'http://mistake.ws/projekte/' + LowerCase(FAppName) + '/';
+    FProjectLink := 'http://mistake.ws/projekte/' + LowerCase(FAppName);
   if FProjectHelpLink = '' then
-    FProjectHelpLink := 'http://mistake.ws/projekte/' + LowerCase(FAppName) + '/help/';
+    FProjectHelpLink := 'http://mistake.ws/projekte/' + LowerCase(FAppName) + '/help';
   if FProjectForumLink = '' then
-    FProjectForumLink := 'http://mistake.ws/forum/';
+    FProjectForumLink := 'http://mistake.ws/forum';
   if FProjectDonateLink = '' then
     FProjectDonateLink := '';
   if FProjectThanksText = '' then
