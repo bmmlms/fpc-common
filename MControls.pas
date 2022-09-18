@@ -83,6 +83,7 @@ type
     CT_ACTIVE = 0;
     CT_ALL = 1;
     CT_ALL_BUT_ACTIVE = 2;
+    PADDING_CHAR = ' ';
   private
     FRemoving: Boolean;
     FPainted: Boolean;
@@ -245,13 +246,6 @@ begin
   if PageControl.ActivePageIndex = PageIndex then
     FButtonRect.Offset(0, -2);
 
-  if (TMPageControl(PageControl).FMaxTabWidth = 0) and FShowCloseButton then
-    inherited Caption := FCaption + TFunctions.StringForWidth(' ', FButtonRect.Width, PageControl.Font)
-  else if (TMPageControl(PageControl).FMaxTabWidth > 0) and FShowCloseButton then
-    inherited Caption := TFunctions.TruncateText(FCaption, TMPageControl(PageControl).FMaxTabWidth - (TabRect.Width - FButtonRect.Left), PageControl.Font) + TFunctions.StringForWidth(' ', FButtonRect.Width, PageControl.Font)
-  else if (TMPageControl(PageControl).FMaxTabWidth > 0) and (not FShowCloseButton) then
-    inherited Caption := TFunctions.TruncateText(FCaption, TMPageControl(PageControl).FMaxTabWidth, PageControl.Font)
-  else
     inherited Caption := FCaption;
 end;
 
@@ -400,7 +394,7 @@ begin
   Result := TMTabSheet(inherited Pages[Index]);
 end;
 
-procedure TMPageControl.RemoveTab(Tab: TMTabSheet);    // TODO: ich sollte RemovePage(idx) �berschreiben. und das hier sollte dann removepage aufrufen.
+procedure TMPageControl.RemoveTab(Tab: TMTabSheet);    // TODO: ich sollte RemovePage(idx) überschreiben. und das hier sollte dann removepage aufrufen.
 var
   Idx: Integer;
   i: Integer;
@@ -455,6 +449,10 @@ end;
 procedure TMPageControl.WndProc(var Message: TMessage);
 var
   i: Integer;
+  Text: UnicodeString;
+  NewText: string;
+  Item: PTCITEM;
+  Org: Pointer = nil;
 begin
   if Message.Msg = WM_CLOSETAB then
   begin
@@ -472,7 +470,31 @@ begin
     Exit;
   end;
 
+  if (Message.Msg = TCM_INSERTITEMW) or (Message.Msg = TCM_SETITEMW) then
+  begin
+    Item := PTCITEM(Message.lParam);
+
+    Org := Item.pszText;
+    Text := WideCharToString(PWideChar(Item.pszText));
+
+    NewText := Text;
+    NewText := NewText.TrimRight(PADDING_CHAR);
+
+    if (FMaxTabWidth = 0) and Pages[Message.wParam].FShowCloseButton then
+      NewText := NewText + TFunctions.StringForWidth(PADDING_CHAR, Pages[Message.wParam].FButtonRect.Width, Font)
+    else if (FMaxTabWidth > 0) and Pages[Message.wParam].FShowCloseButton then
+      NewText := TFunctions.TruncateText(NewText, FMaxTabWidth - (TabRect(Message.wParam).Width - Pages[Message.wParam].FButtonRect.Left), Font) + TFunctions.StringForWidth(PADDING_CHAR, Pages[Message.wParam].FButtonRect.Width, Font)
+    else if (FMaxTabWidth > 0) and (not Pages[Message.wParam].FShowCloseButton) then
+      NewText := TFunctions.TruncateText(NewText, FMaxTabWidth, Font);
+
+    Text := NewText;
+    Item.pszText := PChar(Text);
+  end;
+
   inherited;
+
+  if Org <> nil then
+    Item.pszText := Org;
 end;
 
 procedure TMPageControl.MouseMove(Shift: TShiftState; X, Y: Integer);
