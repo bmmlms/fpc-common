@@ -28,6 +28,7 @@ uses
   Classes,
   Forms,
   Functions,
+  StreamHelper,
   HTTPThread,
   LanguageObjects,
   Sockets,

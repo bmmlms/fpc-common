@@ -32,7 +32,6 @@ uses
   Controls,
   Dialogs,
   ExtCtrls,
-  ExtendedStream,
   Forms,
   Functions,
   Generics.Collections,
@@ -44,6 +43,7 @@ uses
   MLabeledEdit,
   SettingsStorage,
   StdCtrls,
+  StreamHelper,
   SysUtils,
   Variants,
   VirtualTrees;
@@ -146,8 +146,8 @@ type
     function CanFinish: Boolean; virtual;
     procedure PreTranslate; virtual;
     procedure PostTranslate; virtual;
-    procedure GetExportDataHeader(Stream: TExtendedStream); virtual;
-    procedure GetExportData(Stream: TExtendedStream); virtual;
+    procedure GetExportDataHeader(Stream: TMemoryStream); virtual;
+    procedure GetExportData(Stream: TMemoryStream); virtual;
     function CheckImportFile(Filename: string): Boolean; virtual;
   public
     constructor Create(AOwner: TComponent; Images: TImageList; ShowGeneral: Boolean); reintroduce;
@@ -272,7 +272,7 @@ end;
 
 procedure TfrmSettingsBase.btnExportProfileClick(Sender: TObject);
 var
-  S: TExtendedStream;
+  S: TMemoryStream;
   Dlg: TSaveDialog;
   Lst: TSettingsList;
 begin
@@ -281,7 +281,7 @@ begin
     Dlg.Filter := 'streamWriter profile (*.dat)|*.dat';
     Dlg.Options := Dlg.Options + [ofOverwritePrompt];
     Dlg.DefaultExt := '.dat';
-    S := TExtendedStream.Create;
+    S := TMemoryStream.Create;
     Lst := TSettingsList.Create;
 
     AppGlobals.Storage.IgnoreFields.Clear;
@@ -513,13 +513,13 @@ begin
   pnlNav.Height := MulDiv(pnlNav.Height, btnOK.Font.Size, 8);
 end;
 
-procedure TfrmSettingsBase.GetExportData(Stream: TExtendedStream);
+procedure TfrmSettingsBase.GetExportData(Stream: TMemoryStream);
 begin
   if Assigned(FOnSaveForExport) then
     FOnSaveForExport(Self);
 end;
 
-procedure TfrmSettingsBase.GetExportDataHeader(Stream: TExtendedStream);
+procedure TfrmSettingsBase.GetExportDataHeader(Stream: TMemoryStream);
 begin
 
 end;

@@ -33,6 +33,7 @@ interface
 
 uses
   Classes,
+  StreamHelper,
   SysUtils,
   TypInfo,
   Windows;
@@ -275,26 +276,6 @@ begin
   end;
 end;
 
-function PosInStream(Stream: TCustomMemoryStream; Search: AnsiString; FromOffset: Int64): Integer;
-var
-  i: Integer;
-  p: Pointer;
-begin
-  Result := -1;
-  p := Pointer(Int64(Stream.Memory) + FromOffset);
-  for i := 0 to Stream.Size - FromOffset - Length(Search) do
-  begin
-    if CompareMem(p, @Search[1], Length(Search)) then
-    begin
-      Result := i;
-      Break;
-    end;
-    Inc(Cardinal(p));
-  end;
-  if Result > -1 then
-    Result := Result + FromOffset;
-end;
-
 function _(s: string): string;
 begin
   if Language <> nil then
@@ -500,13 +481,13 @@ begin
   end;
 
   try
-    NL := PosInStream(Stream, #13#00#10#00, LastNL);
+    NL := Stream.PosInStream(#13#00#10#00, LastNL);
     while NL > -1 do
     begin
       while NL = LastNL do
       begin
         LastNL := NL + 4;
-        NL := PosInStream(Stream, #13#00#10#00, LastNL);
+        NL := Stream.PosInStream(#13#00#10#00, LastNL);
       end;
 
       if NL = -1 then
@@ -514,7 +495,7 @@ begin
 
       Line := LoadFromStream(Stream, LastNL, NL - LastNL);
       LastNL := NL + 4;
-      NL := PosInStream(Stream, #13#00#10#00, LastNL);
+      NL := Stream.PosInStream(#13#00#10#00, LastNL);
 
       if LowerCase(Line) = '[settings]' then
       begin
@@ -1161,7 +1142,6 @@ begin
   inherited;
 
   InitializeCriticalSection(FSync);
-  FCurrentLanguage := nil;
   FProjects := TList.Create;
   FIgnoreClassList := TClassList.Create;
 

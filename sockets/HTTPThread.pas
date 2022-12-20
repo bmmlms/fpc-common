@@ -24,7 +24,7 @@ interface
 
 uses
   Classes,
-  ExtendedStream,
+  StreamHelper,
   Functions,
   HTTPStream,
   Sockets,
@@ -57,7 +57,7 @@ type
     procedure FSetProxyHost(Value: string);
     procedure FSetProxyPort(Value: Integer);
 
-    function FGetRecvDataStream: TExtendedStream;
+    function FGetRecvDataStream: TMemoryStream;
 
     procedure DoReceivedData(Buf: Pointer; Len: Integer); override;
     procedure DoDisconnected; override;
@@ -72,7 +72,7 @@ type
     constructor Create(URL: string; Stream: TSocketStream; CheckCertificate: Boolean); overload; virtual;
     destructor Destroy; override;
 
-    property RecvDataStream: TExtendedStream read FGetRecvDataStream;
+    property RecvDataStream: TMemoryStream read FGetRecvDataStream;
     property DownloadPercent: Integer read FDownloadPercent;
     property Speed: Integer read FSpeed;
     property PostData: string read FPostData write FSetPostData;
@@ -240,9 +240,9 @@ begin
   Sync(FOnSpeedChanged);
 end;
 
-function THTTPThread.FGetRecvDataStream: TExtendedStream;
+function THTTPThread.FGetRecvDataStream: TMemoryStream;
 begin
-  Result := FTypedStream.RecvStream as TExtendedStream;
+  Result := FTypedStream.RecvStream;
 end;
 
 procedure THTTPThread.FSetPostData(Value: string);

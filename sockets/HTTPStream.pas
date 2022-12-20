@@ -24,7 +24,7 @@ interface
 
 uses
   Classes,
-  ExtendedStream,
+  StreamHelper,
   Sockets,
   StrUtils,
   SysUtils,
@@ -42,7 +42,7 @@ type
     FContentLength: Integer;
     FRedirURL: string;
 
-    FDeChunkedStream: TExtendedStream;
+    FDeChunkedStream: TMemoryStream;
 
     FHeaderRemoved: Boolean;
     FOnHeaderRemoved: TNotifyEvent;
@@ -54,7 +54,7 @@ type
     FHeader: string;
     FHeaderType: string;
 
-    function FGetRecvDataStream: TExtendedStream; override;
+    function FGetRecvDataStream: TMemoryStream; override;
 
     procedure DoHeaderRemoved; virtual;
 
@@ -161,7 +161,7 @@ begin
   FTransferEncoding := teNone;
   FContentLength := -1;
   FResponseCode := -1;
-  FDeChunkedStream := TExtendedStream.Create;
+  FDeChunkedStream := TMemoryStream.Create;
 end;
 
 destructor THTTPStream.Destroy;
@@ -175,7 +175,7 @@ begin
 
 end;
 
-function THTTPStream.FGetRecvDataStream: TExtendedStream;
+function THTTPStream.FGetRecvDataStream: TMemoryStream;
 begin
   if FTransferEncoding = teChunked then
     Result := FDechunkedStream

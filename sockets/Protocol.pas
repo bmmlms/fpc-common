@@ -25,7 +25,7 @@ interface
 uses
   Classes,
   Commands,
-  ExtendedStream,
+  StreamHelper,
   Generics.Collections,
   Sockets,
   SysUtils,
@@ -40,14 +40,14 @@ type
   private
     FID: Cardinal;
     FPacketLen: Cardinal;
-    FStream: TExtendedStream;
+    FStream: TMemoryStream;
   public
     constructor Create; overload;
-    constructor Create(ID: Cardinal; Stream: TExtendedStream; DataLen: Cardinal); overload;
+    constructor Create(ID: Cardinal; Stream: TMemoryStream; DataLen: Cardinal); overload;
     destructor Destroy; override;
 
     class function Read(Stream: TSocketStream; var Packet: TPacket): TReadRes;
-    procedure Write(Stream: TExtendedStream);
+    procedure Write(Stream: TMemoryStream);
 
     property ID: Cardinal read FID write FID;
     property PacketLen: Cardinal read FPacketLen;
@@ -59,8 +59,8 @@ type
     FCommandHeader: TCommandHeader;
     FTransferred: Cardinal;
     FCommand: TCommand;
-    FCommandStream: TExtendedStream;
-    FInputStream: TExtendedStream;
+    FCommandStream: TMemoryStream;
+    FInputStream: TMemoryStream;
   public
     constructor Create(ID: Cardinal; CommandHeader: TCommandHeader);
     destructor Destroy; override;
@@ -354,12 +354,12 @@ end;
 
 { TPacket }
 
-constructor TPacket.Create(ID: Cardinal; Stream: TExtendedStream; DataLen: Cardinal);
+constructor TPacket.Create(ID: Cardinal; Stream: TMemoryStream; DataLen: Cardinal);
 begin
   inherited Create;
   FID := ID;
 
-  FStream := TExtendedStream.Create;
+  FStream := TMemoryStream.Create;
   FStream.CopyFrom(Stream, DataLen);
 end;
 
@@ -399,7 +399,7 @@ begin
   end;
 end;
 
-procedure TPacket.Write(Stream: TExtendedStream);
+procedure TPacket.Write(Stream: TMemoryStream);
 begin
   FStream.Seek(0, soFromBeginning);
   Stream.Write(Cardinal(FStream.Size + PACKET_HEADER_LEN));
@@ -411,7 +411,7 @@ constructor TPacket.Create;
 begin
   inherited;
 
-  FStream := TExtendedStream.Create;
+  FStream := TMemoryStream.Create;
 end;
 
 { TCommandStream }
@@ -421,8 +421,8 @@ begin
   inherited Create;
 
   FID := ID;
-  FCommandStream := TExtendedStream.Create;
-  FInputStream := TExtendedStream.Create;
+  FCommandStream := TMemoryStream.Create;
+  FInputStream := TMemoryStream.Create;
   FCommandHeader := CommandHeader;
 end;
 

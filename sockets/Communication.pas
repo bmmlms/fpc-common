@@ -25,7 +25,6 @@ interface
 uses
   Classes,
   Commands,
-  ExtendedStream,
   Generics.Collections,
   Protocol,
   Sockets,
@@ -40,7 +39,7 @@ type
   TFileTransferInfo = class
   public
     Filename: string;
-    Stream: TExtendedStream;
+    Stream: TMemoryStream;
     Direction: TTransferDirection;
   end;
 

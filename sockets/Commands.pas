@@ -24,7 +24,7 @@ interface
 
 uses
   Classes,
-  ExtendedStream,
+  StreamHelper,
   Functions,
   Generics.Collections,
   Sockets,
@@ -68,8 +68,8 @@ type
   public
     constructor Create(Version, CommandLen: Cardinal; CommandType: TCommandTypes); overload;
 
-    class function Read(Stream: TExtendedStream; var CommandHeader: TCommandHeader): TReadRes;
-    procedure Write(Stream: TExtendedStream);
+    class function Read(Stream: TMemoryStream; var CommandHeader: TCommandHeader): TReadRes;
+    procedure Write(Stream: TMemoryStream);
 
     function Copy: TCommandHeader;
 
@@ -94,7 +94,7 @@ type
     // analog zum commandtype hier drüber sollte hier auch noch die version gemirrort werden.
     FStream: TStream;
 
-    procedure DoGet(S: TExtendedStream); virtual;
+    procedure DoGet(S: TMemoryStream); virtual;
     function FGetCmdLength: Cardinal; virtual;
   public
     constructor Create; virtual;
@@ -102,12 +102,12 @@ type
 
     class procedure RegisterCommand(CommandType: TCommandTypes; CommandClass: TCommandClass);
     class procedure UnregisterCommands;
-    class function Read(CommandHeader: TCommandHeader; Stream: TExtendedStream): TCommand;
-    procedure Load(CommandHeader: TCommandHeader; Stream: TExtendedStream); virtual;
+    class function Read(CommandHeader: TCommandHeader; Stream: TMemoryStream): TCommand;
+    procedure Load(CommandHeader: TCommandHeader; Stream: TMemoryStream); virtual;
 
     function Get: TBytes;
-    function Process(ToStream: TExtendedStream): Boolean; virtual;
-    procedure LoadStream(Stream: TExtendedStream);
+    function Process(ToStream: TMemoryStream): Boolean; virtual;
+    procedure LoadStream(Stream: TMemoryStream);
 
     property Version: Cardinal read FVersion;
     property CommandType: TCommandTypes read FCommandType;
@@ -136,7 +136,7 @@ begin
   FCommandType := CommandType;
 end;
 
-class function TCommandHeader.Read(Stream: TExtendedStream; var CommandHeader: TCommandHeader): TReadRes;
+class function TCommandHeader.Read(Stream: TMemoryStream; var CommandHeader: TCommandHeader): TReadRes;
 var
   T: Cardinal;
 begin
@@ -157,7 +157,7 @@ begin
   end;
 end;
 
-procedure TCommandHeader.Write(Stream: TExtendedStream);
+procedure TCommandHeader.Write(Stream: TMemoryStream);
 begin
   Stream.Write(FVersion);
   Stream.Write(Cardinal(FCommandType));
@@ -180,7 +180,7 @@ begin
   inherited;
 end;
 
-procedure TCommand.DoGet(S: TExtendedStream);
+procedure TCommand.DoGet(S: TMemoryStream);
 begin
 
 end;
@@ -192,9 +192,9 @@ end;
 
 function TCommand.Get: TBytes;
 var
-  S: TExtendedStream;
+  S: TMemoryStream;
 begin
-  S := TExtendedStream.Create;
+  S := TMemoryStream.Create;
   try
     DoGet(S);
 
@@ -206,21 +206,21 @@ begin
   end;
 end;
 
-procedure TCommand.Load(CommandHeader: TCommandHeader; Stream: TExtendedStream);
+procedure TCommand.Load(CommandHeader: TCommandHeader; Stream: TMemoryStream);
 begin
 
 end;
 
-procedure TCommand.LoadStream(Stream: TExtendedStream);
+procedure TCommand.LoadStream(Stream: TMemoryStream);
 var
-  DecompressedStream: TExtendedStream;
+  DecompressedStream: TMemoryStream;
 begin
   if FStream <> nil then
     FStream.Free;
 
   if Stream.Position < Stream.Size then
   begin
-    DecompressedStream := TExtendedStream.Create;
+    DecompressedStream := TMemoryStream.Create;
     TFunctions.DecompressStream(Stream, DecompressedStream);
     FStream := DecompressedStream;
 
@@ -228,12 +228,12 @@ begin
   end;
 end;
 
-function TCommand.Process(ToStream: TExtendedStream): Boolean;
+function TCommand.Process(ToStream: TMemoryStream): Boolean;
 begin
   Result := False;
 end;
 
-class function TCommand.Read(CommandHeader: TCommandHeader; Stream: TExtendedStream): TCommand;
+class function TCommand.Read(CommandHeader: TCommandHeader; Stream: TMemoryStream): TCommand;
 var
   i: Integer;
   Cmd: TCommand;

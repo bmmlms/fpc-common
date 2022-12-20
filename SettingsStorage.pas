@@ -25,13 +25,13 @@ interface
 uses
   Classes,
   CommandLine,
-  ExtendedStream,
   FileUtil,
   Functions,
   Generics.Collections,
   IniFiles,
   Registry,
   ShlObj,
+  StreamHelper,
   SysUtils;
 
 const
@@ -44,8 +44,8 @@ type
   private
     FName, FSection: string;
   public
-    procedure Save(Stream: TExtendedStream); virtual;
-    class function Load(Stream: TExtendedStream): TDataEntry;
+    procedure Save(Stream: TMemoryStream); virtual;
+    class function Load(Stream: TMemoryStream): TDataEntry;
 
     property Name: string read FName;
     property Section: string read FSection;
@@ -57,8 +57,8 @@ type
   public
     constructor Create(Name, Section: string; D: string);
 
-    procedure Save(Stream: TExtendedStream); override;
-    procedure Load(Stream: TExtendedStream);
+    procedure Save(Stream: TMemoryStream); override;
+    procedure Load(Stream: TMemoryStream);
     property Value: string read FValue;
   end;
 
@@ -68,8 +68,8 @@ type
   public
     constructor Create(Name, Section: string; D: Integer);
 
-    procedure Save(Stream: TExtendedStream); override;
-    procedure Load(Stream: TExtendedStream);
+    procedure Save(Stream: TMemoryStream); override;
+    procedure Load(Stream: TMemoryStream);
 
     property Value: Integer read FValue;
   end;
@@ -80,8 +80,8 @@ type
   public
     constructor Create(Name, Section: string; D: Boolean);
 
-    procedure Save(Stream: TExtendedStream); override;
-    procedure Load(Stream: TExtendedStream);
+    procedure Save(Stream: TMemoryStream); override;
+    procedure Load(Stream: TMemoryStream);
 
     property Value: Boolean read FValue;
   end;
@@ -90,8 +90,8 @@ type
   public
     destructor Destroy; override;
 
-    procedure Save(Stream: TExtendedStream);
-    class function Load(Stream: TExtendedStream): TSettingsList;
+    procedure Save(Stream: TMemoryStream);
+    class function Load(Stream: TMemoryStream): TSettingsList;
   end;
 
   TSettingsStorage = class
@@ -117,10 +117,10 @@ type
     procedure Write(Name: string; Value: string; Section: string = SETTINGS); overload; virtual; abstract;
     procedure Write(Name: string; Value: Integer; Section: string = SETTINGS); overload; virtual; abstract;
     procedure Write(Name: string; Value: Boolean; Section: string = SETTINGS); overload; virtual; abstract;
-    procedure Read(Name: string; var Value: string; Default: string; Section: string = SETTINGS); overload; virtual; abstract;
-    procedure Read(Name: string; var Value: Integer; Default: Integer; Section: string = SETTINGS); overload; virtual; abstract;
-    procedure Read(Name: string; var Value: Cardinal; Default: Cardinal; Section: string = SETTINGS); overload; virtual; abstract;
-    procedure Read(Name: string; var Value: Boolean; Default: Boolean; Section: string = SETTINGS); overload; virtual; abstract;
+    procedure Read(Name: string; out Value: string; Default: string; Section: string = SETTINGS); overload; virtual; abstract;
+    procedure Read(Name: string; out Value: Integer; Default: Integer; Section: string = SETTINGS); overload; virtual; abstract;
+    procedure Read(Name: string; out Value: Cardinal; Default: Cardinal; Section: string = SETTINGS); overload; virtual; abstract;
+    procedure Read(Name: string; out Value: Boolean; Default: Boolean; Section: string = SETTINGS); overload; virtual; abstract;
     function Delete(Name: string; Section: string = SETTINGS): Boolean; virtual; abstract;
     function DeleteKey(Section: string): Boolean; virtual; abstract;
     procedure GetValues(Section: string; var List: TStringList); virtual; abstract;
@@ -151,10 +151,10 @@ type
     procedure Write(Name: string; Value: string; Section: string = SETTINGS); overload; override;
     procedure Write(Name: string; Value: Integer; Section: string = SETTINGS); overload; override;
     procedure Write(Name: string; Value: Boolean; Section: string = SETTINGS); overload; override;
-    procedure Read(Name: string; var Value: string; Default: string; Section: string = SETTINGS); overload; override;
-    procedure Read(Name: string; var Value: Integer; Default: Integer; Section: string = SETTINGS); overload; override;
-    procedure Read(Name: string; var Value: Cardinal; Default: Cardinal; Section: string = SETTINGS); overload; override;
-    procedure Read(Name: string; var Value: Boolean; Default: Boolean; Section: string = SETTINGS); overload; override;
+    procedure Read(Name: string; out Value: string; Default: string; Section: string = SETTINGS); overload; override;
+    procedure Read(Name: string; out Value: Integer; Default: Integer; Section: string = SETTINGS); overload; override;
+    procedure Read(Name: string; out Value: Cardinal; Default: Cardinal; Section: string = SETTINGS); overload; override;
+    procedure Read(Name: string; out Value: Boolean; Default: Boolean; Section: string = SETTINGS); overload; override;
     function Delete(Name: string; Section: string = SETTINGS): Boolean; override;
     function DeleteKey(Section: string): Boolean; override;
     procedure GetValues(Section: string; var List: TStringList); override;
@@ -177,10 +177,10 @@ type
     procedure Write(Name: string; Value: string; Section: string = SETTINGS); overload; override;
     procedure Write(Name: string; Value: Integer; Section: string = SETTINGS); overload; override;
     procedure Write(Name: string; Value: Boolean; Section: string = SETTINGS); overload; override;
-    procedure Read(Name: string; var Value: string; Default: string; Section: string = SETTINGS); overload; override;
-    procedure Read(Name: string; var Value: Integer; Default: Integer; Section: string = SETTINGS); overload; override;
-    procedure Read(Name: string; var Value: Cardinal; Default: Cardinal; Section: string = SETTINGS); overload; override;
-    procedure Read(Name: string; var Value: Boolean; Default: Boolean; Section: string = SETTINGS); overload; override;
+    procedure Read(Name: string; out Value: string; Default: string; Section: string = SETTINGS); overload; override;
+    procedure Read(Name: string; out Value: Integer; Default: Integer; Section: string = SETTINGS); overload; override;
+    procedure Read(Name: string; out Value: Cardinal; Default: Cardinal; Section: string = SETTINGS); overload; override;
+    procedure Read(Name: string; out Value: Boolean; Default: Boolean; Section: string = SETTINGS); overload; override;
     function Delete(Name: string; Section: string = SETTINGS): Boolean; override;
     function DeleteKey(Section: string): Boolean; override;
     procedure GetValues(Section: string; var List: TStringList); override;
@@ -195,10 +195,10 @@ type
     procedure Write(Name: string; Value: string; Section: string = SETTINGS); overload; override;
     procedure Write(Name: string; Value: Integer; Section: string = SETTINGS); overload; override;
     procedure Write(Name: string; Value: Boolean; Section: string = SETTINGS); overload; override;
-    procedure Read(Name: string; var Value: string; Default: string; Section: string = SETTINGS); overload; override;
-    procedure Read(Name: string; var Value: Integer; Default: Integer; Section: string = SETTINGS); overload; override;
-    procedure Read(Name: string; var Value: Cardinal; Default: Cardinal; Section: string = SETTINGS); overload; override;
-    procedure Read(Name: string; var Value: Boolean; Default: Boolean; Section: string = SETTINGS); overload; override;
+    procedure Read(Name: string; out Value: string; Default: string; Section: string = SETTINGS); overload; override;
+    procedure Read(Name: string; out Value: Integer; Default: Integer; Section: string = SETTINGS); overload; override;
+    procedure Read(Name: string; out Value: Cardinal; Default: Cardinal; Section: string = SETTINGS); overload; override;
+    procedure Read(Name: string; out Value: Boolean; Default: Boolean; Section: string = SETTINGS); overload; override;
     function Delete(Name: string; Section: string = SETTINGS): Boolean; override;
     function DeleteKey(Section: string): Boolean; override;
     procedure GetValues(Section: string; var List: TStringList); override;
@@ -436,7 +436,7 @@ begin
   Result := CreatePath;
 end;
 
-procedure TSettingsInstalled.Read(Name: string; var Value: Boolean; Default: Boolean; Section: string);
+procedure TSettingsInstalled.Read(Name: string; out Value: Boolean; Default: Boolean; Section: string);
 var
   Reg: TRegistry;
 begin
@@ -457,7 +457,7 @@ begin
   end;
 end;
 
-procedure TSettingsInstalled.Read(Name: string; var Value: Cardinal; Default: Cardinal; Section: string);
+procedure TSettingsInstalled.Read(Name: string; out Value: Cardinal; Default: Cardinal; Section: string);
 var
   I: Integer;
 begin
@@ -465,7 +465,7 @@ begin
   Value := I;
 end;
 
-procedure TSettingsInstalled.Read(Name: string; var Value: Integer; Default: Integer; Section: string);
+procedure TSettingsInstalled.Read(Name: string; out Value: Integer; Default: Integer; Section: string);
 var
   Reg: TRegistry;
 begin
@@ -486,7 +486,7 @@ begin
   end;
 end;
 
-procedure TSettingsInstalled.Read(Name: string; var Value: string; Default, Section: string);
+procedure TSettingsInstalled.Read(Name: string; out Value: string; Default, Section: string);
 var
   Reg: TRegistry;
 begin
@@ -758,7 +758,7 @@ begin
   Result := CreatePath;
 end;
 
-procedure TSettingsPortable.Read(Name: string; var Value: Boolean; Default: Boolean; Section: string);
+procedure TSettingsPortable.Read(Name: string; out Value: Boolean; Default: Boolean; Section: string);
 var
   Ini: TIniFile;
 begin
@@ -778,7 +778,7 @@ begin
   end;
 end;
 
-procedure TSettingsPortable.Read(Name: string; var Value: Cardinal; Default: Cardinal; Section: string);
+procedure TSettingsPortable.Read(Name: string; out Value: Cardinal; Default: Cardinal; Section: string);
 var
   I: Integer;
 begin
@@ -786,7 +786,7 @@ begin
   Value := I;
 end;
 
-procedure TSettingsPortable.Read(Name: string; var Value: Integer; Default: Integer; Section: string);
+procedure TSettingsPortable.Read(Name: string; out Value: Integer; Default: Integer; Section: string);
 var
   Ini: TIniFile;
 begin
@@ -806,7 +806,7 @@ begin
   end;
 end;
 
-procedure TSettingsPortable.Read(Name: string; var Value: string; Default, Section: string);
+procedure TSettingsPortable.Read(Name: string; out Value: string; Default, Section: string);
 var
   Ini: TIniFile;
 begin
@@ -992,22 +992,22 @@ begin
   Result := True;
 end;
 
-procedure TSettingsDummy.Read(Name: string; var Value: Cardinal; Default: Cardinal; Section: string);
+procedure TSettingsDummy.Read(Name: string; out Value: Cardinal; Default: Cardinal; Section: string);
 begin
   Value := Default;
 end;
 
-procedure TSettingsDummy.Read(Name: string; var Value: Integer; Default: Integer; Section: string);
+procedure TSettingsDummy.Read(Name: string; out Value: Integer; Default: Integer; Section: string);
 begin
   Value := Default;
 end;
 
-procedure TSettingsDummy.Read(Name: string; var Value: string; Default, Section: string);
+procedure TSettingsDummy.Read(Name: string; out Value: string; Default, Section: string);
 begin
   Value := Default;
 end;
 
-procedure TSettingsDummy.Read(Name: string; var Value: Boolean; Default: Boolean; Section: string);
+procedure TSettingsDummy.Read(Name: string; out Value: Boolean; Default: Boolean; Section: string);
 begin
   Value := Default;
 end;
@@ -1029,7 +1029,7 @@ end;
 
 { TDataEntry }
 
-class function TDataEntry.Load(Stream: TExtendedStream): TDataEntry;
+class function TDataEntry.Load(Stream: TMemoryStream): TDataEntry;
 var
   T: Byte;
   Name, Section: string;
@@ -1059,7 +1059,7 @@ begin
   end;
 end;
 
-procedure TDataEntry.Save(Stream: TExtendedStream);
+procedure TDataEntry.Save(Stream: TMemoryStream);
 begin
   if Self is TDataString then
     Stream.Write(Byte(0))
@@ -1081,12 +1081,12 @@ begin
   Self.FValue := D;
 end;
 
-procedure TDataString.Load(Stream: TExtendedStream);
+procedure TDataString.Load(Stream: TMemoryStream);
 begin
   //  Stream.Read(FValue);
 end;
 
-procedure TDataString.Save(Stream: TExtendedStream);
+procedure TDataString.Save(Stream: TMemoryStream);
 begin
   inherited;
   Stream.Write(FValue);
@@ -1101,12 +1101,12 @@ begin
   Self.FValue := D;
 end;
 
-procedure TDataInteger.Load(Stream: TExtendedStream);
+procedure TDataInteger.Load(Stream: TMemoryStream);
 begin
   Stream.Read(FValue);
 end;
 
-procedure TDataInteger.Save(Stream: TExtendedStream);
+procedure TDataInteger.Save(Stream: TMemoryStream);
 begin
   inherited;
   Stream.Write(FValue);
@@ -1121,12 +1121,12 @@ begin
   Self.FValue := D;
 end;
 
-procedure TDataBoolean.Load(Stream: TExtendedStream);
+procedure TDataBoolean.Load(Stream: TMemoryStream);
 begin
   Stream.Read(FValue);
 end;
 
-procedure TDataBoolean.Save(Stream: TExtendedStream);
+procedure TDataBoolean.Save(Stream: TMemoryStream);
 begin
   inherited;
   Stream.Write(FValue);
@@ -1143,7 +1143,7 @@ begin
   inherited;
 end;
 
-class function TSettingsList.Load(Stream: TExtendedStream): TSettingsList;
+class function TSettingsList.Load(Stream: TMemoryStream): TSettingsList;
 var
   i, C: Integer;
 begin
@@ -1153,7 +1153,7 @@ begin
     Result.Add(TDataEntry.Load(Stream));
 end;
 
-procedure TSettingsList.Save(Stream: TExtendedStream);
+procedure TSettingsList.Save(Stream: TMemoryStream);
 var
   i: Integer;
 begin

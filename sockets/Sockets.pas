@@ -24,9 +24,9 @@ interface
 
 uses
   Classes,
-  ExtendedStream,
   Generics.Collections,
   Logging,
+  StreamHelper,
   mbedTLS,
   SyncObjs,
   SysUtils,
@@ -57,13 +57,13 @@ type
   ESSLException = class(Exception)
   end;
 
-  TSocketStream = class(TExtendedStream)
+  TSocketStream = class(TMemoryStream)
   private
     FDebugMsg, FDebugData: string;
     FLogLevel: TSocketLogLevel;
     FOnLog: TNotifyEvent;
   protected
-    function FGetRecvDataStream: TExtendedStream; virtual;
+    function FGetRecvDataStream: TMemoryStream; virtual;
     procedure WriteLog(Text, Data: string; Level: TSocketLogLevel); overload;
     procedure WriteLog(Text: string; Level: TSocketLogLevel); overload;
   protected
@@ -72,7 +72,7 @@ type
 
     procedure Disconnected; virtual;
 
-    property RecvStream: TExtendedStream read FGetRecvDataStream;
+    property RecvStream: TMemoryStream read FGetRecvDataStream;
 
     property DebugMsg: string read FDebugMsg;
     property DebugData: string read FDebugData;
@@ -106,7 +106,7 @@ type
   TSocketThread = class(TSocketBaseThread)
   private
   class var
-    FCertChain: mbedtls_x509_crt;
+    FCertChain: mbedtls_shared;
   private
     FSocketHandle: TSocket;
     FHost: string;
@@ -132,7 +132,7 @@ type
     function HostToAddress(Host: string): u_long;
   protected
     FRecvStream: TSocketStream;
-    FSendStream: TExtendedStream;
+    FSendStream: TMemoryStream;
     FSendLock: SyncObjs.TCriticalSection;
     FDataTimeout: Cardinal;
     FLastTimeReceived, FLastTimeSent: UInt64;
@@ -187,7 +187,7 @@ type
     property Error: Boolean read FError write FError;
 
     property SendLock: SyncObjs.TCriticalSection read FSendLock;
-    property SendStream: TExtendedStream read FSendStream;
+    property SendStream: TMemoryStream read FSendStream;
 
     property OnLog: TSocketEvent read FOnLog write FOnLog;
     property OnConnected: TSocketEvent read FOnConnected write FOnConnected;
@@ -324,7 +324,7 @@ begin
   FSocketHandle := SocketHandle;
   FRecvStream := Stream;
   FRecvStream.OnLog := StreamLog;
-  FSendStream := TExtendedStream.Create;
+  FSendStream := TMemoryStream.Create;
   FSendLock := SyncObjs.TCriticalSection.Create;
   FUseSynchronize := False;
 
@@ -348,7 +348,7 @@ begin
   FReceived := 0;
   FRecvStream := Stream;
   FRecvStream.OnLog := StreamLog;
-  FSendStream := TExtendedStream.Create;
+  FSendStream := TMemoryStream.Create;
   FSendLock := SyncObjs.TCriticalSection.Create;
   FUseSynchronize := False;
   FSecure := Secure;
@@ -474,10 +474,10 @@ var
   Ticks, StartTime: UInt64;
   HostAddress, NonBlock: u_long;
 
-  ssl: mbedtls_ssl_context;
-  conf: mbedtls_ssl_config;
-  entropy: mbedtls_entropy_context;
-  ctr_drbg: mbedtls_ctr_drbg_context;
+  ssl: mbedtls_shared;
+  conf: mbedtls_shared;
+  entropy: mbedtls_shared;
+  ctr_drbg: mbedtls_shared;
 begin
   if FSecure then
   begin
@@ -564,6 +564,7 @@ begin
         Res := mbedtls_ssl_handshake(@ssl);
         while Res <> 0 do
         begin
+          // TODO: mal zu nem server verbinden der direkt die verbindung zumacht. was kommt dann für ein result? damit man passig connection closed ins log machen kann.
           if (Res <> -MBEDTLS_ERR_SSL_WANT_READ) and (Res <> -MBEDTLS_ERR_SSL_WANT_WRITE) and (Res <> -MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS) then
             if Res = -MBEDTLS_ERR_SSL_TIMEOUT then
               raise Exception.Create('TLS handshake timed out')
@@ -945,7 +946,7 @@ begin
   WriteLog(Text, '', Level);
 end;
 
-function TSocketStream.FGetRecvDataStream: TExtendedStream;
+function TSocketStream.FGetRecvDataStream: TMemoryStream;
 begin
   Result := Self;
 end;
