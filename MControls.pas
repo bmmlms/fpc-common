@@ -684,7 +684,7 @@ end;
 procedure TComboBoxExEditable.AlignEdit(var Msg: TMessage);
 var
   EditHandle: THandle;
-  EditRect, EditTextRect, Rect: TRect;
+  EditTextRect: TRect;
 begin
   EditHandle := FindWindowEx(Handle, 0, 'Edit', nil);
 

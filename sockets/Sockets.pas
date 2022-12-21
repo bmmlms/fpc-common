@@ -272,13 +272,9 @@ end;
 class function TSocketBaseThread.NetRecvTimeout(ctx: Pointer; buf: Pointer; len: size_t; timeout: uint32_t): Integer; cdecl;
 var
   Socket: TSocket absolute ctx;
-  TimeoutVal: TimeVal;
   ReadFds: TFdSet;
   Res: Integer;
 begin
-  TimeoutVal.tv_sec := Trunc(timeout / 1000);
-  TimeoutVal.tv_usec := (timeout div 1000) * 1000;
-
   FD_ZERO(ReadFds);
   FD_SET(Socket, ReadFds);
   Res := select(0, @readfds, nil, nil, @timeout);

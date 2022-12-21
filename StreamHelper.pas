@@ -35,8 +35,8 @@ type
   TCustomMemoryStreamHelper = class helper for TCustomMemoryStream
   public
     function PosInStream(const Search: AnsiString; const FromOffset: Int64): Integer;
-    function ToString: AnsiString; reintroduce; overload; // TODO: muss reintroduce?
-    function ToString(const FromOffset, Count: Int64): AnsiString; reintroduce; overload;
+    function ToString: AnsiString; overload;
+    function ToString(const FromOffset, Count: Int64): AnsiString; overload;
   end;
 
   { TMemoryStreamHelper }

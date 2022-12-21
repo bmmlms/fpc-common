@@ -330,7 +330,7 @@ begin
   FThread.OnCommandReceived := ThreadCommandReceived;
   FThread.OnEnded := ThreadEnded;
   FThread.UseSynchronize := True;
-  FThread.Resume;
+  FThread.Start;
 end;
 
 procedure TCommandClient.Stop;

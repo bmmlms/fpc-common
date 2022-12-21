@@ -452,7 +452,7 @@ var
   LastNL, NL: Integer;
   PriLang, LangID, Line: string;
   i, j, n: Integer;
-  LangFound, AlreadyExists: Boolean;
+  LangFound: Boolean;
   Entry: TEntry;
   Occurence: TOccurence;
   BOM: array[0..1] of Byte;
@@ -660,7 +660,7 @@ end;
 
 procedure TProject.FSetChanged(Value: Boolean);
 begin
-  FChanged := True;
+  FChanged := Value;
   if Assigned(FOnChanged) then
     FOnChanged(Self);
 end;
@@ -700,7 +700,7 @@ procedure TProject.Save(Stream: TMemoryStream; SaveMeta: Boolean);
   var
     Len: Integer;
     //    {$IF CompilerVersion < 18.5}
-    P: Pointer;
+    //    P: Pointer;
     //    {$IFEND}
   begin
     s := s + #13#10;
@@ -1132,8 +1132,6 @@ begin
 end;
 
 constructor TLanguageManager.Create;
-type
-  TGetUserDefaultUILanguage = function: LANGID; stdcall;
 var
   i: Integer;
   Res: TResourceStream;

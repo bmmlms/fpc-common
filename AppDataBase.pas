@@ -121,7 +121,7 @@ type
     procedure DoSave; virtual;
     procedure NotifyRunningInstance(Handle: Cardinal); virtual;
   public
-    constructor Create(AppName: String; OnlyOne: Boolean; DefWidth, DefHeight: Integer; License: TLicense); reintroduce;
+    constructor Create(AppName: String; OnlyOne: Boolean; DefWidth, DefHeight: Integer; License: TLicense);
     destructor Destroy; override;
     procedure Load; virtual;
     procedure Save(Handle: Cardinal = 0);
@@ -185,6 +185,8 @@ implementation
 
 constructor TAppDataBase.Create(AppName: string; OnlyOne: Boolean; DefWidth, DefHeight: Integer; License: TLicense);
 begin
+  inherited Create;
+
   FMainWidthDefault := DefWidth;
   FMainHeightDefault := DefHeight;
   FSkipSave := False;

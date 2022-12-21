@@ -41,7 +41,7 @@ type
     procedure DoReceivedData(Buf: Pointer; Len: Integer); override;
     procedure DoEnded; override;
   public
-    constructor Create(URL: string); reintroduce;
+    constructor Create(URL: string);
   end;
 
   TDownloadClient = class

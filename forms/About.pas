@@ -244,7 +244,7 @@ end;
 
 constructor TScrollText.Create(AOwner: TComponent);
 var
-  i: Integer;
+  i: Integer = 0;
   ResStream: TResourceStream;
   Image: TJPEGImage;
   Bmp: Graphics.TBitmap;
@@ -256,31 +256,26 @@ begin
   FText := TStringList.Create;
   SetLength(FBmps, 0);
 
-  i := 0;
-  while True do
+  while FindResource(HInstance, PChar('THANKSIMAGE' + IntToStr(i)), RT_RCDATA) <> 0 do
   begin
+    ResStream := TResourceStream.Create(HInstance, 'THANKSIMAGE' + IntToStr(i), RT_RCDATA);
     try
-      ResStream := TResourceStream.Create(HInstance, 'THANKSIMAGE' + IntToStr(i), RT_RCDATA);
+      Image := TJPEGImage.Create;
       try
-        Image := TJPEGImage.Create;
-        try
-          Image.LoadFromStream(ResStream);
+        Image.LoadFromStream(ResStream);
 
-          Bmp := Graphics.TBitmap.Create;
-          Bmp.Width := Image.Width;
-          Bmp.Height := Image.Height;
-          Bmp.Canvas.Draw(0, 0, Image);
+        Bmp := Graphics.TBitmap.Create;
+        Bmp.Width := Image.Width;
+        Bmp.Height := Image.Height;
+        Bmp.Canvas.Draw(0, 0, Image);
 
-          SetLength(FBmps, Length(FBmps) + 1);
-          FBmps[Length(FBmps) - 1] := Bmp;
-        finally
-          Image.Free;
-        end;
+        SetLength(FBmps, Length(FBmps) + 1);
+        FBmps[Length(FBmps) - 1] := Bmp;
       finally
-        ResStream.Free;
+        Image.Free;
       end;
-    except
-      Break;
+    finally
+      ResStream.Free;
     end;
     Inc(i);
   end;
