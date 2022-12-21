@@ -32,7 +32,8 @@ uses
   Graphics,
   ImgList,
   LanguageObjects,
-  SysUtils;
+  SysUtils,
+  Windows;
 
 type
   TLanguageIcon = class
@@ -60,16 +61,17 @@ implementation
 
 constructor TLanguageIcons.Create;
 var
-  i, Idx: Integer;
+  i: Integer;
 begin
-  FList := TCustomImageList.Create(nil);
+  FList := TCustomImageList.CreateSize(16, 11);
   FLanguageIcons := TList.Create;
   for i := 0 to LanguageList.Count - 1 do
-    try
-      Idx := FList.AddResourceName(HINSTANCE, 'FLAG_%s'.Format([LanguageList[i].ID]));
-      FLanguageIcons.Add(TLanguageIcon.Create(LanguageList[i].ID, Idx));
-    except
-    end;
+  begin
+    if FindResource(HINSTANCE, PChar('FLAG_%s'.Format([LanguageList[i].ID])), RT_RCDATA) = 0 then
+      Continue;
+
+    FLanguageIcons.Add(TLanguageIcon.Create(LanguageList[i].ID, FList.AddResourceName(HINSTANCE, 'FLAG_%s'.Format([LanguageList[i].ID]))));
+  end;
 end;
 
 destructor TLanguageIcons.Destroy;
