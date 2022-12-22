@@ -67,14 +67,16 @@ type
   { TfrmAbout }
 
   TfrmAbout = class(TForm)
-    btnDonateDe: TImage;
-    btnDonateEn: TImage;
+    btnDonateLocalized: TImage;
+    btnDonate: TImage;
     lblAbout: TLabel;
     lblCopyright: TLabel;
     lblHomepage: TLabel;
     lblVersion: TLabel;
     pagAbout: TPageControl;
     Panel1: TPanel;
+    Panel2: TPanel;
+    Panel3: TPanel;
     pbLogo: TPaintBox;
     tabAbout: TTabSheet;
     tabLicense: TTabSheet;
@@ -84,17 +86,18 @@ type
     btnClose: TBitBtn;
     lblGPL: TLabel;
     tabThanks: TTabSheet;
+    procedure btnDonateMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+    procedure btnDonateMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure lblGPLClick(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);
     procedure lblHomepageClick(Sender: TObject);
-    procedure btnDonateClick(Sender: TObject);
     procedure pagAboutChange(Sender: TObject);
-    procedure FormResize(Sender: TObject);
     procedure pbLogoPaint(Sender: TObject);
     procedure pnlNavClick(Sender: TObject);
   private
     FScrollText: TScrollText;
+    function PointInImagePicture(const X, Y: Integer; const Img: TImage): Boolean;
   public
     constructor Create(AOwner: TComponent; Caption: string); reintroduce;
   end;
@@ -108,12 +111,9 @@ begin
   Close;
 end;
 
-procedure TfrmAbout.btnDonateClick(Sender: TObject);
-begin
-  ShellExecuteW(0, 'open', PWideChar(UnicodeString(AppGlobals.ProjectDonateLink)), '', '', 1);
-end;
-
 constructor TfrmAbout.Create(AOwner: TComponent; Caption: string);
+var
+  DonateButtonImage: TPicture;
 begin
   inherited Create(AOwner);
 
@@ -169,10 +169,22 @@ begin
   }
 
   if AppGlobals.ProjectDonateLink <> '' then
-    if Language.CurrentLanguage.ID = 'de' then
-      btnDonateDe.Visible := True
-    else
-      btnDonateEn.Visible := True;
+  begin
+    DonateButtonImage := TPicture.Create;
+    try
+      if Language.CurrentLanguage.ID = 'de' then
+        DonateButtonImage.LoadFromResourceName(HINSTANCE, 'DONATE_DE')
+      else
+        DonateButtonImage.LoadFromResourceName(HINSTANCE, 'DONATE_EN');
+
+      btnDonateLocalized.Picture := DonateButtonImage;
+    finally
+      DonateButtonImage.Free;
+    end;
+
+    btnDonate.Visible := True;
+    btnDonateLocalized.Visible := True;
+  end;
 
   if AppGlobals.ProjectThanksText <> '' then
   begin
@@ -195,10 +207,22 @@ begin
   end;
 end;
 
-procedure TfrmAbout.FormResize(Sender: TObject);
+procedure TfrmAbout.btnDonateMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+var
+  Img: TImage absolute Sender;
 begin
-  btnDonateDe.Left := tabAbout.ClientWidth div 2 - btnDonateDe.Width div 2;
-  btnDonateEn.Left := tabAbout.ClientWidth div 2 - btnDonateEn.Width div 2;
+  if PointInImagePicture(X, Y, Img) then
+    Img.Cursor := crHandPoint
+  else
+    Img.Cursor := crArrow;
+end;
+
+procedure TfrmAbout.btnDonateMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  Img: TImage absolute Sender;
+begin
+  if PointInImagePicture(X, Y, Img) then
+    ShellExecuteW(0, 'open', PWideChar(UnicodeString(AppGlobals.ProjectDonateLink)), '', '', 1);
 end;
 
 procedure TfrmAbout.pbLogoPaint(Sender: TObject);
@@ -240,6 +264,11 @@ begin
 
 end;
 
+function TfrmAbout.PointInImagePicture(const X, Y: Integer; const Img: TImage): Boolean;
+begin
+  Result := (X + 5 > Img.ClientWidth / 2 - Img.Picture.Width / 2) and (X - 5 < Img.ClientWidth / 2 + Img.Picture.Width / 2);
+end;
+
 { TScrollText }
 
 constructor TScrollText.Create(AOwner: TComponent);
@@ -256,7 +285,7 @@ begin
   FText := TStringList.Create;
   SetLength(FBmps, 0);
 
-  while FindResource(HInstance, PChar('THANKSIMAGE' + IntToStr(i)), RT_RCDATA) <> 0 do
+  while FindResource(HINSTANCE, PChar('THANKSIMAGE' + IntToStr(i)), RT_RCDATA) <> 0 do
   begin
     ResStream := TResourceStream.Create(HInstance, 'THANKSIMAGE' + IntToStr(i), RT_RCDATA);
     try
