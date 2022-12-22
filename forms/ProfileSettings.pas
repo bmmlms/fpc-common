@@ -41,20 +41,25 @@ uses
   Windows;
 
 type
+
+  { TfrmProfileSettings }
+
   TfrmProfileSettings = class(TForm)
+    btnCopy: TButton;
+    btnCopy2: TButton;
+    btnDelete: TButton;
+    btnDelete2: TButton;
+    btnOk: TBitBtn;
+    Panel1: TPanel;
+    Panel2: TPanel;
     pnlNav: TPanel;
     Bevel2: TBevel;
-    btnOk: TBitBtn;
     pnlHeader: TPanel;
     Shape1: TShape;
     lblTop: TLabel;
     lblProfiles: TLabel;
     rbInstalled: TRadioButton;
     rbPortable: TRadioButton;
-    btnDelete: TButton;
-    btnDelete2: TButton;
-    btnCopy: TButton;
-    btnCopy2: TButton;
     procedure btnOkClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
