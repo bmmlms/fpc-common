@@ -32,13 +32,14 @@ uses
   Registry,
   ShlObj,
   StreamHelper,
+  StrUtils,
   SysUtils;
 
 const
   SETTINGS = 'Settings';
 
 type
-  TDataType = (dtUnknown, dtString, dtInteger, dtBoolean);
+  TDataType = (dtString, dtInteger, dtBoolean);
 
   TDataEntry = class
   private
@@ -72,18 +73,6 @@ type
     procedure Load(Stream: TMemoryStream);
 
     property Value: Integer read FValue;
-  end;
-
-  TDataBoolean = class(TDataEntry)
-  private
-    FValue: Boolean;
-  public
-    constructor Create(Name, Section: string; D: Boolean);
-
-    procedure Save(Stream: TMemoryStream); override;
-    procedure Load(Stream: TMemoryStream);
-
-    property Value: Boolean read FValue;
   end;
 
   TSettingsList = class(TList<TDataEntry>)
@@ -218,7 +207,6 @@ begin
   Result := False;
   Reg := TRegistry.Create;
   try
-    Reg.RootKey := HKEY_CURRENT_USER;
     if Reg.OpenKey(GetRegPath(AppName), False) then
     begin
       Result := True;
@@ -254,8 +242,7 @@ begin
   Result := False;
   Reg := TRegistry.Create;
   try
-    Reg.RootKey := HKEY_CURRENT_USER;
-    if Reg.OpenKey(FRegPath + Section, False) then
+    if Reg.OpenKey(ConcatPaths([FRegPath, Section]), False) then
       Result := Reg.DeleteValue(Name);
     Reg.CloseKey;
   finally
@@ -279,6 +266,33 @@ begin
 end;
 
 function TSettingsInstalled.DeleteProfile: Boolean;
+
+  function DeleteRecursive(const Reg: TRegistry; const Key: UnicodeString): Boolean;
+  var
+    CurrentPath, Name: UnicodeString;
+  begin
+    CurrentPath := '\' + Reg.CurrentPath;
+
+    if not Reg.OpenKey(ConcatPaths([CurrentPath, Key]), False) then
+      Exit(False);
+
+    for Name in Reg.GetKeyNames do
+      if not DeleteRecursive(Reg, Name) then
+        Exit(False);
+
+    for Name in Reg.GetValueNames do
+      if not Reg.DeleteValue(Name) then
+        Exit(False);
+
+    if not Reg.OpenKey(CurrentPath, False) then
+      Exit(False);
+
+    if not Reg.DeleteKey(Key) then
+      Exit(False);
+
+    Exit(True);
+  end;
+
 var
   Reg: TRegistry;
   Files: TStringList;
@@ -287,29 +301,30 @@ var
 begin
   inherited;
   Result := True;
+
   Reg := TRegistry.Create;
   try
-    RegPath := Copy(FRegPath, 1, Length(FRegPath) - 1);
-    P := TFunctions.RPos('\', RegPath);
-    if P > -1 then
+    P := RPos('\', FRegPath);
+    if P > 0 then
     begin
-      RegPath := Copy(RegPath, 1, P);
+      RegPath := Copy(FRegPath, 1, P);
       if not Reg.OpenKey(RegPath, False) then
-        Result := False;
-      Reg.DeleteKey(FAppName);
-    end;
-
-    Files := TStringList.Create;
-    try
-      TFunctions.FindFiles(ConcatPaths([FDataDir, FAppName + '_*']), Files);
-      for i := 0 to Files.Count - 1 do
-        if not DeleteFile(ConcatPaths([FDataDir, Files[i]])) then
-          Result := False;
-    finally
-      Files.Free;
+        Result := False
+      else
+        Result := DeleteRecursive(Reg, FAppName);
     end;
   finally
     Reg.Free;
+  end;
+
+  Files := TStringList.Create;
+  try
+    TFunctions.FindFiles(ConcatPaths([FDataDir, FAppName + '_*']), Files);
+    for i := 0 to Files.Count - 1 do
+      if not DeleteFile(ConcatPaths([FDataDir, Files[i]])) then
+        Result := False;
+  finally
+    Files.Free;
   end;
 end;
 
@@ -318,16 +333,8 @@ var
   Sections: TStringList;
   Values: TStringList;
   Reg: TRegistry;
-  SV: string;
-  IV: Integer;
-  BV: Boolean;
   i, n: Integer;
-  DT: TDataType;
-  SkipKey: Boolean;
 begin
-  SV := '';
-  IV := 0;
-  BV := False;
   Reg := TRegistry.Create;
   Sections := TStringList.Create;
   Values := TStringList.Create;
@@ -337,52 +344,22 @@ begin
 
     Reg.GetKeyNames(Sections);
     for i := 0 to Sections.Count - 1 do
-      GetDataInternal(Path + Sections[i] + '\', Lst, TruncLen);
+      GetDataInternal(ConcatPaths([Path, Sections[i]]), Lst, TruncLen);
 
     Reg.GetValueNames(Values);
 
     for n := 0 to Values.Count - 1 do
     begin
-      SkipKey := False;
-      for i := 0 to FIgnoreFields.Count - 1 do
-        if LowerCase(FIgnoreFields[i]) = LowerCase(Values[n]) then
-        begin
-          SkipKey := True;
-          Break;
-        end;
-
-      if SkipKey then
+      if FIgnoreFields.IndexOf(Values[n]) > -1 then
         Continue;
 
-      DT := dtString;
-      // SV := Reg.GetDataAsString(Values[n], False);
-      if SV <> '' then
-      begin
-        try
-          IV := StrToInt(SV);
-          DT := dtInteger;
-        except
-
-        end;
-
-        if DT = dtUnknown then
-          try
-            BV := StrToBool(SV);
-            DT := dtBoolean;
-          except
-
-          end;
-
-        case DT of
-          dtUnknown:
-            raise Exception.Create('Unknown data type');
-          dtString:
-            Lst.Add(TDataString.Create(Values[n], Copy(Path, TruncLen + 1, Length(Path) - TruncLen - 1), SV));
-          dtInteger:
-            Lst.Add(TDataInteger.Create(Values[n], Copy(Path, TruncLen + 1, Length(Path) - TruncLen - 1), IV));
-          dtBoolean:
-            Lst.Add(TDataBoolean.Create(Values[n], Copy(Path, TruncLen + 1, Length(Path) - TruncLen - 1), BV));
-        end;
+      case Reg.GetDataType(Values[n]) of
+        rdString:
+          Lst.Add(TDataString.Create(Values[n], Path.Substring(TruncLen).TrimLeft('\'), Reg.ReadString(Values[n])));
+        rdInteger:
+          Lst.Add(TDataInteger.Create(Values[n], Path.Substring(TruncLen).TrimLeft('\'), Reg.ReadInteger(Values[n])));
+        else
+          raise Exception.Create('Unknown data type');
       end;
     end;
   finally
@@ -407,7 +384,7 @@ end;
 
 class function TSettingsInstalled.GetRegPath(AppName: string): string;
 begin
-  Result := '\Software\mistake.ws\' + AppName + '\';
+  Result := '\Software\mistake.ws\' + AppName;
 end;
 
 procedure TSettingsInstalled.GetValues(Section: string; var List: TStringList);
@@ -417,8 +394,7 @@ begin
   List.Clear;
   Reg := TRegistry.Create;
   try
-    Reg.RootKey := HKEY_CURRENT_USER;
-    if Reg.OpenKey(FRegPath + Section, False) then
+    if Reg.OpenKey(ConcatPaths([FRegPath, Section]), False) then
     begin
       try
         Reg.GetValueNames(List);
@@ -443,8 +419,7 @@ begin
   Value := Default;
   Reg := TRegistry.Create;
   try
-    Reg.RootKey := HKEY_CURRENT_USER;
-    if Reg.OpenKey(FRegPath + Section, False) then
+    if Reg.OpenKey(ConcatPaths([FRegPath, Section]), False) then
     begin
       try
         Value := Reg.ReadBool(Name);
@@ -472,8 +447,7 @@ begin
   Value := Default;
   Reg := TRegistry.Create;
   try
-    Reg.RootKey := HKEY_CURRENT_USER;
-    if Reg.OpenKey(FRegPath + Section, False) then
+    if Reg.OpenKey(ConcatPaths([FRegPath, Section]), False) then
     begin
       try
         Value := Reg.ReadInteger(Name);
@@ -493,8 +467,7 @@ begin
   Value := Default;
   Reg := TRegistry.Create;
   try
-    Reg.RootKey := HKEY_CURRENT_USER;
-    if Reg.OpenKey(FRegPath + Section, False) then
+    if Reg.OpenKey(ConcatPaths([FRegPath, Section]), False) then
     begin
       try
         if Reg.ValueExists(Name) then
@@ -514,8 +487,7 @@ var
 begin
   Reg := TRegistry.Create;
   try
-    Reg.RootKey := HKEY_CURRENT_USER;
-    if Reg.OpenKey(FRegPath + Section, True) then
+    if Reg.OpenKey(ConcatPaths([FRegPath, Section]), True) then
     begin
       Reg.WriteString(Name, Value);
       Reg.CloseKey;
@@ -531,8 +503,7 @@ var
 begin
   Reg := TRegistry.Create;
   try
-    Reg.RootKey := HKEY_CURRENT_USER;
-    if Reg.OpenKey(FRegPath + Section, True) then
+    if Reg.OpenKey(ConcatPaths([FRegPath, Section]), True) then
     begin
       Reg.WriteInteger(Name, Value);
       Reg.CloseKey;
@@ -548,8 +519,7 @@ var
 begin
   Reg := TRegistry.Create;
   try
-    Reg.RootKey := HKEY_CURRENT_USER;
-    if Reg.OpenKey(FRegPath + Section, True) then
+    if Reg.OpenKey(ConcatPaths([FRegPath, Section]), True) then
     begin
       Reg.WriteBool(Name, Value);
       Reg.CloseKey;
@@ -644,16 +614,11 @@ var
   Sections: TStringList;
   Values: TStringList;
   Ini: TIniFile;
-  SV: string;
-  IV: Integer;
-  BV: Boolean;
-  i, n, P, m: Integer;
+  SV: string = '';
+  IV: Integer = 0;
+  i, n: Integer;
   DT: TDataType;
-  SkipKey: Boolean;
 begin
-  SV := '';
-  IV := 0;
-  BV := False;
   Lst.Clear;
   try
     Ini := TIniFile.Create(FIniFile);
@@ -668,55 +633,30 @@ begin
 
     for i := 0 to Sections.Count - 1 do
     begin
-      Ini.ReadSectionValues(Sections[i], Values);
+      Ini.ReadSection(Sections[i], Values);
 
       for n := 0 to Values.Count - 1 do
       begin
-        P := Pos('=', Values[n]);
-        if P > 0 then
+        if FIgnoreFields.IndexOf(Values[n]) > -1 then
+          Continue;
+
+        SV := Ini.ReadString(Sections[i], Values[n], '');
+        DT := dtString;
+        if SV <> '' then
         begin
-          Values[n] := Copy(Values[n], 1, P - 1);
+          try
+            IV := SV.ToInteger;
+            DT := dtInteger;
+          except
+          end;
 
-          SkipKey := False;
-          for m := 0 to FIgnoreFields.Count - 1 do
-            if LowerCase(FIgnoreFields[m]) = LowerCase(Values[n]) then
-            begin
-              SkipKey := True;
-              Break;
-            end;
-
-          if SkipKey then
-            Continue;
-
-          SV := Ini.ReadString(Sections[i], Values[n], '');
-          DT := dtString;
-          if SV <> '' then
-          begin
-            try
-              IV := StrToInt(SV);
-              DT := dtInteger;
-            except
-
-            end;
-
-            if DT = dtUnknown then
-              try
-                BV := StrToBool(SV);
-                DT := dtBoolean;
-              except
-
-              end;
-
-            case DT of
-              dtUnknown:
-                raise Exception.Create('Unknown data type');
-              dtString:
-                Lst.Add(TDataString.Create(Values[n], Sections[i], SV));
-              dtInteger:
-                Lst.Add(TDataInteger.Create(Values[n], Sections[i], IV));
-              dtBoolean:
-                Lst.Add(TDataBoolean.Create(Values[n], Sections[i], BV));
-            end;
+          case DT of
+            dtString:
+              Lst.Add(TDataString.Create(Values[n], Sections[i], SV));
+            dtInteger:
+              Lst.Add(TDataInteger.Create(Values[n], Sections[i], IV));
+            else
+              raise Exception.Create('Unknown data type');
           end;
         end;
       end;
@@ -907,14 +847,12 @@ var
   i: Integer;
 begin
   for i := 0 to AssignFrom.Count - 1 do
-  begin
     if AssignFrom[i] is TDataString then
-      Write(TDataString(AssignFrom[i]).Name, TDataString(AssignFrom[i]).Value, TDataString(AssignFrom[i]).Section);
-    if AssignFrom[i] is TDataInteger then
-      Write(TDataInteger(AssignFrom[i]).Name, TDataInteger(AssignFrom[i]).Value, TDataInteger(AssignFrom[i]).Section);
-    if AssignFrom[i] is TDataBoolean then
-      Write(TDataBoolean(AssignFrom[i]).Name, TDataBoolean(AssignFrom[i]).Value, TDataBoolean(AssignFrom[i]).Section);
-  end;
+      Write(TDataString(AssignFrom[i]).Name, TDataString(AssignFrom[i]).Value, TDataString(AssignFrom[i]).Section)
+    else if AssignFrom[i] is TDataInteger then
+      Write(TDataInteger(AssignFrom[i]).Name, TDataInteger(AssignFrom[i]).Value, TDataInteger(AssignFrom[i]).Section)
+    else
+      raise Exception.Create('Unknown data type');
 end;
 
 constructor TSettingsStorage.Create(AppName, AppPath: string; CommandLine: TCommandLine);
@@ -951,10 +889,7 @@ end;
 function TSettingsStorage.GetFilePath(Filename: string): string;
 begin
   if FDataDir = '' then
-  begin
-    Result := '';
-    Exit;
-  end;
+    Exit('');
 
   Result := ConcatPaths([FDataDir, LowerCase(FAppName) + '_' + Filename]);
 end;
@@ -1031,42 +966,42 @@ end;
 
 class function TDataEntry.Load(Stream: TMemoryStream): TDataEntry;
 var
-  T: Byte;
+  T: TDataType;
   Name, Section: string;
 begin
-  Stream.Read(T);
-  //  Stream.Read(Name);
-  //  Stream.Read(Section);
+  T := TDataType(Stream.ReadByte);
+  Stream.Read(Name);
+  Stream.Read(Section);
 
   case T of
-    0:
+    dtString:
     begin
       Result := TDataString.Create(Name, Section, '');
       TDataString(Result).Load(Stream);
     end;
-    1:
+    dtInteger:
     begin
       Result := TDataInteger.Create(Name, Section, 0);
       TDataInteger(Result).Load(Stream);
     end;
-    2:
+    dtBoolean:
     begin
-      Result := TDataBoolean.Create(Name, Section, False);
-      TDataBoolean(Result).Load(Stream);
+      Result := TDataInteger.Create(Name, Section, 0);
+      TDataInteger(Result).Load(Stream);
     end;
     else
-      raise Exception.Create('Unknown TDataEntry Type');
+      raise Exception.Create('Unknown data type');
   end;
 end;
 
 procedure TDataEntry.Save(Stream: TMemoryStream);
 begin
   if Self is TDataString then
-    Stream.Write(Byte(0))
+    Stream.Write(Byte(dtString))
   else if Self is TDataInteger then
-    Stream.Write(Byte(1))
-  else if Self is TDataBoolean then
-    Stream.Write(Byte(2));
+    Stream.Write(Byte(dtInteger))
+  else
+    raise Exception.Create('Unknown data type');
 
   Stream.Write(FName);
   Stream.Write(FSection);
@@ -1083,7 +1018,7 @@ end;
 
 procedure TDataString.Load(Stream: TMemoryStream);
 begin
-  //  Stream.Read(FValue);
+  Stream.Read(FValue);
 end;
 
 procedure TDataString.Save(Stream: TMemoryStream);
@@ -1112,26 +1047,6 @@ begin
   Stream.Write(FValue);
 end;
 
-{ TDataBoolean }
-
-constructor TDataBoolean.Create(Name, Section: string; D: Boolean);
-begin
-  Self.FName := Name;
-  Self.FSection := Section;
-  Self.FValue := D;
-end;
-
-procedure TDataBoolean.Load(Stream: TMemoryStream);
-begin
-  Stream.Read(FValue);
-end;
-
-procedure TDataBoolean.Save(Stream: TMemoryStream);
-begin
-  inherited;
-  Stream.Write(FValue);
-end;
-
 { TSettingsList }
 
 destructor TSettingsList.Destroy;
@@ -1145,7 +1060,8 @@ end;
 
 class function TSettingsList.Load(Stream: TMemoryStream): TSettingsList;
 var
-  i, C: Integer;
+  i: Integer;
+  C: SizeInt;
 begin
   Result := TSettingsList.Create;
   Stream.Read(C);
@@ -1157,7 +1073,7 @@ procedure TSettingsList.Save(Stream: TMemoryStream);
 var
   i: Integer;
 begin
-  //  Stream.Write(Count);
+  Stream.Write(Count);
   for i := 0 to Count - 1 do
     Items[i].Save(Stream);
 end;
