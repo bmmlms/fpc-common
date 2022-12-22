@@ -1123,7 +1123,7 @@ begin
     Project := TProject(FProjects[n]);
     if Project.Languages.Count > 0 then
     begin
-      FCurrentLanguage := LanguageList.FindLanguage(Project.Languages[0]);
+      CurrentLanguage := LanguageList.FindLanguage(Project.Languages[0]);
       Break;
     end;
   end;
@@ -1135,7 +1135,7 @@ begin
     for i := 0 to Project.Languages.Count - 1 do
       if Project.Languages[i].ID = 'en' then
       begin
-        FCurrentLanguage := LanguageList.FindLanguage(Project.Languages[i]);
+        CurrentLanguage := LanguageList.FindLanguage(Project.Languages[i]);
         Break;
       end;
   end;
@@ -1152,7 +1152,7 @@ begin
       if Lang <> nil then
       begin
         if Lang.Available then
-          FCurrentLanguage := Lang;
+          CurrentLanguage := Lang;
         FCurrentUserLanguage := Lang;
       end;
     end;
@@ -1450,7 +1450,7 @@ var
 begin
   Lang := LanguageList.FindLanguage(Language);
   if Lang <> nil then
-    FCurrentLanguage := Lang;
+    CurrentLanguage := Lang;
 end;
 
 { TTranslationMarker }
