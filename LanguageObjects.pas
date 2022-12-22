@@ -35,6 +35,7 @@ uses
   Classes,
   StreamHelper,
   SysUtils,
+  Translations,
   TypInfo,
   Windows;
 
@@ -228,6 +229,8 @@ type
 
   TTranslateProc = procedure() of object;
 
+  { TLanguageManager }
+
   TLanguageManager = class
   private
     FProjects: TList;
@@ -235,6 +238,7 @@ type
     FCurrentUserLanguage: TLanguage;
     FIgnoreClassList: TClassList;
     FSync: TRTLCriticalSection;
+    procedure FSetCurrentLanguage(Value: TLanguage);
     procedure Setup;
     function TranslateString(C: TObject; Owner: TComponent; PropName, S: string): string;
     procedure TranslateProperty(C: TObject; Owner: TComponent; Prop: TPropInfo);
@@ -247,7 +251,7 @@ type
     procedure Translate(C: TComponent; PreTranslate, PostTranslate: TTranslateProc); overload;
     procedure SetLanguage(Language: string);
     procedure LoadFromFile(LanguageFile: string);
-    property CurrentLanguage: TLanguage read FCurrentLanguage write FCurrentLanguage;
+    property CurrentLanguage: TLanguage read FCurrentLanguage write FSetCurrentLanguage;
     property CurrentUserLanguage: TLanguage read FCurrentUserLanguage;
     property IgnoreClassList: TClassList read FIgnoreClassList;
   end;
@@ -889,6 +893,7 @@ var
   L: TLanguage;
 begin
   inherited Create;
+
   FPopulated := Populate;
   if Populate then
   begin
@@ -1062,6 +1067,32 @@ begin
     if (Copy(lpszName, 1, 10) = 'LINGUSLANG') and (lpszType = RT_RCDATA) then
       Resources.Add(lpszName);
   Result := True;
+end;
+
+procedure TLanguageManager.FSetCurrentLanguage(Value: TLanguage);
+var
+  Res: TResourceStream;
+  PoStringStream: TStringStream;
+  PoFile: TPOFile;
+begin
+  FCurrentLanguage := Value;
+
+  try
+    Res := TResourceStream.Create(HINSTANCE, 'lclstrconsts.%s'.Format([Value.ID]), RT_RCDATA);
+    PoStringStream := TStringStream.Create;
+    PoFile := TPOFile.Create(False);
+    try
+      Res.SaveToStream(PoStringStream);
+      PoFile.ReadPOText(PoStringStream.DataString);
+      TranslateResourceStrings(PoFile);
+    finally
+      Res.Free;
+      PoStringStream.Free;
+      PoFile.Free;
+    end;
+  except
+    raise Exception.Create('Error loading LCL translations');
+  end;
 end;
 
 procedure TLanguageManager.Setup;
@@ -1362,7 +1393,6 @@ begin
           or (PropInfo^.Name = 'DisplayLabel') then // Steffen: Database property
           TranslateProperty(C, Owner, PropInfo^);
       tkClass:
-      begin
         if C.ClassName <> 'TMenuItem' then
         begin
           Cl := GetObjectProp(C, string(PropInfo^.Name));
@@ -1381,7 +1411,6 @@ begin
             else
               TranslateRecursive(Cl, Owner, Translated);
         end;
-      end;
     end;
   end;
 
