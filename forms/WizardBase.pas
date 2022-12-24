@@ -65,7 +65,10 @@ type
     property Items[Index: Integer]: TStep read Get2 write Put2; default;
   end;
 
+  { TfrmWizardBase }
+
   TfrmWizardBase = class(TForm)
+    lblDesc: TLabel;
     pnlLanguage: TPanel;
     pnlNav: TPanel;
     Bevel2: TBevel;
@@ -81,8 +84,6 @@ type
     optPortable: TRadioButton;
     lblAppData: TLabel;
     lblPortable: TLabel;
-    pnlDesc: TPanel;
-    lblDesc: TLabel;
     btnNext: TBitBtn;
     btnBack: TBitBtn;
     procedure FormDestroy(Sender: TObject);
@@ -179,15 +180,11 @@ var
   n, i: Integer;
   ComboItem: TComboExItem;
 begin
-  //ClientWidth := 400;
-  //ClientHeight := 300;
-
   for n := 0 to ControlCount - 1 do
     for i := 0 to FStepList.Count - 1 do
       if Controls[n] = FStepList[i].Panel then
       begin
         TPanel(Controls[n]).Enabled := False;
-        TPanel(Controls[n]).BorderStyle := bsNone;
         TPanel(Controls[n]).BevelOuter := bvNone;
         TPanel(Controls[n]).Align := alClient;
         Break;
@@ -203,14 +200,15 @@ begin
       ComboItem.Data := LanguageList[i];
       ComboItem.ImageIndex := AppGlobals.LanguageIcons.GetIconIndex(LanguageList[i].ID);
     end;
-  // lstLanguages.ItemsEx.SortType := stText; // TODO: Exception...
-  // lstLanguages.ItemsEx.Sort; // TODO: Exception...
+
   for i := 0 to lstLanguages.ItemsEx.Count - 1 do
     if Language.CurrentLanguage.ID = TLanguage(lstLanguages.ItemsEx[i].Data).ID then
     begin
       lstLanguages.ItemIndex := i;
       Break;
     end;
+
+  lstLanguages.ItemsEx.SortType := stText;
 
   SetStep(0);
 end;
@@ -271,6 +269,7 @@ begin
           optPortable.Checked := True;
     end;
   end;
+
   if Step.Panel = pnlUpdates then
     chkAutoUpdate.Checked := AppGlobals.AutoUpdate;
 end;
@@ -278,8 +277,7 @@ end;
 function TfrmWizardBase.IsValid(Step: TStep): Boolean;
 begin
   Result := True;
-  if Step.Panel = pnlLanguage then
-  ;
+
   if Step.Panel = pnlStorage then
   begin
     if optAppData.Checked then
@@ -288,8 +286,6 @@ begin
       AppGlobals.Portable := poYes;
     FInitializedSteps.Clear;
   end;
-  if Step.Panel = pnlUpdates then
-  ;
 end;
 
 procedure TfrmWizardBase.lblAppDataClick(Sender: TObject);
@@ -375,9 +371,9 @@ begin
   if FActiveSetup.FDescription <> '' then
   begin
     lblDesc.Caption := _(FActiveSetup.FDescription);
-    pnlDesc.Visible := True;
+    lblDesc.Visible := True;
   end else
-    pnlDesc.Visible := False;
+    lblDesc.Visible := False;
 end;
 
 procedure TfrmWizardBase.SetText;

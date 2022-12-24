@@ -1,11 +1,11 @@
 object frmWizardBase: TfrmWizardBase
   Left = 0
-  Height = 300
+  Height = 320
   Top = 0
   Width = 430
   BorderIcons = [biSystemMenu, biMinimize]
   Caption = 'Setup wizard'
-  ClientHeight = 300
+  ClientHeight = 320
   ClientWidth = 430
   Color = clBtnFace
   Font.Color = clWindowText
@@ -18,29 +18,31 @@ object frmWizardBase: TfrmWizardBase
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   ShowInTaskBar = stAlways
-  LCLVersion = '2.2.0.2'
+  LCLVersion = '2.2.4.0'
   object pnlLanguage: TPanel
     Left = 4
-    Height = 213
+    Height = 72
     Top = 96
-    Width = 393
+    Width = 181
     Align = alCustom
-    BevelOuter = bvNone
-    ClientHeight = 213
-    ClientWidth = 393
+    ClientHeight = 72
+    ClientWidth = 181
     TabOrder = 0
     object lblLanguageList: TLabel
-      Left = 8
+      Left = 1
       Height = 13
-      Top = 4
-      Width = 51
+      Top = 1
+      Width = 179
+      Align = alTop
       Caption = 'Language:'
+      ParentColor = False
     end
     object lstLanguages: TComboBoxEx
-      Left = 8
+      Left = 1
       Height = 22
-      Top = 20
-      Width = 165
+      Top = 14
+      Width = 179
+      Align = alTop
       ItemHeight = 16
       ItemsEx = <>
       OnSelect = lstLanguagesSelect
@@ -50,104 +52,194 @@ object frmWizardBase: TfrmWizardBase
   end
   object pnlNav: TPanel
     Left = 0
-    Height = 40
-    Top = 260
+    Height = 39
+    Top = 281
     Width = 430
     Align = alBottom
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 40
+    ClientHeight = 39
     ClientWidth = 430
     TabOrder = 1
     object Bevel2: TBevel
       Left = 0
-      Height = 5
+      Height = 4
       Top = 0
       Width = 430
       Align = alTop
       Shape = bsTopLine
     end
     object btnNext: TBitBtn
-      Left = 333
+      Left = 330
       Height = 35
-      Top = 5
-      Width = 97
+      Top = 4
+      Width = 100
       Align = alRight
+      AutoSize = True
       Caption = '&Next'
-      Default = True
+      Constraints.MinHeight = 35
+      Constraints.MinWidth = 100
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Glyph.Data = {
+        36040000424D3604000000000000360000002800000010000000100000000100
+        2000000000000004000064000000640000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000077130900000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000007D21F5037B1EFF00791521000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000001832BF543A15FFF007B1FE4007919270000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000219751FF80C196FF46A362FF007D1FE70079
+        192A000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000299B5BFF6AB685FF82C297FF48A566FF007D
+        21EA00791B300000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000319F63FF6BB986FF67B582FF83C298FF3CA0
+        5CFF007F25FC0000000000000000000000000000000000000000000000000000
+        000000000000000000000000000037A36BFF74BC90FF8AC7A1FF46A568FF0787
+        35FD01832D0F0000000000000000000000000000000000000000000000000000
+        00000000000000000000000000003DA56FFF91CBAAFF4FAB74FF178F45FD118B
+        3D0C000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000319F63F55AB381FF289857FF1F954F090000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000037A36BF5319F65FF2D9D5F09000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000
+      }
+      Layout = blGlyphRight
       OnClick = btnNextClick
+      ParentFont = False
       TabOrder = 1
     end
     object btnBack: TBitBtn
       Left = 0
       Height = 35
-      Top = 5
-      Width = 97
+      Top = 4
+      Width = 100
       Align = alLeft
+      AutoSize = True
       Caption = '&Cancel'
+      Constraints.MinHeight = 35
+      Constraints.MinWidth = 100
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Glyph.Data = {
+        36040000424D3604000000000000360000002800000010000000100000000100
+        2000000000000004000064000000640000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000077
+        1309000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000000000000000000000791521037B
+        1EFF007D21F50000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000791927007B1FE443A1
+        5FFF01832BF50000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000079192A007D1FE746A362FF80C1
+        96FF219751FF0000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000791B30007D21EA48A566FF82C297FF6AB6
+        85FF299B5BFF0000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000007F25FC3CA05CFF83C298FF67B582FF6BB9
+        86FF319F63FF0000000000000000000000000000000000000000000000000000
+        000000000000000000000000000001832D0F078735FD46A568FF8AC7A1FF74BC
+        90FF37A36BFF0000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000118B3D0C178F45FD4FAB74FF91CB
+        AAFF3DA56FFF0000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000000000001F954F09289857FF5AB3
+        81FF319F63F50000000000000000000000000000000000000000000000000000
+        00000000000000000000000000000000000000000000000000002D9D5F09319F
+        65FF37A36BF50000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000
+      }
       OnClick = btnBackClick
+      ParentFont = False
       TabOrder = 0
     end
   end
   object pnlStorage: TPanel
-    Left = 248
-    Height = 241
-    Top = 96
-    Width = 393
-    BevelOuter = bvNone
-    ClientHeight = 241
-    ClientWidth = 393
+    Left = 228
+    Height = 133
+    Top = 92
+    Width = 197
+    ClientHeight = 133
+    ClientWidth = 197
     TabOrder = 2
     object lblAppData: TLabel
-      Left = 24
-      Height = 53
+      Left = 15
+      Height = 13
       Top = 20
-      Width = 361
-      AutoSize = False
+      Width = 181
+      Align = alTop
+      BorderSpacing.Left = 14
       Caption = '-'
+      ParentColor = False
       WordWrap = True
       OnClick = lblAppDataClick
     end
     object lblPortable: TLabel
-      Left = 24
-      Height = 53
-      Top = 100
-      Width = 361
-      AutoSize = False
+      Left = 15
+      Height = 13
+      Top = 52
+      Width = 181
+      Align = alTop
+      BorderSpacing.Left = 14
       Caption = '-'
+      ParentColor = False
       WordWrap = True
       OnClick = lblPortableClick
     end
     object optAppData: TRadioButton
-      Left = 8
+      Left = 1
       Height = 19
-      Top = 0
-      Width = 233
+      Top = 1
+      Width = 195
+      Align = alTop
       Caption = 'Save data to registry/application data folder'
       TabOrder = 0
     end
     object optPortable: TRadioButton
-      Left = 8
+      Left = 1
       Height = 19
-      Top = 80
-      Width = 161
+      Top = 33
+      Width = 195
+      Align = alTop
       Caption = 'Save data to application path'
       TabOrder = 1
     end
   end
   object pnlUpdates: TPanel
     Left = 4
-    Height = 213
-    Top = 316
-    Width = 393
-    BevelOuter = bvNone
-    ClientHeight = 213
-    ClientWidth = 393
+    Height = 29
+    Top = 188
+    Width = 212
+    ClientHeight = 29
+    ClientWidth = 212
     TabOrder = 3
     object chkAutoUpdate: TCheckBox
-      Left = 8
+      Left = 1
       Height = 19
-      Top = 0
-      Width = 196
+      Top = 1
+      Width = 210
+      Align = alTop
       Caption = 'Enable automatic search for updates'
       TabOrder = 0
     end
@@ -185,28 +277,23 @@ object frmWizardBase: TfrmWizardBase
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       Layout = tlCenter
+      ParentColor = False
       ParentFont = False
       Transparent = False
     end
   end
-  object pnlDesc: TPanel
+  object lblDesc: TLabel
     Left = 0
-    Height = 48
+    Height = 13
     Top = 33
     Width = 430
     Align = alTop
-    BevelOuter = bvNone
-    ClientHeight = 48
-    ClientWidth = 430
-    TabOrder = 5
-    object lblDesc: TLabel
-      Left = 8
-      Height = 45
-      Top = 4
-      Width = 413
-      Anchors = [akTop, akLeft, akRight, akBottom]
-      AutoSize = False
-      WordWrap = True
-    end
+    BorderSpacing.Bottom = 8
+    Caption = '-'
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    ParentColor = False
+    ParentFont = False
+    WordWrap = True
   end
 end
