@@ -364,8 +364,6 @@ end;
 constructor TfrmSettingsBase.Create(AOwner: TComponent; Images: TImageList; ShowGeneral: Boolean);
 var
   i: Integer;
-  Res: TResourceStream;
-  Png: TPortableNetworkGraphic;
 begin
   inherited Create(AOwner);
 
@@ -456,18 +454,14 @@ begin
       ComboItem.ImageIndex := AppGlobals.LanguageIcons.GetIconIndex(LanguageList[i].ID);
     end;
 
-  // TODO: Exception
-  {
-  lstLanguages.ItemsEx.SortType := stText;
-  lstLanguages.ItemsEx.Sort;
-  }
-
   for i := 0 to lstLanguages.Control.ItemsEx.Count - 1 do
     if Language.CurrentLanguage.ID = TLanguage(lstLanguages.Control.ItemsEx[i].Data).ID then
     begin
       lstLanguages.Control.ItemIndex := i;
       Break;
     end;
+
+  lstLanguages.Control.ItemsEx.SortType := stText;
 end;
 
 procedure TfrmSettingsBase.FormDestroy(Sender: TObject);
