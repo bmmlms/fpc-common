@@ -68,7 +68,7 @@ type
 
     function CanClose: Boolean; virtual;
 
-    function ProcessShortCut(Msg: TWMKey): Boolean; virtual;   // TODO: testen ob das noch funzt.
+    function ProcessShortCut(Msg: TWMKey): Boolean; virtual;
     property ShowCloseButton: Boolean read FShowCloseButton write FSetShowCloseButton;
   published
     property Caption: TCaption read FCaption write FSetCaption;
@@ -394,7 +394,7 @@ begin
   Result := TMTabSheet(inherited Pages[Index]);
 end;
 
-procedure TMPageControl.RemoveTab(Tab: TMTabSheet);    // TODO: ich sollte RemovePage(idx) überschreiben. und das hier sollte dann removepage aufrufen.
+procedure TMPageControl.RemoveTab(Tab: TMTabSheet);
 var
   Idx: Integer;
   i: Integer;

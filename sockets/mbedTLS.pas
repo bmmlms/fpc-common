@@ -1,7 +1,5 @@
 unit mbedTLS;
 
-{$mode objfpc}{$H+}
-
 {$linklib ..\SubModules\mbedtls\library\libmbedtls.a}
 {$linklib ..\SubModules\mbedtls\library\libmbedx509.a}
 {$linklib ..\SubModules\mbedtls\library\libmbedcrypto.a}
@@ -10,7 +8,7 @@ unit mbedTLS;
 {$linklib libgcc.a}
 {$linklib libmsvcrt.a}
 {$linklib libkernel32.a}
-{$linklib libadvapi32.a}// MBEDTLS_NO_PLATFORM_ENTROPY
+{$linklib libadvapi32.a}
 
 interface
 
@@ -18,32 +16,20 @@ uses
   Classes,
   SysUtils;
 
-const
-  MBEDTLS_SSL_VERIFY_DATA_MAX_LEN = 12;
-
 type
-  mbedtls_ssl_states = LongWord; // enum
-  size_t = Integer;  // 4 bytes
+  size_t = Integer;
   Psize_t = ^size_t;
   uint32_t = LongWord;
-  Puint32_t = ^uint32_t;
-  uint16_t = uint16;
-  uint64_t = uint64;
 
-  Pmbedtls_ssl_session = ^mbedtls_ssl_session;
-  Pmbedtls_ssl_context = ^mbedtls_ssl_context;
-  Pmbedtls_ssl_config = ^mbedtls_ssl_config;
-  Pmbedtls_ssl_transform = ^mbedtls_ssl_transform;
-  Pmbedtls_ssl_handshake_params = ^mbedtls_ssl_handshake_params;
-  Pmbedtls_md_info_t = Pointer; // opaque
-  Pmbedtls_x509_crt = ^mbedtls_x509_crt;
-  Pmbedtls_x509_crl = ^mbedtls_x509_crl;
-  Pmbedtls_entropy_context = ^mbedtls_entropy_context;
-  Pmbedtls_ctr_drbg_context = ^mbedtls_ctr_drbg_context;
-  mbedtls_time_t = Integer;  // 4 bytes
+  Pmbedtls_ssl_session = ^mbedtls_shared;
+  Pmbedtls_ssl_context = ^mbedtls_shared;
+  Pmbedtls_ssl_config = ^mbedtls_shared;
+  Pmbedtls_x509_crt = ^mbedtls_shared;
+  Pmbedtls_x509_crl = ^mbedtls_shared;
+  Pmbedtls_entropy_context = ^mbedtls_shared;
+  Pmbedtls_ctr_drbg_context = ^mbedtls_shared;
 
   TEntropyFunc = function(Data: Pointer; output: PChar; len: size_t): Integer; cdecl;
-  PEntropyFunc = ^TEntropyFunc;
   TrngFunc = function(Data: Pointer; output: PChar; len: size_t): Integer; cdecl;
   TdbgFunc = procedure(Data: Pointer; i: Integer; c: PChar; i2: Integer; c2: PChar); cdecl;
   TNetSendFunc = function(ctx: Pointer; buf: Pointer; len: size_t): Integer; cdecl;
@@ -54,6 +40,12 @@ type
 
   {$PACKRECORDS C}
 
+  // Use a large shared record since record size can differ between mbedTLS versions/configurations
+  mbedtls_shared = record
+    Data: array[0..1023] of Byte;
+  end;
+
+  {
   mbedtls_x509_crt = record // size 308
     stuffing: array [0 .. 343] of byte;
   end;
@@ -74,14 +66,6 @@ type
     stuffing: array [0 .. 127] of byte;
   end;
 
-  mbedtls_ssl_handshake_params = record // size 2192
-    stuffing: array [0 .. 2191] of byte;
-  end;
-
-  mbedtls_ssl_transform = record // size 208
-    stuffing: array [0 .. 207] of byte;
-  end;
-
   mbedtls_ssl_config = record // size 208
     stuffing: array [0 .. 199] of byte;
   end;
@@ -89,6 +73,7 @@ type
   mbedtls_ssl_context = record // size 264
     stuffing: array [0 .. 303] of byte;
   end;
+  }
 
 const
   MBEDTLS_ERR_MPI_FILE_IO_ERROR = $0002;  // An error occurred while reading from or writing to a file.
@@ -347,31 +332,25 @@ const
   MBEDTLS_ERR_SSL_UNEXPECTED_RECORD = $6700;  // Record header looks valid but is not expected.
   MBEDTLS_ERR_SSL_NON_FATAL = $6680;  // The alert message received indicates a non-fatal error.
   MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH = $6600;  // Couldn't set the hash for verifying CertificateVerify
-
   MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS = $7000;
 
-  (* Various constants *)
-
   MBEDTLS_SSL_MAJOR_VERSION_3 = 3;
-  MBEDTLS_SSL_MINOR_VERSION_0 = 0;   // SSL v3.0
-  MBEDTLS_SSL_MINOR_VERSION_1 = 1;   // TLS v1.0
-  MBEDTLS_SSL_MINOR_VERSION_2 = 2;   // TLS v1.1
-  MBEDTLS_SSL_MINOR_VERSION_3 = 3;   // TLS v1.2
+  MBEDTLS_SSL_MINOR_VERSION_0 = 0;  // SSL v3.0
+  MBEDTLS_SSL_MINOR_VERSION_1 = 1;  // TLS v1.0
+  MBEDTLS_SSL_MINOR_VERSION_2 = 2;  // TLS v1.1
+  MBEDTLS_SSL_MINOR_VERSION_3 = 3;  // TLS v1.2
 
-  MBEDTLS_SSL_TRANSPORT_STREAM = 0;   // TLS
-  MBEDTLS_SSL_TRANSPORT_DATAGRAM = 1;   // DTLS
+  MBEDTLS_SSL_TRANSPORT_STREAM = 0;
+  MBEDTLS_SSL_TRANSPORT_DATAGRAM = 1;
 
-  MBEDTLS_SSL_MAX_HOST_NAME_LEN = 255; // Maximum host name defined in RFC 1035
+  MBEDTLS_SSL_MAX_HOST_NAME_LEN = 255;
 
-  (* RFC 6066 section 4, see also mfl_code_to_length in ssl_tls.c
-   * NONE must be zero so that memset()ing structure to zero works *)
-
-  MBEDTLS_SSL_MAX_FRAG_LEN_NONE = 0;   // don't use this extension
-  MBEDTLS_SSL_MAX_FRAG_LEN_512 = 1;   // MaxFragmentLength 2^9
-  MBEDTLS_SSL_MAX_FRAG_LEN_1024 = 2;   // MaxFragmentLength 2^10
-  MBEDTLS_SSL_MAX_FRAG_LEN_2048 = 3;   // MaxFragmentLength 2^11
-  MBEDTLS_SSL_MAX_FRAG_LEN_4096 = 4;   // MaxFragmentLength 2^12
-  MBEDTLS_SSL_MAX_FRAG_LEN_INVALID = 5;   // first invalid value
+  MBEDTLS_SSL_MAX_FRAG_LEN_NONE = 0;
+  MBEDTLS_SSL_MAX_FRAG_LEN_512 = 1;
+  MBEDTLS_SSL_MAX_FRAG_LEN_1024 = 2;
+  MBEDTLS_SSL_MAX_FRAG_LEN_2048 = 3;
+  MBEDTLS_SSL_MAX_FRAG_LEN_4096 = 4;
+  MBEDTLS_SSL_MAX_FRAG_LEN_INVALID = 5;
 
   MBEDTLS_SSL_IS_CLIENT = 0;
   MBEDTLS_SSL_IS_SERVER = 1;
@@ -391,7 +370,7 @@ const
   MBEDTLS_SSL_VERIFY_NONE = 0;
   MBEDTLS_SSL_VERIFY_OPTIONAL = 1;
   MBEDTLS_SSL_VERIFY_REQUIRED = 2;
-  MBEDTLS_SSL_VERIFY_UNSET = 3; // Used only for sni_authmode
+  MBEDTLS_SSL_VERIFY_UNSET = 3;
 
   MBEDTLS_SSL_LEGACY_RENEGOTIATION = 0;
   MBEDTLS_SSL_SECURE_RENEGOTIATION = 1;
@@ -411,7 +390,7 @@ const
 
   MBEDTLS_SSL_TRUNC_HMAC_DISABLED = 0;
   MBEDTLS_SSL_TRUNC_HMAC_ENABLED = 1;
-  MBEDTLS_SSL_TRUNCATED_HMAC_LEN = 10;  // 80 bits, rfc 6066 section 7
+  MBEDTLS_SSL_TRUNCATED_HMAC_LEN = 10;
 
   MBEDTLS_SSL_SESSION_TICKETS_DISABLED = 0;
   MBEDTLS_SSL_SESSION_TICKETS_ENABLED = 1;
@@ -428,17 +407,13 @@ const
   MBEDTLS_SSL_CERT_REQ_CA_LIST_ENABLED = 1;
   MBEDTLS_SSL_CERT_REQ_CA_LIST_DISABLED = 0;
 
-(*
- * Default range for DTLS retransmission timer value, in milliseconds.
- * RFC 6347 4.2.4.1 says from 1 second to 60 seconds.
- *)
   MBEDTLS_SSL_DTLS_TIMEOUT_DFL_MIN = 1000;
   MBEDTLS_SSL_DTLS_TIMEOUT_DFL_MAX = 60000;
 
   MBEDTLS_SSL_INITIAL_HANDSHAKE = 0;
-  MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS = 1;   // In progress
-  MBEDTLS_SSL_RENEGOTIATION_DONE = 2;   // Done or aborted
-  MBEDTLS_SSL_RENEGOTIATION_PENDING = 3;   // Requested (server only)
+  MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS = 1;
+  MBEDTLS_SSL_RENEGOTIATION_DONE = 2;
+  MBEDTLS_SSL_RENEGOTIATION_PENDING = 3;
 
   MBEDTLS_SSL_RETRANS_PREPARING = 0;
   MBEDTLS_SSL_RETRANS_SENDING = 1;
@@ -453,35 +428,35 @@ const
   MBEDTLS_SSL_ALERT_LEVEL_WARNING = 1;
   MBEDTLS_SSL_ALERT_LEVEL_FATAL = 2;
 
-  MBEDTLS_SSL_ALERT_MSG_CLOSE_NOTIFY = 0;  // 0x00
-  MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE = 10;  // 0x0A
-  MBEDTLS_SSL_ALERT_MSG_BAD_RECORD_MAC = 20;  // 0x14
-  MBEDTLS_SSL_ALERT_MSG_DECRYPTION_FAILED = 21;  // 0x15
-  MBEDTLS_SSL_ALERT_MSG_RECORD_OVERFLOW = 22;  // 0x16
-  MBEDTLS_SSL_ALERT_MSG_DECOMPRESSION_FAILURE = 30;  // 0x1E
-  MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE = 40;  // 0x28
-  MBEDTLS_SSL_ALERT_MSG_NO_CERT = 41;  // 0x29
-  MBEDTLS_SSL_ALERT_MSG_BAD_CERT = 42;  // 0x2A
-  MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT = 43;  // 0x2B
-  MBEDTLS_SSL_ALERT_MSG_CERT_REVOKED = 44;  // 0x2C
-  MBEDTLS_SSL_ALERT_MSG_CERT_EXPIRED = 45;  // 0x2D
-  MBEDTLS_SSL_ALERT_MSG_CERT_UNKNOWN = 46;  // 0x2E
-  MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER = 47;  // 0x2F
-  MBEDTLS_SSL_ALERT_MSG_UNKNOWN_CA = 48;  // 0x30
-  MBEDTLS_SSL_ALERT_MSG_ACCESS_DENIED = 49;  // 0x31
-  MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR = 50;  // 0x32
-  MBEDTLS_SSL_ALERT_MSG_DECRYPT_ERROR = 51;  // 0x33
-  MBEDTLS_SSL_ALERT_MSG_EXPORT_RESTRICTION = 60;  // 0x3C
-  MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION = 70;  // 0x46
-  MBEDTLS_SSL_ALERT_MSG_INSUFFICIENT_SECURITY = 71;  // 0x47
-  MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR = 80;  // 0x50
-  MBEDTLS_SSL_ALERT_MSG_INAPROPRIATE_FALLBACK = 86;  // 0x56
-  MBEDTLS_SSL_ALERT_MSG_USER_CANCELED = 90;  // 0x5A
-  MBEDTLS_SSL_ALERT_MSG_NO_RENEGOTIATION = 100;  // 0x64
-  MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT = 110;  // 0x6E
-  MBEDTLS_SSL_ALERT_MSG_UNRECOGNIZED_NAME = 112;  // 0x70
-  MBEDTLS_SSL_ALERT_MSG_UNKNOWN_PSK_IDENTITY = 115;  // 0x73
-  MBEDTLS_SSL_ALERT_MSG_NO_APPLICATION_PROTOCOL = 120; // 0x78
+  MBEDTLS_SSL_ALERT_MSG_CLOSE_NOTIFY = 0;
+  MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE = 10;
+  MBEDTLS_SSL_ALERT_MSG_BAD_RECORD_MAC = 20;
+  MBEDTLS_SSL_ALERT_MSG_DECRYPTION_FAILED = 21;
+  MBEDTLS_SSL_ALERT_MSG_RECORD_OVERFLOW = 22;
+  MBEDTLS_SSL_ALERT_MSG_DECOMPRESSION_FAILURE = 30;
+  MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE = 40;
+  MBEDTLS_SSL_ALERT_MSG_NO_CERT = 41;
+  MBEDTLS_SSL_ALERT_MSG_BAD_CERT = 42;
+  MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT = 43;
+  MBEDTLS_SSL_ALERT_MSG_CERT_REVOKED = 44;
+  MBEDTLS_SSL_ALERT_MSG_CERT_EXPIRED = 45;
+  MBEDTLS_SSL_ALERT_MSG_CERT_UNKNOWN = 46;
+  MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER = 47;
+  MBEDTLS_SSL_ALERT_MSG_UNKNOWN_CA = 48;
+  MBEDTLS_SSL_ALERT_MSG_ACCESS_DENIED = 49;
+  MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR = 50;
+  MBEDTLS_SSL_ALERT_MSG_DECRYPT_ERROR = 51;
+  MBEDTLS_SSL_ALERT_MSG_EXPORT_RESTRICTION = 60;
+  MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION = 70;
+  MBEDTLS_SSL_ALERT_MSG_INSUFFICIENT_SECURITY = 71;
+  MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR = 80;
+  MBEDTLS_SSL_ALERT_MSG_INAPROPRIATE_FALLBACK = 86;
+  MBEDTLS_SSL_ALERT_MSG_USER_CANCELED = 90;
+  MBEDTLS_SSL_ALERT_MSG_NO_RENEGOTIATION = 100;
+  MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT = 110;
+  MBEDTLS_SSL_ALERT_MSG_UNRECOGNIZED_NAME = 112;
+  MBEDTLS_SSL_ALERT_MSG_UNKNOWN_PSK_IDENTITY = 115;
+  MBEDTLS_SSL_ALERT_MSG_NO_APPLICATION_PROTOCOL = 120;
 
   MBEDTLS_SSL_HS_HELLO_REQUEST = 0;
   MBEDTLS_SSL_HS_CLIENT_HELLO = 1;
@@ -496,7 +471,6 @@ const
   MBEDTLS_SSL_HS_CLIENT_KEY_EXCHANGE = 16;
   MBEDTLS_SSL_HS_FINISHED = 20;
 
-  (* TLS extensions *)
   MBEDTLS_TLS_EXT_SERVERNAME = 0;
   MBEDTLS_TLS_EXT_SERVERNAME_HOSTNAME = 0;
   MBEDTLS_TLS_EXT_MAX_FRAGMENT_LENGTH = 1;
@@ -505,10 +479,10 @@ const
   MBEDTLS_TLS_EXT_SUPPORTED_POINT_FORMATS = 11;
   MBEDTLS_TLS_EXT_SIG_ALG = 13;
   MBEDTLS_TLS_EXT_ALPN = 16;
-  MBEDTLS_TLS_EXT_ENCRYPT_THEN_MAC = 22; // 0x16
-  MBEDTLS_TLS_EXT_EXTENDED_MASTER_SECRET = $0017; // 23
+  MBEDTLS_TLS_EXT_ENCRYPT_THEN_MAC = 22;
+  MBEDTLS_TLS_EXT_EXTENDED_MASTER_SECRET = $0017;
   MBEDTLS_TLS_EXT_SESSION_TICKET = 35;
-  MBEDTLS_TLS_EXT_ECJPAKE_KKPP = 256; // experimental
+  MBEDTLS_TLS_EXT_ECJPAKE_KKPP = 256;
   MBEDTLS_TLS_EXT_RENEGOTIATION_INFO = $FF01;
 
   MBEDTLS_SSL_HELLO_REQUEST = 0;
@@ -531,8 +505,8 @@ const
   MBEDTLS_SSL_SERVER_NEW_SESSION_TICKET = 17;
   MBEDTLS_SSL_SERVER_HELLO_VERIFY_REQUEST_SENT = 18;
 
-  MBEDTLS_ENTROPY_SOURCE_STRONG = 1;  // Entropy source is strong
-  MBEDTLS_ENTROPY_SOURCE_WEAK = 0;  // Entropy source is weak
+  MBEDTLS_ENTROPY_SOURCE_STRONG = 1;
+  MBEDTLS_ENTROPY_SOURCE_WEAK = 0;
 
 function mbedtls_ssl_close_notify(ssl: Pmbedtls_ssl_context): Integer; cdecl; external;
 procedure mbedtls_ssl_free(ssl: Pmbedtls_ssl_context); cdecl; external;
@@ -545,57 +519,42 @@ function mbedtls_ssl_get_session(const ssl: Pmbedtls_ssl_context; session: Pmbed
 function mbedtls_ssl_get_ciphersuite_name(const ciphersuite_id: Integer): PChar; cdecl; external;
 function mbedtls_ssl_get_ciphersuite_id(const ciphersuite_name: PChar): Integer; cdecl; external;
 function mbedtls_ssl_handshake(ssl: Pmbedtls_ssl_context): Integer; cdecl; external;
-
 function mbedtls_ssl_handshake_client_step(ssl: Pmbedtls_ssl_context): Integer; cdecl; external;
-
 procedure mbedtls_ssl_init(ssl: Pmbedtls_ssl_context); cdecl; external;
 function mbedtls_ssl_list_ciphersuites: PInteger; cdecl; external;
 function mbedtls_ssl_read(ssl: Pmbedtls_ssl_context; buf: Pointer; len: size_t): Integer; cdecl; external;
 function mbedtls_ssl_set_hostname(ssl: Pmbedtls_ssl_context; hostname: PChar): Integer; cdecl; external;
-procedure mbedtls_ssl_set_bio(ssl: Pmbedtls_ssl_context; p_bio: Pointer;
-  f_send: TNetSendFunc; f_recv: TNetRecvFunc;
-  f_recv_timeout: TNetRecvTimeoutFunc); cdecl; external;
-procedure mbedtls_ssl_set_timer_cb(ssl: Pmbedtls_ssl_context; p_timer: Pointer;
-  f_set_timer: TSetTimerFunc;
-  f_get_timer: TGetTimerFunc); cdecl; external;
+procedure mbedtls_ssl_set_bio(ssl: Pmbedtls_ssl_context; p_bio: Pointer; f_send: TNetSendFunc; f_recv: TNetRecvFunc; f_recv_timeout: TNetRecvTimeoutFunc); cdecl; external;
+procedure mbedtls_ssl_set_timer_cb(ssl: Pmbedtls_ssl_context; p_timer: Pointer; f_set_timer: TSetTimerFunc; f_get_timer: TGetTimerFunc); cdecl; external;
 function mbedtls_ssl_setup(ssl: Pmbedtls_ssl_context; conf: Pmbedtls_ssl_config): Integer; cdecl; external;
 function mbedtls_ssl_write(ssl: Pmbedtls_ssl_context; const buf: Pointer; len: size_t): Integer; cdecl; external;
-
-procedure mbedtls_ssl_config_init(conf: Pmbedtls_ssl_config); cdecl; external;
-function mbedtls_ssl_config_defaults(conf: Pmbedtls_ssl_config; endpoint: Integer;
-  transport: Integer; preset: Integer): Integer; cdecl; external;
-procedure mbedtls_ssl_conf_authmode(conf: Pmbedtls_ssl_config; authmode: Integer); cdecl; external;
-procedure mbedtls_ssl_conf_ca_chain(conf: Pmbedtls_ssl_config; ca_chain: Pmbedtls_x509_crt;
-  ca_crl: Pmbedtls_x509_crl); cdecl; external;
-procedure mbedtls_ssl_conf_transport(conf: Pmbedtls_ssl_config; transport: Integer); cdecl; external;
-procedure mbedtls_ssl_conf_rng(conf: Pmbedtls_ssl_config; f_rng: TrngFunc; p_rng: Pointer); cdecl; external;
-procedure mbedtls_ssl_conf_dbg(conf: Pmbedtls_ssl_config; f_dbg: TdbgFunc; p_dbg: Pointer); cdecl; external;
-procedure mbedtls_ssl_config_free(conf: Pmbedtls_ssl_config); cdecl; external;
-
 function mbedtls_ssl_session_reset(ssl: Pmbedtls_ssl_context): Integer; cdecl; external;
 function mbedtls_ssl_set_session(ssl: Pmbedtls_ssl_context; const session: Pmbedtls_ssl_session): Integer; cdecl; external;
-procedure mbedtls_ssl_conf_max_version(conf: Pmbedtls_ssl_config; major, minor: Integer); cdecl; external;
-procedure mbedtls_ssl_conf_min_version(conf: Pmbedtls_ssl_config; major, minor: Integer); cdecl; external;
-
-procedure mbedtls_ssl_conf_session_tickets(conf: Pmbedtls_ssl_config; use_tickets: Integer); cdecl; external;
-procedure mbedtls_ssl_conf_dbg(conf: Pmbedtls_ssl_config; f_dbg: Pointer; p_dbg: Pointer); cdecl; external;
-procedure mbedtls_ssl_conf_read_timeout(ssl: Pmbedtls_ssl_context; timeout: uint32_t); cdecl; external;
-
 function mbedtls_ssl_get_bytes_avail(ssl: Pmbedtls_ssl_context): size_t; cdecl; external;
 
+procedure mbedtls_ssl_config_init(conf: Pmbedtls_ssl_config); cdecl; external;
+function mbedtls_ssl_config_defaults(conf: Pmbedtls_ssl_config; endpoint: Integer; transport: Integer; preset: Integer): Integer; cdecl; external;
+procedure mbedtls_ssl_config_free(conf: Pmbedtls_ssl_config); cdecl; external;
 
-function mbedtls_entropy_add_source(ctx: Pmbedtls_entropy_context;
-  f_source: TEntropyFunc; p_source: Pointer;
-  threshold: size_t; strong: Integer): Integer; cdecl; external;
+procedure mbedtls_ssl_conf_authmode(conf: Pmbedtls_ssl_config; authmode: Integer); cdecl; external;
+procedure mbedtls_ssl_conf_ca_chain(conf: Pmbedtls_ssl_config; ca_chain: Pmbedtls_x509_crt; ca_crl: Pmbedtls_x509_crl); cdecl; external;
+procedure mbedtls_ssl_conf_transport(conf: Pmbedtls_ssl_config; transport: Integer); cdecl; external;
+procedure mbedtls_ssl_conf_rng(conf: Pmbedtls_ssl_config; f_rng: TrngFunc; p_rng: Pointer); cdecl; external;
+procedure mbedtls_ssl_conf_dbg(conf: Pmbedtls_ssl_config; f_dbg: TdbgFunc; p_dbg: Pointer); cdecl; external; overload;
+procedure mbedtls_ssl_conf_dbg(conf: Pmbedtls_ssl_config; f_dbg: Pointer; p_dbg: Pointer); cdecl; external; overload;
+procedure mbedtls_ssl_conf_max_version(conf: Pmbedtls_ssl_config; major, minor: Integer); cdecl; external;
+procedure mbedtls_ssl_conf_min_version(conf: Pmbedtls_ssl_config; major, minor: Integer); cdecl; external;
+procedure mbedtls_ssl_conf_session_tickets(conf: Pmbedtls_ssl_config; use_tickets: Integer); cdecl; external;
+procedure mbedtls_ssl_conf_read_timeout(ssl: Pmbedtls_ssl_context; timeout: uint32_t); cdecl; external;
+
+function mbedtls_entropy_add_source(ctx: Pmbedtls_entropy_context; f_source: TEntropyFunc; p_source: Pointer; threshold: size_t; strong: Integer): Integer; cdecl; external;
 procedure mbedtls_entropy_free(ctx: Pmbedtls_entropy_context); cdecl; external;
 function mbedtls_entropy_func(Data: Pointer; output: PChar; len: size_t): Integer; cdecl; external;
 procedure mbedtls_entropy_init(ctx: Pmbedtls_entropy_context); cdecl; external;
 
 procedure mbedtls_ctr_drbg_init(ctx: Pmbedtls_ctr_drbg_context); cdecl; external;
-function mbedtls_ctr_drbg_seed(ctx: Pmbedtls_ctr_drbg_context; f_entropy: TEntropyFunc; p_entropy: Pointer;
-  custom: PChar; len: size_t): Integer; cdecl; external;
-function mbedtls_ctr_drbg_random_with_add(p_rng: Pointer; output: PChar; output_len: size_t;
-  additional: PChar; add_len: size_t): Integer; cdecl; external;
+function mbedtls_ctr_drbg_seed(ctx: Pmbedtls_ctr_drbg_context; f_entropy: TEntropyFunc; p_entropy: Pointer; custom: PChar; len: size_t): Integer; cdecl; external;
+function mbedtls_ctr_drbg_random_with_add(p_rng: Pointer; output: PChar; output_len: size_t; additional: PChar; add_len: size_t): Integer; cdecl; external;
 function mbedtls_ctr_drbg_random(p_rng: Pointer; output: PChar; output_len: size_t): Integer; cdecl; external;
 procedure mbedtls_ctr_drbg_free(ctx: Pmbedtls_ctr_drbg_context); cdecl; external;
 
@@ -606,8 +565,7 @@ procedure mbedtls_x509_crt_free(crt: Pmbedtls_x509_crt); cdecl; external;
 function mbedtls_x509_crt_parse(chain: Pmbedtls_x509_crt; buf: PChar; buflen: size_t): Integer; cdecl; external;
 function mbedtls_x509_crt_parse_file(chain: Pmbedtls_x509_crt; const path: PChar): Integer; cdecl; external;
 function mbedtls_x509_crt_parse_path(chain: Pmbedtls_x509_crt; const path: PChar): Integer; cdecl; external;
-function mbedtls_x509_crt_verify_info(buf: PChar; size_: size_t; const prefix: PChar;
-  flags: uint32_t): Integer; cdecl; external;
+function mbedtls_x509_crt_verify_info(buf: PChar; size_: size_t; const prefix: PChar; flags: uint32_t): Integer; cdecl; external;
 
 implementation
 

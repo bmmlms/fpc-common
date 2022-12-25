@@ -45,6 +45,8 @@ type
 
   EAlreadyRunning = class(Exception);
 
+  { TAppDataBase }
+
   TAppDataBase = class(TObject)
   private
     FCS: SyncObjs.TCriticalSection;
@@ -222,7 +224,7 @@ begin
   if FProjectThanksText = '' then
     FProjectThanksText := '';
 
-  FCommandLine := TCommandLine.Create(GetCommandLineW); // TODO: hier gebe ich nen pwidechar an ne string funktion?! andere stellen auch prüfen.
+  FCommandLine := TCommandLine.Create(GetCommandLine);
 
   FWebLanguages := TStringList.Create;
   FWebLanguages.Add('de');
@@ -434,11 +436,11 @@ begin
   if FOnlyOne then
   begin
     MutexName := FAppName + 'Mutex';
-    FMutexHandle := CreateMutexW(nil, True, PWideChar(UnicodeString(MutexName)));
+    FMutexHandle := CreateMutex(nil, True, PChar(MutexName));
     while (GetLastError = ERROR_ALREADY_EXISTS) and (ReadHandle > 0) and (ParamStr(1) = '/profileupdate') do
     begin
       Sleep(500);
-      FMutexHandle := CreateMutexW(nil, True, PWideChar(UnicodeString(MutexName)));
+      FMutexHandle := CreateMutex(nil, True, PChar(MutexName));
     end;
 
     if GetLastError = ERROR_ALREADY_EXISTS then
@@ -475,7 +477,7 @@ begin
   SA.lpSecurityDescriptor := @pSD;
   SA.bInheritHandle := True;
   MappingName := FAppName + 'WndHandle';
-  hFileMapping := CreateFileMappingW(INVALID_HANDLE_VALUE, @SA, PAGE_READONLY, 0, SizeOf(Result), PWideChar(UnicodeString(MappingName)));
+  hFileMapping := CreateFileMapping(INVALID_HANDLE_VALUE, @SA, PAGE_READONLY, 0, SizeOf(Result), PChar(MappingName));
   if hFileMapping <> 0 then
   begin
     Mem := MapViewOfFile(hFileMapping, FILE_MAP_READ, 0, 0, SizeOf(Result));
@@ -535,7 +537,7 @@ begin
   SA.lpSecurityDescriptor := @pSD;
   SA.bInheritHandle := True;
   MappingName := FAppName + 'WndHandle';
-  FFileMapping := CreateFileMappingW(INVALID_HANDLE_VALUE, @SA, PAGE_READWRITE, 0, SizeOf(Handle), PWideChar(UnicodeString(MappingName)));
+  FFileMapping := CreateFileMapping(INVALID_HANDLE_VALUE, @SA, PAGE_READWRITE, 0, SizeOf(Handle), PChar(MappingName));
   if FFileMapping <> 0 then
   begin
     Mem := MapViewOfFile(FFileMapping, FILE_MAP_WRITE, 0, 0, SizeOf(Handle));
@@ -635,9 +637,7 @@ begin
     FTempDir := ConcatPaths([TFunctions.GetTempDir, FAppName]);
 
   if FTempDir <> '' then
-    if ForceDirectories(FTempDir) then
-      if DirectoryExists(FTempDir) then
-        FTempDir := FTempDir;
+    ForceDirectories(FTempDir);
 
   if not DirectoryExists(FTempDir) then
     raise Exception.Create(Format(_('The folder for temporary files could not be determined.'#13#10 + 'Please ask for support at %s.'#13#10 + 'The application will be terminated.'), [FProjectForumLink]));

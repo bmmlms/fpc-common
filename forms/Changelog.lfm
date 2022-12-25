@@ -55,10 +55,9 @@ object frmChangeLog: TfrmChangeLog
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poOwnerFormCenter
-  LCLVersion = '2.2.0.2'
   object txtChangeLog: TMemo
     Left = 0
-    Height = 245
+    Height = 246
     Top = 0
     Width = 449
     Align = alClient
@@ -68,29 +67,33 @@ object frmChangeLog: TfrmChangeLog
   end
   object pnlNav: TPanel
     Left = 0
-    Height = 40
-    Top = 245
+    Height = 39
+    Top = 246
     Width = 449
     Align = alBottom
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 40
+    ClientHeight = 39
     ClientWidth = 449
     TabOrder = 1
     object Bevel2: TBevel
       Left = 0
-      Height = 5
+      Height = 4
       Top = 0
       Width = 449
       Align = alTop
       Shape = bsTopLine
     end
     object btnClose: TBitBtn
-      Left = 352
+      Left = 349
       Height = 35
-      Top = 5
-      Width = 97
+      Top = 4
+      Width = 100
       Align = alRight
+      AutoSize = True
       Caption = '&Close'
+      Constraints.MinHeight = 35
+      Constraints.MinWidth = 100
       Default = True
       OnClick = btnCloseClick
       TabOrder = 0

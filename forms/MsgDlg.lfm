@@ -20,10 +20,9 @@ object frmMsgDlg: TfrmMsgDlg
   OnKeyUp = FormKeyUp
   OnShow = FormShow
   Position = poOwnerFormCenter
-  LCLVersion = '2.2.0.2'
   object imgIcon: TImage
     Left = 0
-    Height = 111
+    Height = 112
     Top = 0
     Width = 32
     Align = alLeft
@@ -32,7 +31,7 @@ object frmMsgDlg: TfrmMsgDlg
   object chkNotShowAgain: TCheckBox
     Left = 0
     Height = 19
-    Top = 111
+    Top = 112
     Width = 421
     Align = alBottom
     Anchors = [akLeft, akBottom]
@@ -41,7 +40,7 @@ object frmMsgDlg: TfrmMsgDlg
   end
   object txtText: TMemo
     Left = 32
-    Height = 111
+    Height = 112
     Top = 0
     Width = 389
     Align = alClient
@@ -53,39 +52,44 @@ object frmMsgDlg: TfrmMsgDlg
   end
   object pnlNav: TPanel
     Left = 0
-    Height = 40
-    Top = 130
+    Height = 39
+    Top = 131
     Width = 421
     Align = alBottom
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 40
+    ClientHeight = 39
     ClientWidth = 421
     TabOrder = 2
     object Bevel2: TBevel
       Left = 0
-      Height = 5
+      Height = 4
       Top = 0
       Width = 421
       Align = alTop
       Shape = bsTopLine
     end
     object cmdNoCancel: TButton
-      Left = 324
+      Left = 321
       Height = 35
-      Top = 5
-      Width = 97
+      Top = 4
+      Width = 100
       Align = alRight
       Caption = '&Cancel'
+      Constraints.MinHeight = 35
+      Constraints.MinWidth = 100
       OnClick = cmdNoCancelClick
       TabOrder = 1
     end
     object cmdYesOK: TButton
       Left = 0
       Height = 35
-      Top = 5
-      Width = 97
+      Top = 4
+      Width = 100
       Align = alLeft
       Caption = '&OK'
+      Constraints.MinHeight = 35
+      Constraints.MinWidth = 100
       OnClick = cmdYesOKClick
       TabOrder = 0
     end

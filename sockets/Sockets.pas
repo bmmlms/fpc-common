@@ -279,7 +279,7 @@ begin
   FD_SET(Socket, ReadFds);
   Res := select(0, @readfds, nil, nil, @timeout);
   if Res = 0 then
-    Exit(-MBEDTLS_ERR_SSL_TIMEOUT)  // TODO: das "-" vor den errorcodes. sollte direkt zu den konstanten...
+    Exit(-MBEDTLS_ERR_SSL_TIMEOUT)
   else if Res = SOCKET_ERROR then
     Exit(-MBEDTLS_ERR_NET_RECV_FAILED);
 
@@ -560,7 +560,6 @@ begin
         Res := mbedtls_ssl_handshake(@ssl);
         while Res <> 0 do
         begin
-          // TODO: mal zu nem server verbinden der direkt die verbindung zumacht. was kommt dann für ein result? damit man passig connection closed ins log machen kann.
           if (Res <> -MBEDTLS_ERR_SSL_WANT_READ) and (Res <> -MBEDTLS_ERR_SSL_WANT_WRITE) and (Res <> -MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS) then
             if Res = -MBEDTLS_ERR_SSL_TIMEOUT then
               raise Exception.Create('TLS handshake timed out')

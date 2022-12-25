@@ -148,7 +148,6 @@ end;
 procedure TUpdateThread.DoEnded;
 var
   Data, Version: AnsiString;
-  CL: AnsiString;
 begin
   inherited;
 
@@ -163,8 +162,8 @@ begin
             Version := GetValue(Data, 'version');
             FFoundVersion := TFunctions.ParseVersion(Version);
             FUpdateURL := string(GetValue(Data, 'updateurl'));
-            CL := AnsiString(StringReplace(string(GetValue(Data, 'changelog')), '\r', #13#10, [rfReplaceAll]));
-            //   FChangeLog := UTF8ToUnicodeString(CL);
+            FChangeLog := AnsiString(StringReplace(string(GetValue(Data, 'changelog')), '\r', #13#10, [rfReplaceAll]));
+
             if FUpdateURL = '' then
               raise Exception.Create('-');
             Sync(FOnVersionFound);
@@ -232,7 +231,7 @@ var
   osvi: OSVERSIONINFOEXW;
   ConditionMask: ULONGLONG;
   op: Integer;
-  Info: TSHELLEXECUTEINFOW;
+  Info: TSHELLEXECUTEINFO;
   Verb, Parameters: string;
 const
   VER_GREATER_EQUAL = 3;
@@ -262,13 +261,13 @@ begin
       Verb := 'runas';
       Parameters := '/NOICONS /SP /SILENT /UPDATE /PATH="' + AppGlobals.AppPath + '"';
 
-      FillChar(Info, SizeOf(Info), 0);
+      FillChar(Info, SizeOf(Info), #0);
       Info.cbSize := SizeOf(Info);
       Info.Wnd := Handle;
       Info.fMask := SEE_MASK_FLAG_DDEWAIT or SEE_MASK_FLAG_NO_UI;
-      Info.lpVerb := PWideChar(UnicodeString(Verb));
-      Info.lpFile := PWideChar(UnicodeString(FUpdateFile));
-      Info.lpParameters := PWideChar(UnicodeString(Parameters));
+      Info.lpVerb := PChar(Verb);
+      Info.lpFile := PChar(FUpdateFile);
+      Info.lpParameters := PChar(Parameters);
       Info.nShow := SW_SHOWNORMAL;
       ShellExecuteExW(@Info);
     end;

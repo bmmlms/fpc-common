@@ -130,7 +130,7 @@ begin
     end;
   end;
 
-  if TFunctions.IsVersionNewer(AppGlobals.LastUsedVersion, AppGlobals.AppVersion) and (not AppGlobals.SuppressUpdatedInfo) and (AppGlobals.ProjectDonateLink <> '') then
+  if TFunctions.IsVersionNewer(AppGlobals.LastUsedVersion, AppGlobals.AppVersion, False) and (not AppGlobals.SuppressUpdatedInfo) and (AppGlobals.ProjectDonateLink <> '') then
   begin
     UpdatedInfo := TfrmUpdatedInfo.Create(nil);
     try

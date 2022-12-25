@@ -103,7 +103,7 @@ begin
         Updater.Start(uaUpdate, True);
       end else
       begin
-        ShellExecuteW(0, 'open', PWideChar(UnicodeString(AppGlobals.ProjectLink)), '', '', 1);
+        TFunctions.ShellExecute(0, 'open', AppGlobals.ProjectLink);
         Close;
       end;
   end;

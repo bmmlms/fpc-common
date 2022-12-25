@@ -222,7 +222,7 @@ var
   Img: TImage absolute Sender;
 begin
   if PointInImagePicture(X, Y, Img) then
-    ShellExecuteW(0, 'open', PWideChar(UnicodeString(AppGlobals.ProjectDonateLink)), '', '', 1);
+    TFunctions.ShellExecute(0, 'open', AppGlobals.ProjectDonateLink);
 end;
 
 procedure TfrmAbout.pbLogoPaint(Sender: TObject);
@@ -245,12 +245,12 @@ end;
 
 procedure TfrmAbout.lblHomepageClick(Sender: TObject);
 begin
-  ShellExecuteW(0, 'open', PWideChar(UnicodeString(AppGlobals.ProjectHomepageLink)), '', '', 1);
+  TFunctions.ShellExecute(0, 'open', AppGlobals.ProjectHomepageLink);
 end;
 
 procedure TfrmAbout.lblGPLClick(Sender: TObject);
 begin
-  ShellExecuteW(0, 'open', 'http://www.gnu.org/licenses/gpl-3.0.html', '', '', 1);
+  TFunctions.ShellExecute(0, 'open', 'http://www.gnu.org/licenses/gpl-3.0.html');
 end;
 
 procedure TfrmAbout.pagAboutChange(Sender: TObject);

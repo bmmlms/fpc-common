@@ -54,9 +54,10 @@ object frmAbout: TfrmAbout
   KeyPreview = True
   OnKeyDown = FormKeyDown
   Position = poOwnerFormCenter
+  LCLVersion = '2.2.4.0'
   object pagAbout: TPageControl
     Left = 0
-    Height = 222
+    Height = 223
     Top = 0
     Width = 421
     ActivePage = tabAbout
@@ -66,16 +67,16 @@ object frmAbout: TfrmAbout
     OnChange = pagAboutChange
     object tabAbout: TTabSheet
       Caption = 'About'
-      ClientHeight = 196
+      ClientHeight = 197
       ClientWidth = 413
       object Panel1: TPanel
         Left = 0
-        Height = 196
+        Height = 197
         Top = 0
         Width = 413
         Align = alClient
         BevelOuter = bvNone
-        ClientHeight = 196
+        ClientHeight = 197
         ClientWidth = 413
         Color = clWindow
         ParentColor = False
@@ -95,7 +96,7 @@ object frmAbout: TfrmAbout
         end
         object btnDonate: TImage
           Left = 0
-          Height = 48
+          Height = 49
           Top = 148
           Width = 413
           Align = alBottom
@@ -484,7 +485,7 @@ object frmAbout: TfrmAbout
     end
     object tabLicense: TTabSheet
       Caption = 'License'
-      ClientHeight = 196
+      ClientHeight = 197
       ClientWidth = 413
       ImageIndex = 1
       object lblGPL: TLabel
@@ -505,7 +506,7 @@ object frmAbout: TfrmAbout
       end
       object txtAbout: TMemo
         Left = 0
-        Height = 183
+        Height = 184
         Top = 13
         Width = 413
         Align = alClient
@@ -522,30 +523,33 @@ object frmAbout: TfrmAbout
   end
   object pnlNav: TPanel
     Left = 0
-    Height = 40
-    Top = 222
+    Height = 39
+    Top = 223
     Width = 421
     Align = alBottom
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 40
+    ClientHeight = 39
     ClientWidth = 421
     TabOrder = 0
     OnClick = pnlNavClick
     object Bevel2: TBevel
       Left = 0
-      Height = 5
+      Height = 4
       Top = 0
       Width = 421
       Align = alTop
       Shape = bsTopLine
     end
     object btnClose: TBitBtn
-      Left = 324
+      Left = 321
       Height = 35
-      Top = 5
-      Width = 97
+      Top = 4
+      Width = 100
       Align = alRight
       Caption = '&Close'
+      Constraints.MinHeight = 35
+      Constraints.MinWidth = 100
       OnClick = btnCloseClick
       TabOrder = 0
     end

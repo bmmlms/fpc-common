@@ -19,10 +19,10 @@ object frmUpdatedInfo: TfrmUpdatedInfo
   OnShow = FormShow
   Position = poScreenCenter
   ShowInTaskBar = stAlways
-  LCLVersion = '2.2.0.2'
+  LCLVersion = '2.2.4.0'
   object txtInfo: TMemo
     Left = 0
-    Height = 160
+    Height = 161
     Top = 0
     Width = 393
     Align = alClient
@@ -33,30 +33,33 @@ object frmUpdatedInfo: TfrmUpdatedInfo
   end
   object pnlNav: TPanel
     Left = 0
-    Height = 40
-    Top = 217
+    Height = 39
+    Top = 218
     Width = 393
     Align = alBottom
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 40
+    ClientHeight = 39
     ClientWidth = 393
     TabOrder = 2
     object Bevel2: TBevel
       Left = 0
-      Height = 5
+      Height = 4
       Top = 0
       Width = 393
       Align = alTop
       Shape = bsTopLine
     end
     object btnClose: TBitBtn
-      Left = 296
+      Left = 293
       Height = 35
-      Top = 5
-      Width = 97
+      Top = 4
+      Width = 100
       Align = alRight
+      AutoSize = True
       Caption = '&Close'
-      Default = True
+      Constraints.MinHeight = 35
+      Constraints.MinWidth = 100
       OnClick = btnCloseClick
       TabOrder = 0
     end
@@ -64,7 +67,7 @@ object frmUpdatedInfo: TfrmUpdatedInfo
   object chkNotShowAgain: TCheckBox
     Left = 0
     Height = 19
-    Top = 198
+    Top = 199
     Width = 393
     Align = alBottom
     Caption = '&Don''t show this message again'
@@ -73,7 +76,7 @@ object frmUpdatedInfo: TfrmUpdatedInfo
   object Panel1: TPanel
     Left = 0
     Height = 38
-    Top = 160
+    Top = 161
     Width = 393
     Align = alBottom
     BevelOuter = bvNone

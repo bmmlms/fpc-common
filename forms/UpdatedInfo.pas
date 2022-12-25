@@ -30,13 +30,13 @@ uses
   Dialogs,
   ExtCtrls,
   Forms,
+  Functions,
   Graphics,
   LanguageObjects,
   MControls,
   StdCtrls,
   SysUtils,
-  Variants,
-  Windows;
+  Variants;
 
 type
 
@@ -71,7 +71,7 @@ end;
 
 procedure TfrmUpdatedInfo.btnDonateClick(Sender: TObject);
 begin
-  ShellExecuteW(0, 'open', PWideChar(UnicodeString(AppGlobals.ProjectDonateLink)), '', '', 1);
+  TFunctions.ShellExecute(0, 'open', AppGlobals.ProjectDonateLink);
   AppGlobals.SuppressUpdatedInfo := chkNotShowAgain.Checked;
   Close;
 end;

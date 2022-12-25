@@ -91,6 +91,7 @@ type
 
     FDataDir: string;
     FDataDirOverridden: Boolean;
+    FDataFile: string;
     FIgnoreFields: TStringList;
 
     FCommandLine: TCommandLine;
@@ -120,6 +121,7 @@ type
 
     property DataDir: string read FDataDir;
     property DataDirOverridden: Boolean read FDataDirOverridden;
+    property DataFile: string read FDataFile;
     property IgnoreFields: TStringList read FIgnoreFields;
   end;
 
@@ -233,6 +235,8 @@ begin
     FDataDir := Param.Values[0];
   end else
     FDataDir := GetDataDir(AppName);
+
+  FDataFile := GetFilePath('data.dat');
 end;
 
 function TSettingsInstalled.Delete(Name, Section: string): Boolean;
@@ -295,7 +299,6 @@ function TSettingsInstalled.DeleteProfile: Boolean;
 
 var
   Reg: TRegistry;
-  Files: TStringList;
   RegPath: string;
   i, P: Integer;
 begin
@@ -317,15 +320,7 @@ begin
     Reg.Free;
   end;
 
-  Files := TStringList.Create;
-  try
-    TFunctions.FindFiles(ConcatPaths([FDataDir, FAppName + '_*']), Files);
-    for i := 0 to Files.Count - 1 do
-      if not DeleteFile(ConcatPaths([FDataDir, Files[i]])) then
-        Result := False;
-  finally
-    Files.Free;
-  end;
+  DeleteFile(FDataFile);
 end;
 
 procedure TSettingsInstalled.GetDataInternal(Path: string; Lst: TSettingsList; TruncLen: Integer);
@@ -551,7 +546,8 @@ begin
   end else
     FDataDir := GetDataDir;
 
-  FIniFile := ConcatPaths([FDataDir, LowerCase(AppName) + '_settings.ini']);
+  FIniFile := GetFilePath('settings.ini');
+  FDataFile := GetFilePath('data.dat');
 end;
 
 function TSettingsPortable.Delete(Name, Section: string): Boolean;
@@ -591,22 +587,12 @@ begin
 end;
 
 function TSettingsPortable.DeleteProfile: Boolean;
-var
-  Files: TStringList;
-  i: Integer;
 begin
   inherited;
   Result := True;
 
-  Files := TStringList.Create;
-  try
-    TFunctions.FindFiles(ConcatPaths([FDataDir, FAppName + '_*']), Files);
-    for i := 0 to Files.Count - 1 do
-      if not DeleteFile(ConcatPaths([FDataDir, Files[i]])) then
-        Result := False;
-  finally
-    Files.Free;
-  end;
+  DeleteFile(FIniFile);
+  DeleteFile(FDataFile);
 end;
 
 procedure TSettingsPortable.GetData(Lst: TSettingsList);

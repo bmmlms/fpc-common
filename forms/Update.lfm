@@ -1,13 +1,13 @@
 object frmUpdate: TfrmUpdate
   Left = 0
-  Height = 96
+  Height = 95
   Top = 0
   Width = 250
   AutoSize = True
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Update'
-  ClientHeight = 96
+  ClientHeight = 95
   ClientWidth = 250
   Color = clBtnFace
   Font.Color = clWindowText
@@ -57,7 +57,7 @@ object frmUpdate: TfrmUpdate
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
   Position = poOwnerFormCenter
-  LCLVersion = '2.2.0.2'
+  LCLVersion = '2.2.4.0'
   object lblState: TLabel
     Left = 0
     Height = 13
@@ -66,6 +66,7 @@ object frmUpdate: TfrmUpdate
     Align = alTop
     Alignment = taCenter
     Caption = 'Searching for new version...'
+    ParentColor = False
   end
   object lblChangeLog: TLabel
     Cursor = crHandPoint
@@ -80,6 +81,7 @@ object frmUpdate: TfrmUpdate
     Font.Height = -11
     Font.Name = 'Tahoma'
     Font.Style = [fsUnderline]
+    ParentColor = False
     ParentFont = False
     Visible = False
     OnClick = lblChangeLogClick
@@ -94,30 +96,34 @@ object frmUpdate: TfrmUpdate
   end
   object pnlNav: TPanel
     Left = 0
-    Height = 40
+    Height = 39
     Top = 56
     Width = 250
     Align = alTop
+    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 40
+    ClientHeight = 39
     ClientWidth = 250
     Constraints.MinWidth = 250
     TabOrder = 1
     object Bevel2: TBevel
       Left = 0
-      Height = 5
+      Height = 4
       Top = 0
       Width = 250
       Align = alTop
       Shape = bsTopLine
     end
     object cmdOK: TButton
-      Left = 153
+      Left = 150
       Height = 35
-      Top = 5
-      Width = 97
+      Top = 4
+      Width = 100
       Align = alRight
+      AutoSize = True
       Caption = '&Download'
+      Constraints.MinHeight = 35
+      Constraints.MinWidth = 100
       Default = True
       Enabled = False
       OnClick = cmdOKClick
@@ -126,10 +132,13 @@ object frmUpdate: TfrmUpdate
     object cmdCancel: TButton
       Left = 0
       Height = 35
-      Top = 5
-      Width = 97
+      Top = 4
+      Width = 100
       Align = alLeft
+      AutoSize = True
       Caption = '&Close'
+      Constraints.MinHeight = 35
+      Constraints.MinWidth = 100
       OnClick = cmdCancelClick
       TabOrder = 1
     end
@@ -152,6 +161,7 @@ object frmUpdate: TfrmUpdate
       Width = 83
       Align = alLeft
       Caption = 'Installed version:'
+      ParentColor = False
     end
     object lblVersion: TLabel
       Left = 246
@@ -161,6 +171,7 @@ object frmUpdate: TfrmUpdate
       Align = alRight
       Alignment = taRightJustify
       Caption = '-'
+      ParentColor = False
     end
   end
   object Panel2: TPanel
@@ -181,6 +192,7 @@ object frmUpdate: TfrmUpdate
       Width = 78
       Align = alLeft
       Caption = 'Newest version:'
+      ParentColor = False
     end
     object lblNewestVersion: TLabel
       Left = 246
@@ -190,6 +202,7 @@ object frmUpdate: TfrmUpdate
       Align = alRight
       Alignment = taRightJustify
       Caption = '-'
+      ParentColor = False
     end
   end
 end
