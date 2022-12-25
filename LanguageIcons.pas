@@ -67,7 +67,7 @@ begin
   FLanguageIcons := TList.Create;
   for i := 0 to LanguageList.Count - 1 do
   begin
-    if FindResource(HINSTANCE, PChar('FLAG_%s'.Format([LanguageList[i].ID])), RT_RCDATA) = 0 then
+    if FindResource(HINSTANCE, PChar('FLAG_%s'.Format([LanguageList[i].ID])), Windows.RT_RCDATA) = 0 then
       Continue;
 
     FLanguageIcons.Add(TLanguageIcon.Create(LanguageList[i].ID, FList.AddResourceName(HINSTANCE, 'FLAG_%s'.Format([LanguageList[i].ID]))));

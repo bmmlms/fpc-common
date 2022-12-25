@@ -1078,7 +1078,7 @@ begin
   FCurrentLanguage := Value;
 
   try
-    Res := TResourceStream.Create(HINSTANCE, 'lclstrconsts.%s'.Format([Value.ID]), RT_RCDATA);
+    Res := TResourceStream.Create(HINSTANCE, 'lclstrconsts.%s'.Format([Value.ID]), Windows.RT_RCDATA);
     PoStringStream := TStringStream.Create;
     PoFile := TPOFile.Create(False);
     try
@@ -1177,11 +1177,11 @@ begin
   try
     Resources := TStringList.Create;
     try
-      EnumResourceNames(HInstance, RT_RCDATA, @EnumResNameProc, 0);
+      EnumResourceNames(HInstance, Windows.RT_RCDATA, @EnumResNameProc, 0);
 
       for i := 0 to Resources.Count - 1 do
       begin
-        Res := TResourceStream.Create(HInstance, Resources[i], RT_RCDATA);
+        Res := TResourceStream.Create(HInstance, Resources[i], Windows.RT_RCDATA);
         try
           Project := TProject.Create(Res);
           FProjects.Add(Project);

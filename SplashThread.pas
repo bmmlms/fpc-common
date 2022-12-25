@@ -288,7 +288,7 @@ begin
   RegisterClassEx(FWindowClass);
 
   PngImage := TPortableNetworkGraphic.Create;
-  ResStream := TResourceStream.Create(HINSTANCE, FResourceName, RT_RCDATA);
+  ResStream := TResourceStream.Create(HINSTANCE, FResourceName, Windows.RT_RCDATA);
   try
     PngImage.LoadFromStream(ResStream);
 

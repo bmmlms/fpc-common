@@ -36,7 +36,6 @@ uses
   Functions,
   Graphics,
   LanguageObjects,
-  ShellAPI,
   StdCtrls,
   SysUtils,
   Variants,
@@ -285,9 +284,9 @@ begin
   FText := TStringList.Create;
   SetLength(FBmps, 0);
 
-  while FindResource(HINSTANCE, PChar('THANKSIMAGE' + IntToStr(i)), RT_RCDATA) <> 0 do
+  while FindResource(HINSTANCE, PChar('THANKSIMAGE' + IntToStr(i)), Windows.RT_RCDATA) <> 0 do
   begin
-    ResStream := TResourceStream.Create(HInstance, 'THANKSIMAGE' + IntToStr(i), RT_RCDATA);
+    ResStream := TResourceStream.Create(HInstance, 'THANKSIMAGE' + IntToStr(i), Windows.RT_RCDATA);
     try
       Image := TJPEGImage.Create;
       try

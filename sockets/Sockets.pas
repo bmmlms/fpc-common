@@ -363,7 +363,7 @@ class procedure TSocketThread.LoadCertificates(const ResourceName: string);
 var
   Stream: TResourceStream;
 begin
-  Stream := TResourceStream.Create(HINSTANCE, ResourceName, RT_RCDATA);
+  Stream := TResourceStream.Create(HINSTANCE, ResourceName, Windows.RT_RCDATA);
   try
     mbedtls_x509_crt_init(@FCertChain);
     if mbedtls_x509_crt_parse(@FCertChain, Stream.Memory, Stream.Size) < 0 then
