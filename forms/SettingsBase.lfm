@@ -16,6 +16,7 @@ object frmSettingsBase: TfrmSettingsBase
   OnDestroy = FormDestroy
   OnKeyDown = FormKeyDown
   OnShow = FormShow
+  LCLVersion = '2.2.4.0'
   object FlowPanelPages: TFlowPanel
     Left = 93
     Height = 802

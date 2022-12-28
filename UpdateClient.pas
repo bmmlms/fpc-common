@@ -269,7 +269,7 @@ begin
       Info.lpFile := PChar(FUpdateFile);
       Info.lpParameters := PChar(Parameters);
       Info.nShow := SW_SHOWNORMAL;
-      ShellExecuteExW(@Info);
+      ShellExecuteExA(@Info);
     end;
   end;
 end;

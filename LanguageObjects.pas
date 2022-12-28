@@ -44,6 +44,16 @@ type
   TEntry = class;
   TProject = class;
 
+  IPreTranslatable = interface
+    ['{4DE1F4D5-C43E-4E63-BF90-21D3479DD553}']
+    procedure PreTranslate;
+  end;
+
+  IPostTranslatable = interface
+    ['{7FC6F0EF-0185-4367-99A3-291D8BB9DD11}']
+    procedure PostTranslate;
+  end;
+
   TLanguage = class
   private
     FID: string;
@@ -227,8 +237,6 @@ type
     property Obj: TObject read FObj write FObj;
   end;
 
-  TTranslateProc = procedure() of object;
-
   { TLanguageManager }
 
   TLanguageManager = class
@@ -248,7 +256,6 @@ type
     destructor Destroy; override;
     function Get(s: string): string;
     procedure Translate(C: TComponent); overload;
-    procedure Translate(C: TComponent; PreTranslate, PostTranslate: TTranslateProc); overload;
     procedure SetLanguage(Language: string);
     procedure LoadFromFile(LanguageFile: string);
     property CurrentLanguage: TLanguage read FCurrentLanguage write FSetCurrentLanguage;
@@ -1366,6 +1373,9 @@ begin
   if C = nil then
     Exit;
 
+  if C is IPreTranslatable then
+    (C as IPreTranslatable).PreTranslate;
+
   // Ignore-List überprüfen
   for i := 0 to FIgnoreClassList.Count - 1 do
     if (FIgnoreClassList[i] = C.ClassType) or (C.InheritsFrom(FIgnoreClassList[i])) then
@@ -1417,6 +1427,9 @@ begin
   if C is TComponent then
     for i := 0 to TComponent(C).ComponentCount - 1 do
       TranslateRecursive(TComponent(C).Components[i], TComponent(C).Components[i], Translated);
+
+  if C is IPostTranslatable then
+    (C as IPostTranslatable).PostTranslate;
 end;
 
 procedure TLanguageManager.Translate(C: TComponent);
@@ -1431,16 +1444,6 @@ begin
     TranslateRecursive(C, C, Translated);
   finally
     Translated.Free;
-  end;
-end;
-
-procedure TLanguageManager.Translate(C: TComponent; PreTranslate, PostTranslate: TTranslateProc);
-begin
-  try
-    PreTranslate;
-    Translate(C);
-  finally
-    PostTranslate;
   end;
 end;
 

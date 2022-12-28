@@ -113,7 +113,7 @@ begin
   try
     while not Terminated do
     begin
-      DirHandle := CreateFileW(PWideChar(UnicodeString(FWatchPath)), FILE_LIST_DIRECTORY or GENERIC_READ, FILE_SHARE_READ or FILE_SHARE_WRITE or FILE_SHARE_DELETE, nil, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS or FILE_FLAG_OVERLAPPED, 0);
+      DirHandle := CreateFile(PChar(FWatchPath), FILE_LIST_DIRECTORY or GENERIC_READ, FILE_SHARE_READ or FILE_SHARE_WRITE or FILE_SHARE_DELETE, nil, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS or FILE_FLAG_OVERLAPPED, 0);
 
       if (DirHandle = INVALID_HANDLE_VALUE) or (DirHandle = 0) then
       begin

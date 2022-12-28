@@ -86,7 +86,6 @@ type
     PADDING_CHAR = ' ';
   private
     FRemoving: Boolean;
-    FPainted: Boolean;
     FMaxTabWidth: Integer;
     FFocusList: TList<TTabSheet>;
     FPressedButton: Integer;
@@ -118,15 +117,13 @@ type
     property Pages[Index: Integer]: TMTabSheet read FGetTabSheet;
   end;
 
-  TMVirtualStringTree = class(TVirtualStringTree)
+  { TMTranslatableVirtualStringTree }
+
+  TMTranslatableVirtualStringTree = class(TVirtualStringTree, IPostTranslatable)
   private
   protected
-    procedure NodeSelected(Node: PVirtualNode); virtual;
-    procedure KeyPress(var Key: Char); override;
-    procedure KeyUp(var Key: Word; Shift: TShiftState); override;
-    procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X: Integer; Y: Integer); override;
-    procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X: Integer; Y: Integer); override;
   public
+    procedure PostTranslate; virtual;
   end;
 
   TMStatusBar = class(TStatusBar)
@@ -173,8 +170,8 @@ type
     procedure Select; override;
     procedure SetTextByIndex(var Msg: TMessage); message WM_SETTEXTBYINDEX;
     procedure AlignEdit(var Msg: TMessage); message WM_ALIGNEDIT;
-    procedure DoSetBounds(ALeft, ATop, AWidth, AHeight: integer); override;
-    procedure SetItemIndex(const Val: integer); override;
+    procedure DoSetBounds(ALeft, ATop, AWidth, AHeight: Integer); override;
+    procedure SetItemIndex(const Val: Integer); override;
     procedure DropDown; override;
     procedure CloseUp; override;
     procedure Change; override;
@@ -188,6 +185,9 @@ type
   public
     procedure ApplyFocus;
   end;
+
+const
+  TABSHEET_PADDING = 3;
 
 implementation
 
@@ -239,14 +239,14 @@ begin
   if TabRect.Height = 0 then
     Exit;
 
-  ButtonWidth := TFunctions.GetTextSize('Wyg', PageControl.Font).Height - 2;
+  ButtonWidth := PageControl.TabHeight - MulDiv(TABSHEET_PADDING, Screen.PixelsPerInch, 96) * 2;
 
-  FButtonRect := TRect.Create(TPoint.Create(TabRect.Right - ButtonWidth - 5, TabRect.Top + (TabRect.Height div 2) - Math.Floor(ButtonWidth / 2)), ButtonWidth, ButtonWidth);
+  FButtonRect := TRect.Create(TPoint.Create(TabRect.Right - ButtonWidth - MulDiv(TABSHEET_PADDING, Screen.PixelsPerInch, 96) * 3, TabRect.Top + (TabRect.Height div 2) - Floor(ButtonWidth / 2)), ButtonWidth, ButtonWidth);
 
   if PageControl.ActivePageIndex = PageIndex then
     FButtonRect.Offset(0, -2);
 
-    inherited Caption := FCaption;
+  inherited Caption := FCaption;
 end;
 
 { TMPageControl }
@@ -256,17 +256,17 @@ var
   uType: Integer;
   uState: Integer;
   Details: TThemedElementDetails;
-  Win: TThemedWindow;
+  Win: TThemedToolTip;
 begin
   if ThemeServices.ThemesEnabled then
   begin
     case State of
       bsDown:
-        Win := twSmallCloseButtonPushed;
+        Win := tttClosePressed;
       bsHot:
-        Win := twSmallCloseButtonHot;
+        Win := tttCloseHot;
       else
-        Win := twSmallCloseButtonNormal;
+        Win := tttCloseNormal;
     end;
 
     R.Right := R.Right + 2;
@@ -332,8 +332,6 @@ begin
   finally
     Canvas.Free;
   end;
-
-  FPainted := True;
 end;
 
 procedure TMPageControl.DoChange;
@@ -475,13 +473,13 @@ begin
     Item := PTCITEM(Message.lParam);
 
     Org := Item.pszText;
-    Text := WideCharToString(PWideChar(Item.pszText));
+    Text := PWideChar(Item.pszText);
 
     NewText := Text;
     NewText := NewText.TrimRight(PADDING_CHAR);
 
     if (FMaxTabWidth = 0) and Pages[Message.wParam].FShowCloseButton then
-      NewText := NewText + TFunctions.StringForWidth(PADDING_CHAR, Pages[Message.wParam].FButtonRect.Width, Font)
+      NewText := NewText + TFunctions.StringForWidth(PADDING_CHAR, Pages[Message.wParam].FButtonRect.Width + MulDiv(TABSHEET_PADDING, Screen.PixelsPerInch, 96), Font)
     else if (FMaxTabWidth > 0) and Pages[Message.wParam].FShowCloseButton then
       NewText := TFunctions.TruncateText(NewText, FMaxTabWidth - (TabRect(Message.wParam).Width - Pages[Message.wParam].FButtonRect.Left), Font) + TFunctions.StringForWidth(PADDING_CHAR, Pages[Message.wParam].FButtonRect.Width, Font)
     else if (FMaxTabWidth > 0) and (not Pages[Message.wParam].FShowCloseButton) then
@@ -550,6 +548,13 @@ begin
     Invalidate;
 end;
 
+{ TMTranslatableVirtualStringTree }
+
+procedure TMTranslatableVirtualStringTree.PostTranslate;
+begin
+  Invalidate;
+end;
+
 { TMStatusBar }
 
 procedure TMStatusBar.DrawPanel(Panel: TStatusPanel; const Rect: TRect);
@@ -590,41 +595,6 @@ begin
   end;
 
   Result := s;
-end;
-
-{ TMVirtualStringTree }
-
-procedure TMVirtualStringTree.KeyPress(var Key: Char);
-begin
-  inherited;
-
-end;
-
-procedure TMVirtualStringTree.KeyUp(var Key: Word; Shift: TShiftState);
-begin
-  inherited;
-  if ((Key = VK_UP) or (Key = VK_DOWN) or (Key = VK_RIGHT) or (Key = VK_LEFT) or (Key = VK_SPACE) or (Key = VK_RETURN) or (Key = VK_END) or (Key = VK_HOME) or (Key = VK_PRIOR) or (Key = VK_NEXT)) and (FocusedNode <> nil) then
-    NodeSelected(FocusedNode);
-end;
-
-procedure TMVirtualStringTree.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  inherited;
-end;
-
-procedure TMVirtualStringTree.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var
-  Node: PVirtualNode;
-begin
-  inherited;
-  Node := GetNodeAt(X, Y);
-  if (Node <> nil) and (Node = FocusedNode) then
-    NodeSelected(Node);
-end;
-
-procedure TMVirtualStringTree.NodeSelected(Node: PVirtualNode);
-begin
-
 end;
 
 { TMShowHidePanel }
@@ -744,7 +714,7 @@ begin
   end;
 end;
 
-procedure TComboBoxExEditable.DoSetBounds(ALeft, ATop, AWidth, AHeight: integer);
+procedure TComboBoxExEditable.DoSetBounds(ALeft, ATop, AWidth, AHeight: Integer);
 begin
   inherited DoSetBounds(ALeft, ATop, AWidth, AHeight);
 
@@ -754,7 +724,7 @@ begin
   PostMessage(Handle, WM_ALIGNEDIT, 0, 0);
 end;
 
-procedure TComboBoxExEditable.SetItemIndex(const Val: integer);
+procedure TComboBoxExEditable.SetItemIndex(const Val: Integer);
 begin
   if FSettingText then
     Exit;

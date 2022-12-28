@@ -92,7 +92,7 @@ type
 
   { TfrmSettingsBase }
 
-  TfrmSettingsBase = class(TForm)
+  TfrmSettingsBase = class(TForm, IPostTranslatable)
     btnCopyProfile: TButton;
     btnDeleteProfile: TButton;
     btnExportProfile: TButton;
@@ -144,7 +144,6 @@ type
     procedure RegisterGeneralPage(ImageIndex: Integer); virtual;
     procedure Finish; virtual;
     function CanFinish: Boolean; virtual;
-    procedure PreTranslate; virtual;
     procedure PostTranslate; virtual;
     procedure GetExportDataHeader(Stream: TMemoryStream); virtual;
     procedure GetExportData(Stream: TMemoryStream); virtual;
@@ -198,11 +197,6 @@ end;
 
 { TfrmSettingsBase }
 
-procedure TfrmSettingsBase.PreTranslate;
-begin
-
-end;
-
 procedure TfrmSettingsBase.PostTranslate;
 var
   i: Integer;
@@ -211,12 +205,13 @@ begin
   begin
     lblPortable.Visible := False;
     btnCopyProfile.Visible := False;
-    Exit;
+  end else
+  begin
+    if AppGlobals.Portable = poYes then
+      lblPortable.Caption := _('This application is using portable settings. ' + 'To copy these settings to the registry/application data folder, press ''Copy profile''.')
+    else if AppGlobals.Portable = poNo then
+      lblPortable.Caption := _('This application is using settings from the registry/application data folder. ' + 'To copy these settings to a portable profile, press ''Copy profile''.');
   end;
-  if AppGlobals.Portable = poYes then
-    lblPortable.Caption := _('This application is using portable settings. ' + 'To copy these settings to the registry/application data folder, press ''Copy profile''.')
-  else if AppGlobals.Portable = poNo then
-    lblPortable.Caption := _('This application is using settings from the registry/application data folder. ' + 'To copy these settings to a portable profile, press ''Copy profile''.');
 
   for i := 0 to FPageList.Count - 1 do
   begin
@@ -400,7 +395,7 @@ begin
   btnExportProfile.Enabled := not AppGlobals.Storage.DataDirOverridden;
   btnImportProfile.Enabled := not AppGlobals.Storage.DataDirOverridden;
 
-  Language.Translate(Self, PreTranslate, PostTranslate);
+  Language.Translate(Self);
 end;
 
 procedure TfrmSettingsBase.Finish;
@@ -523,7 +518,7 @@ begin
   if lstLanguages.Control.ItemIndex > -1 then
   begin
     Language.CurrentLanguage := TLanguage(lstLanguages.Control.ItemsEx[lstLanguages.Control.ItemIndex].Data);
-    Language.Translate(Self, PreTranslate, PostTranslate);
+    Language.Translate(Self);
   end;
 end;
 
