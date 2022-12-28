@@ -117,21 +117,17 @@ type
     property Pages[Index: Integer]: TMTabSheet read FGetTabSheet;
   end;
 
-  { TMTranslatableVirtualStringTree }
+  { TMVirtualStringTree }
 
-  TMTranslatableVirtualStringTree = class(TVirtualStringTree, IPostTranslatable)
+  TMVirtualStringTree = class(TVirtualStringTree, IPostTranslatable)
   private
+    FSuppressNodeEdit: Boolean;
   protected
+    procedure WMRButtonUp(var Message: TLMRButtonUp); message LM_RBUTTONUP;
   public
+    function CanEdit(Node: PVirtualNode; Column: TColumnIndex): Boolean; override;
+
     procedure PostTranslate; virtual;
-  end;
-
-  TMStatusBar = class(TStatusBar)
-  private
-    function ShortenString(Panel: TStatusPanel; const Rect: TRect): string;
-  protected
-    procedure DrawPanel(Panel: TStatusPanel; const Rect: TRect); override;
-  public
   end;
 
   TMShowHidePanel = class(TCustomControl)
@@ -548,53 +544,29 @@ begin
     Invalidate;
 end;
 
-{ TMTranslatableVirtualStringTree }
+{ TMVirtualStringTree }
 
-procedure TMTranslatableVirtualStringTree.PostTranslate;
+function TMVirtualStringTree.CanEdit(Node: PVirtualNode; Column: TColumnIndex): Boolean;
+begin
+  if FSuppressNodeEdit then
+    Exit(False);
+
+  Result := inherited;
+end;
+
+procedure TMVirtualStringTree.WMRButtonUp(var Message: TLMRButtonUp);
+begin
+  FSuppressNodeEdit := True;
+  try
+    inherited;
+  finally
+    FSuppressNodeEdit := False;
+  end;
+end;
+
+procedure TMVirtualStringTree.PostTranslate;
 begin
   Invalidate;
-end;
-
-{ TMStatusBar }
-
-procedure TMStatusBar.DrawPanel(Panel: TStatusPanel; const Rect: TRect);
-begin
-  inherited;
-  Canvas.FillRect(Rect);
-  Canvas.TextRect(Rect, Rect.Left, Rect.Top, ShortenString(Panel, Rect));
-end;
-
-function TMStatusBar.ShortenString(Panel: TStatusPanel; const Rect: TRect): string;
-var
-  s: string;
-  w: Integer;
-  sw: Integer;
-begin
-  s := Panel.Text;
-  w := Panel.Width;
-  sw := Canvas.TextWidth(s);
-
-  if sw > w then
-  begin
-    SetLength(s, Length(s) - 1);
-    s := Trim(s);
-    s := s + '...';
-    sw := Canvas.TextWidth(s);
-  end;
-
-  while sw > w do
-  begin
-    s := Copy(s, 1, Length(s) - 4) + '...';
-    s := Trim(s);
-    if Length(s) = 3 then
-    begin
-      s := '';
-      Break;
-    end;
-    sw := Canvas.TextWidth(s);
-  end;
-
-  Result := s;
 end;
 
 { TMShowHidePanel }

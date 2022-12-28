@@ -137,6 +137,7 @@ type
     class procedure GetMaxTransparent(Icon: TIcon; var Top, Right: Integer); static;
     class function WindowIsFullscreen: Boolean; static;
     class function ShellExecute(const Handle: THandle; const Operation, Filename: string; const Parameters: string = ''): Boolean;
+    class function GetDataObjectURLs(const DataObject: IDataObject; out URLs: TStringArray): Boolean;
 
     class function ShutdownBlockReasonCreate(hWnd: HWND; pwszReason: string): Boolean; static;
     class function ShutdownBlockReasonDestroy(hWnd: HWND): Boolean; static;
@@ -1425,21 +1426,19 @@ var
 begin
   Filename := ConcatPaths([Dir, '%s.lnk'.Format([Name])]);
   if Delete then
-    Result := SysUtils.DeleteFile(Filename)
-  else
-  begin
-    SysUtils.DeleteFile(Filename);
+    Exit(SysUtils.DeleteFile(Filename));
 
-    IObject := CreateComObject(CLSID_ShellLink);
-    ISLink := IObject as IShellLink;
-    IPFile := IObject as IPersistFile;
+  SysUtils.DeleteFile(Filename);
 
-    ISLink.SetPath(PChar(Executable));
-    ISLink.SetWorkingDirectory(PChar(ExtractFilePath(Executable)));
-    ISLink.SetArguments(PChar(Args));
+  IObject := CreateComObject(CLSID_ShellLink);
+  ISLink := IObject as IShellLink;
+  IPFile := IObject as IPersistFile;
 
-    Result := IPFile.Save(PWideChar(UnicodeString(Filename)), False) = S_OK;
-  end;
+  ISLink.SetPath(PChar(Executable));
+  ISLink.SetWorkingDirectory(PChar(ExtractFilePath(Executable)));
+  ISLink.SetArguments(PChar(Args));
+
+  Result := IPFile.Save(PWideChar(UnicodeString(Filename)), False) = S_OK;
 end;
 
 class procedure TFunctions.GetMaxTransparent(Icon: TIcon; var Top, Right: Integer);
@@ -1488,7 +1487,7 @@ begin
   if ((H <> GetDesktopWindow) and ((@GetShellWindow <> nil) and (H <> GetShellWindow))) then
   begin
     GetWindowRect(H, R);
-    for i := 0 to Screen.MonitorCount - 1 do
+    for i := 0 to Pred(Screen.MonitorCount) do
       if RectMatches(Screen.Monitors[i].BoundsRect, R) then
         Exit(True);
   end;
@@ -1499,6 +1498,164 @@ end;
 class function TFunctions.ShellExecute(const Handle: THandle; const Operation, Filename: string; const Parameters: string = ''): Boolean;
 begin
   Exit(Windows.ShellExecute(Handle, PChar(Operation), PChar(Filename), PChar(Parameters), nil, SW_NORMAL) > 32);
+end;
+
+class function TFunctions.GetDataObjectURLs(const DataObject: IDataObject; out URLs: TStringArray): Boolean;
+
+  procedure AddString(const S: string);
+  begin
+    if string.IsNullOrWhiteSpace(S) then
+      Exit;
+
+    if (not S.ToLower.StartsWith('http://')) and (not S.ToLower.StartsWith('https://')) then
+      Exit;
+
+    SetLength(URLs, Length(URLs) + 1);
+    URLs[High(URLs)] := S;
+  end;
+
+  procedure ReadHDrop;
+  var
+    FormatEtc: TFormatEtc;
+    Medium: TStgMedium;
+    Filename: string = '';
+    i, DroppedFileCount, FilenameLength: Integer;
+  begin
+    FormatEtc.cfFormat := CF_HDROP;
+    FormatEtc.ptd := nil;
+    FormatEtc.dwAspect := DVASPECT_CONTENT;
+    FormatEtc.lindex := -1;
+    FormatEtc.tymed := TYMED_HGLOBAL;
+    OleCheck(DataObject.GetData(FormatEtc, Medium));
+    try
+      DroppedFileCount := DragQueryFileA(Medium.hGlobal, $FFFFFFFF, nil, 0);
+      for i := 0 to Pred(DroppedFileCount) do
+      begin
+        FilenameLength := DragQueryFileA(Medium.hGlobal, i, nil, 0) + 1;
+        SetLength(Filename, FilenameLength);
+        DragQueryFileA(Medium.hGlobal, i, @Filename[1], FilenameLength);
+
+        AddString(Filename);
+      end;
+    finally
+      ReleaseStgMedium(Medium);
+    end;
+  end;
+
+  procedure ReadText;
+  var
+    FormatEtc: TFormatEtc;
+    Medium: TStgMedium;
+    OLEData, Head: PChar;
+    Chars: Integer;
+    S: string;
+  begin
+    FormatEtc.cfFormat := CF_TEXT;
+    FormatEtc.ptd := nil;
+    FormatEtc.dwAspect := DVASPECT_CONTENT;
+    FormatEtc.lindex := -1;
+    FormatEtc.tymed := TYMED_HGLOBAL;
+
+    if (DataObject.QueryGetData(FormatEtc) = S_OK) and (DataObject.GetData(FormatEtc, Medium) = S_OK) then
+    begin
+      OLEData := GlobalLock(Medium.hGlobal);
+      if Assigned(OLEData) then
+      begin
+        Chars := 0;
+        Head := OLEData;
+        try
+          while Head^ <> #0 do
+          begin
+            Head := Pointer(Integer(Head) + SizeOf(Char));
+            Inc(Chars);
+          end;
+
+          SetString(S, OLEData, Chars);
+
+          AddString(S);
+        finally
+          GlobalUnlock(Medium.hGlobal);
+        end;
+      end;
+      ReleaseStgMedium(Medium);
+    end;
+  end;
+
+  procedure ReadUnicodeText;
+  var
+    FormatEtc: TFormatEtc;
+    Medium: TStgMedium;
+    OLEData, Head: PWideChar;
+    Chars: Integer;
+    S: string;
+  begin
+    FormatEtc.cfFormat := CF_UNICODETEXT;
+    FormatEtc.ptd := nil;
+    FormatEtc.dwAspect := DVASPECT_CONTENT;
+    FormatEtc.lindex := -1;
+    FormatEtc.tymed := TYMED_HGLOBAL;
+
+    if (DataObject.QueryGetData(FormatEtc) = S_OK) and (DataObject.GetData(FormatEtc, Medium) = S_OK) then
+    begin
+      OLEData := GlobalLock(Medium.hGlobal);
+      if Assigned(OLEData) then
+      begin
+        Chars := 0;
+        Head := OLEData;
+        try
+          while Head^ <> #0 do
+          begin
+            Head := Pointer(Integer(Head) + SizeOf(WideChar));
+            Inc(Chars);
+          end;
+
+          SetString(S, OLEData, Chars);
+
+          AddString(S);
+        finally
+          GlobalUnlock(Medium.hGlobal);
+        end;
+      end;
+      ReleaseStgMedium(Medium);
+    end;
+  end;
+
+var
+  EnumFormat: IEnumFormatEtc;
+  Fetched: LongWord;
+  OLEFormat: TFormatEtc;
+  Res: HRESULT;
+begin
+  URLs := [];
+
+  Res := DataObject.EnumFormatEtc(DATADIR_GET, EnumFormat);
+  if Failed(Res) then
+    Exit(False);
+
+  Res := EnumFormat.Reset;
+  if Failed(Res) then
+    Exit(False);
+
+  while EnumFormat.Next(1, OLEFormat, @Fetched) = S_OK do
+    case OLEFormat.CfFormat of
+      CF_HDROP:
+      begin
+        ReadHDrop;
+        Break;
+      end;
+      CF_TEXT:
+      begin
+        ReadText;
+        Break;
+      end;
+      CF_UNICODETEXT:
+      begin
+        ReadUnicodeText;
+        Break;
+      end;
+    end;
+
+  Result := Length(URLs) > 0;
 end;
 
 class function TFunctions.ShutdownBlockReasonCreate(hWnd: HWND; pwszReason: string): Boolean;
