@@ -125,6 +125,8 @@ type
   protected
     procedure WMRButtonUp(var Message: TLMRButtonUp); message LM_RBUTTONUP;
   public
+    constructor Create(AOwner: TComponent); override;
+
     function CanEdit(Node: PVirtualNode; Column: TColumnIndex): Boolean; override;
 
     procedure PostTranslate; virtual;
@@ -545,6 +547,23 @@ begin
 end;
 
 { TMVirtualStringTree }
+
+constructor TMVirtualStringTree.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+
+  AutoScrollDelay := 50;
+  AutoScrollInterval := 400;
+  IncrementalSearch := isVisibleOnly;
+  HintMode := hmTooltip;
+  ShowHint := True;
+
+  TreeOptions.PaintOptions := [toShowButtons, toShowDropmark, toShowRoot, toThemeAware, toUseBlendedImages, toHideFocusRect];
+  TreeOptions.AutoOptions := [toAutoScroll, toAutoScrollOnExpand];
+  TreeOptions.SelectionOptions := [toMultiSelect, toRightClickSelect, toFullRowSelect];
+
+  Header.Options := [hoColumnResize, hoDrag, hoAutoResize, hoHotTrack, hoShowSortGlyphs, hoVisible];
+end;
 
 function TMVirtualStringTree.CanEdit(Node: PVirtualNode; Column: TColumnIndex): Boolean;
 begin

@@ -123,6 +123,8 @@ type
     class procedure CompressStream(InStream, OutStream: TStream; CompressionLevel: TCompressionLevel); static;
     class procedure DecompressStream(InStream, OutStream: TStream); static;
     class function MoveFile(const Source, Dest: string; const ReplaceIfExists: Boolean): Boolean; static;
+    class function IsHTTPUrl(const s: string): Boolean;
+    class function FilterHTTPUrls(s: string; out URLs: TStringArray): Boolean;
 
     class function GetTextSize(Text: string; Font: TFont): TSize; static;
     class function TruncateText(Text: string; MaxWidth: Integer; Font: TFont): string; static;
@@ -137,7 +139,8 @@ type
     class procedure GetMaxTransparent(Icon: TIcon; var Top, Right: Integer); static;
     class function WindowIsFullscreen: Boolean; static;
     class function ShellExecute(const Handle: THandle; const Operation, Filename: string; const Parameters: string = ''): Boolean;
-    class function GetDataObjectURLs(const DataObject: IDataObject; out URLs: TStringArray): Boolean;
+    class function ReadDataObjectFiles(const DataObject: IDataObject; out Files: TStringArray): Boolean;
+    class function ReadDataObjectText(const DataObject: IDataObject; out Text: string): Boolean;
 
     class function ShutdownBlockReasonCreate(hWnd: HWND; pwszReason: string): Boolean; static;
     class function ShutdownBlockReasonDestroy(hWnd: HWND): Boolean; static;
@@ -1261,6 +1264,22 @@ begin
   Exit(RenameFile(Source, Dest));
 end;
 
+class function TFunctions.IsHTTPUrl(const s: string): Boolean;
+begin
+  Result := S.ToLower.StartsWith('http://') or S.ToLower.StartsWith('https://');
+end;
+
+class function TFunctions.FilterHTTPUrls(s: string; out URLs: TStringArray): Boolean;
+begin
+  URLs := [];
+
+  for s in s.Split(LineEnding) do
+    if IsHTTPUrl(s) then
+      URLs := URLs + [s];
+
+  Result := Length(URLs) > 0;
+end;
+
 class function TFunctions.TruncateText(Text: string; MaxWidth: Integer; Font: TFont): string;
 var
   Canvas: TCanvas;
@@ -1500,19 +1519,7 @@ begin
   Exit(Windows.ShellExecute(Handle, PChar(Operation), PChar(Filename), PChar(Parameters), nil, SW_NORMAL) > 32);
 end;
 
-class function TFunctions.GetDataObjectURLs(const DataObject: IDataObject; out URLs: TStringArray): Boolean;
-
-  procedure AddString(const S: string);
-  begin
-    if string.IsNullOrWhiteSpace(S) then
-      Exit;
-
-    if (not S.ToLower.StartsWith('http://')) and (not S.ToLower.StartsWith('https://')) then
-      Exit;
-
-    SetLength(URLs, Length(URLs) + 1);
-    URLs[High(URLs)] := S;
-  end;
+class function TFunctions.ReadDataObjectFiles(const DataObject: IDataObject; out Files: TStringArray): Boolean;
 
   procedure ReadHDrop;
   var
@@ -1535,61 +1542,52 @@ class function TFunctions.GetDataObjectURLs(const DataObject: IDataObject; out U
         SetLength(Filename, FilenameLength);
         DragQueryFileA(Medium.hGlobal, i, @Filename[1], FilenameLength);
 
-        AddString(Filename);
+        Files += [Filename];
       end;
     finally
       ReleaseStgMedium(Medium);
     end;
   end;
 
-  procedure ReadText;
-  var
-    FormatEtc: TFormatEtc;
-    Medium: TStgMedium;
-    OLEData, Head: PChar;
-    Chars: Integer;
-    S: string;
-  begin
-    FormatEtc.cfFormat := CF_TEXT;
-    FormatEtc.ptd := nil;
-    FormatEtc.dwAspect := DVASPECT_CONTENT;
-    FormatEtc.lindex := -1;
-    FormatEtc.tymed := TYMED_HGLOBAL;
+var
+  EnumFormat: IEnumFormatEtc;
+  Fetched: LongWord;
+  OLEFormat: TFormatEtc;
+begin
+  Files := [];
 
-    if (DataObject.QueryGetData(FormatEtc) = S_OK) and (DataObject.GetData(FormatEtc, Medium) = S_OK) then
-    begin
-      OLEData := GlobalLock(Medium.hGlobal);
-      if Assigned(OLEData) then
+  if Failed(DataObject.EnumFormatEtc(DATADIR_GET, EnumFormat)) then
+    Exit(False);
+
+  if Failed(EnumFormat.Reset) then
+    Exit(False);
+
+  while EnumFormat.Next(1, OLEFormat, @Fetched) = S_OK do
+    case OLEFormat.CfFormat of
+      CF_HDROP:
       begin
-        Chars := 0;
-        Head := OLEData;
-        try
-          while Head^ <> #0 do
-          begin
-            Head := Pointer(Integer(Head) + SizeOf(Char));
-            Inc(Chars);
-          end;
-
-          SetString(S, OLEData, Chars);
-
-          AddString(S);
-        finally
-          GlobalUnlock(Medium.hGlobal);
-        end;
+        ReadHDrop;
+        Break;
       end;
-      ReleaseStgMedium(Medium);
     end;
-  end;
 
-  procedure ReadUnicodeText;
+  Result := Length(Files) > 0;
+end;
+
+class function TFunctions.ReadDataObjectText(const DataObject: IDataObject; out Text: string): Boolean;
+
+  function ReadText(const Unicode: Boolean): string;
   var
     FormatEtc: TFormatEtc;
     Medium: TStgMedium;
-    OLEData, Head: PWideChar;
-    Chars: Integer;
+    OLEData, Head: Pointer;
+    Chars, CharLen: Integer;
     S: string;
   begin
-    FormatEtc.cfFormat := CF_UNICODETEXT;
+    Result := '';
+    CharLen := IfThen<Integer>(Unicode, SizeOf(WideChar), SizeOf(Char));
+
+    FormatEtc.cfFormat := IfThen<Integer>(Unicode, CF_UNICODETEXT, CF_TEXT);
     FormatEtc.ptd := nil;
     FormatEtc.dwAspect := DVASPECT_CONTENT;
     FormatEtc.lindex := -1;
@@ -1603,15 +1601,18 @@ class function TFunctions.GetDataObjectURLs(const DataObject: IDataObject; out U
         Chars := 0;
         Head := OLEData;
         try
-          while Head^ <> #0 do
+          while PChar(Head)^ <> #0 do
           begin
-            Head := Pointer(Integer(Head) + SizeOf(WideChar));
+            Head := Pointer(Integer(Head) + CharLen);
             Inc(Chars);
           end;
 
-          SetString(S, OLEData, Chars);
+          if Unicode then
+            SetString(S, PWideChar(OLEData), Chars)
+          else
+            SetString(S, PChar(OLEData), Chars);
 
-          AddString(S);
+          Exit(S);
         finally
           GlobalUnlock(Medium.hGlobal);
         end;
@@ -1624,38 +1625,30 @@ var
   EnumFormat: IEnumFormatEtc;
   Fetched: LongWord;
   OLEFormat: TFormatEtc;
-  Res: HRESULT;
 begin
-  URLs := [];
+  Text := '';
 
-  Res := DataObject.EnumFormatEtc(DATADIR_GET, EnumFormat);
-  if Failed(Res) then
+  if Failed(DataObject.EnumFormatEtc(DATADIR_GET, EnumFormat)) then
     Exit(False);
 
-  Res := EnumFormat.Reset;
-  if Failed(Res) then
+  if Failed(EnumFormat.Reset) then
     Exit(False);
 
   while EnumFormat.Next(1, OLEFormat, @Fetched) = S_OK do
     case OLEFormat.CfFormat of
-      CF_HDROP:
-      begin
-        ReadHDrop;
-        Break;
-      end;
       CF_TEXT:
       begin
-        ReadText;
+        Text := ReadText(False);
         Break;
       end;
       CF_UNICODETEXT:
       begin
-        ReadUnicodeText;
+        Text := ReadText(True);
         Break;
       end;
     end;
 
-  Result := Length(URLs) > 0;
+  Result := not string.IsNullOrWhiteSpace(Text);
 end;
 
 class function TFunctions.ShutdownBlockReasonCreate(hWnd: HWND; pwszReason: string): Boolean;
