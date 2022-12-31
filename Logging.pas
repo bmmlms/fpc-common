@@ -27,59 +27,52 @@ uses
   Windows;
 
 type
+
+  { TLogger }
+
   TLogger = class
+  const
+    UTF8_BOM: array[0..2] of Byte = ($EF, $BB, $BF);
+  class var
+    FFilename: string;
+    FHandle: THandle;
   public
-    class procedure SetFilename(LogFile: string);
+    class procedure SetFilename(const Value: string);
     class procedure Write(Data: string);
   end;
 
-var
-  LoggingFile: string;
-
 implementation
-
-//var
-//  CS: _RTL_CRITICAL_SECTION;
 
 { TLogger }
 
-class procedure TLogger.SetFilename(LogFile: string);
+class procedure TLogger.SetFilename(const Value: string);
+var
+  W: Cardinal;
 begin
-  LoggingFile := LogFile;
+  if FHandle <> 0 then
+    CloseHandle(FHandle);
+
+  if string.IsNullOrWhiteSpace(Value) then
+    Exit;
+
+  FFilename := Value;
+
+  FHandle := CreateFile(PChar(Value), FILE_APPEND_DATA, FILE_SHARE_READ or FILE_SHARE_WRITE, nil, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+
+  if (FHandle <> 0) and (GetLastError <> ERROR_ALREADY_EXISTS) then
+    WriteFile(FHandle, UTF8_BOM[0], Length(UTF8_BOM), W, nil);
 end;
 
 class procedure TLogger.Write(Data: string);
-const
-  FILE_APPEND_DATA = 4;
 var
-  H: THandle;
-  W: Cardinal;
+  W: Cardinal = 0;
 begin
-  if LoggingFile = '' then
+  if (FHandle = 0) or string.IsNullOrWhiteSpace(Data) then
     Exit;
 
-  //  EnterCriticalSection(CS);
-  try
-    H := CreateFileW(PWideChar(UnicodeString(LoggingFile)), FILE_APPEND_DATA, FILE_SHARE_READ or FILE_SHARE_WRITE, nil, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-    if H = INVALID_HANDLE_VALUE then
-    begin
-      H := CreateFileW(PWideChar(UnicodeString(LoggingFile)), GENERIC_WRITE, FILE_SHARE_READ or FILE_SHARE_WRITE, nil, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
-      Data := UTF8Encode(#$FEFF) + Data;
-    end;
+  Data += #13#10;
 
-    if H <> INVALID_HANDLE_VALUE then
-    begin
-      Data := Data + #13#10;
-      WriteFile(H, Data[1], Length(Data) * SizeOf(Char), W, nil);
-      FileClose(H);
-    end;
-  finally
-    //    LeaveCriticalSection(CS);
-  end;
+  WriteFile(FHandle, Data[1], Length(Data), W, nil);
 end;
-
-initialization
-  LoggingFile := '';
-  //  InitializeCriticalSection(CS);
 
 end.
