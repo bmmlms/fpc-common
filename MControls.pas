@@ -152,7 +152,7 @@ type
 
   { TComboBoxExEditable }
 
-  TComboBoxExEditable = class(TComboBoxEx)
+  TComboBoxExEditable = class(TComboBoxEx, IFPObserver)
   private
   const
     WM_ALIGNEDIT = WM_USER + 1;
@@ -175,6 +175,9 @@ type
     procedure Change; override;
   public
     constructor Create(TheOwner: TComponent); override;
+    destructor Destroy; override;
+
+    procedure FPOObservedChanged(ASender: TObject; Operation: TFPObservedOperation; Data: Pointer);
 
     property FocusedItemData: TCustomData read FGetFocusedItemData;
   end;
@@ -656,7 +659,10 @@ begin
 
   SendMessage(EditHandle, EM_GETRECT, 0, LPARAM(@EditTextRect));
 
-  MoveWindow(EditHandle, 16 + FEditRect.Left * 2, ClientRect.Height div 2 - EditTextRect.Height div 2, FEditRect.Width - 16, EditTextRect.Height, False);
+  if Assigned(Images) then
+    MoveWindow(EditHandle, 16 + FEditRect.Left * 2, ClientRect.Height div 2 - EditTextRect.Height div 2, FEditRect.Width - 16 - FEditRect.Left * 2, EditTextRect.Height, False)
+  else
+    MoveWindow(EditHandle, FEditRect.Left, ClientRect.Height div 2 - EditTextRect.Height div 2, FEditRect.Width, EditTextRect.Height, False);
 
   Repaint;
 end;
@@ -672,6 +678,9 @@ end;
 procedure TComboBoxExEditable.WMPaint(var Msg: TLMPaint);
 begin
   inherited;
+
+  if not Assigned(Images) then
+    Exit;
 
   Canvas.Brush.Color := clWindow;
   Canvas.Brush.Style := bsSolid;
@@ -757,6 +766,23 @@ begin
   TCustomComboBox(Self).Style := csOwnerDrawEditableFixed;
 
   FWinControlFlags += [wcfEraseBackground];
+
+  ItemsEx.FPOAttachObserver(Self);
+end;
+
+destructor TComboBoxExEditable.Destroy;
+begin
+  ItemsEx.FPODetachObserver(Self);
+
+  inherited Destroy;
+end;
+
+procedure TComboBoxExEditable.FPOObservedChanged(ASender: TObject; Operation: TFPObservedOperation; Data: Pointer);
+var
+  Item: TComboExItem absolute Data;
+begin
+  if HandleAllocated and (Operation = ooChange) and Assigned(Item) and (Item.Index = ItemIndex) then
+    PostMessage(Handle, WM_SETTEXTBYINDEX, 0, 0);
 end;
 
 { TWinControlFocuser }
