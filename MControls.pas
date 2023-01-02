@@ -123,6 +123,7 @@ type
   private
     FSuppressNodeEdit: Boolean;
   protected
+    procedure WMRButtonDown(var Message: TLMRButtonDown); message LM_RBUTTONDOWN;
     procedure WMRButtonUp(var Message: TLMRButtonUp); message LM_RBUTTONUP;
   public
     constructor Create(AOwner: TComponent); override;
@@ -563,7 +564,7 @@ begin
 
   TreeOptions.PaintOptions := [toShowButtons, toShowDropmark, toShowRoot, toThemeAware, toUseBlendedImages, toHideFocusRect];
   TreeOptions.AutoOptions := [toAutoScroll, toAutoScrollOnExpand];
-  TreeOptions.SelectionOptions := [toMultiSelect, toRightClickSelect, toFullRowSelect];
+  TreeOptions.SelectionOptions := [toMultiSelect, toFullRowSelect];
 
   Header.Options := [hoColumnResize, hoDrag, hoAutoResize, hoHotTrack, hoShowSortGlyphs, hoVisible];
 end;
@@ -574,6 +575,26 @@ begin
     Exit(False);
 
   Result := inherited;
+end;
+
+procedure TMVirtualStringTree.WMRButtonDown(var Message: TLMRButtonDown);
+var
+  HitInfo: THitInfo;
+begin
+  inherited;
+
+  if not CanFocus then
+    Exit;
+
+  GetHitTestInfoAt(Message.XPos, Message.YPos, True, HitInfo);
+
+  if Assigned(HitInfo.HitNode) and not Selected[HitInfo.HitNode] then
+  begin
+    ClearSelection;
+    Selected[HitInfo.HitNode] := True;
+    SetFocus;
+  end else if not Assigned(HitInfo.HitNode) then
+    ClearSelection;
 end;
 
 procedure TMVirtualStringTree.WMRButtonUp(var Message: TLMRButtonUp);
