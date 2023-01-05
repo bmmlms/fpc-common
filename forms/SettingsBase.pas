@@ -82,7 +82,6 @@ type
     function DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var Index: Integer): TCustomImageList; override;
     procedure DoInitNode(Parent: PVirtualNode; Node: PVirtualNode; var InitStates: TVirtualNodeInitStates); override;
     procedure Resize; override;
-    procedure DoMeasureItem(TargetCanvas: TCanvas; Node: PVirtualNode; var NodeHeight: Integer); override;
     function DoCollapsing(Node: PVirtualNode): Boolean; override;
   public
     constructor Create(AOwner: TComponent; Pages: TPageList); reintroduce;
@@ -604,7 +603,9 @@ begin
 
   TreeOptions.SelectionOptions := [toDisableDrawSelection, toFullRowSelect];
   TreeOptions.PaintOptions := [toThemeAware, toHideFocusRect];
-  TreeOptions.MiscOptions := TreeOptions.MiscOptions - [toAcceptOLEDrop] + [toFullRowDrag, toVariableNodeHeight];
+  TreeOptions.MiscOptions := TreeOptions.MiscOptions - [toAcceptOLEDrop] + [toFullRowDrag];
+
+  DefaultNodeHeight := TFunctions.GetTextSize('Wyg', Font).cy + 12;;
 end;
 
 function TPageTree.DoCollapsing(Node: PVirtualNode): Boolean;
@@ -641,13 +642,6 @@ procedure TPageTree.DoInitNode(Parent, Node: PVirtualNode; var InitStates: TVirt
 begin
   inherited;
 
-end;
-
-procedure TPageTree.DoMeasureItem(TargetCanvas: TCanvas; Node: PVirtualNode; var NodeHeight: Integer);
-begin
-  inherited;
-
-  NodeHeight := TFunctions.GetTextSize('Wyg', Font).cy + 12;
 end;
 
 procedure TPageTree.Resize;

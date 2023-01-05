@@ -123,8 +123,8 @@ type
     class procedure CompressStream(InStream, OutStream: TStream; CompressionLevel: TCompressionLevel); static;
     class procedure DecompressStream(InStream, OutStream: TStream); static;
     class function MoveFile(const Source, Dest: string; const ReplaceIfExists: Boolean): Boolean; static;
-    class function IsHTTPUrl(const s: string): Boolean;
-    class function FilterHTTPUrls(s: string; out URLs: TStringArray): Boolean;
+    class function IsHTTPUrl(const s: string): Boolean; static;
+    class function FilterHTTPUrls(s: string; out URLs: TStringArray): Boolean; static;
 
     class function GetTextSize(Text: string; Font: TFont): TSize; static;
     class function TruncateText(Text: string; MaxWidth: Integer; Font: TFont): string; static;
