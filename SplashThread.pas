@@ -23,29 +23,27 @@ unit SplashThread;
 interface
 
 uses
-  JwaWinUser,
-  Windows,
   Classes,
   DateUtils,
   Graphics,
   LanguageObjects,
-  Messages,
   MultiMon,
   SysUtils,
-  Types;
+  Types,
+  Windows;
 
 type
 
   { TSplashThread }
 
   TSplashThread = class(TThread)
-  type
-    TSplashStates = (ssFadingIn, ssVisible, ssFadingOut);
+    type
+      TSplashStates = (ssFadingIn, ssVisible, ssFadingOut);
   private
   const
-    FADE_DURATION = 500;
-    SHOW_DURATION = 2000;
-    SHOW_AFTER_MAIN_DURATION = 1000;
+    FADE_DURATION = 400;
+    SHOW_DURATION = 2500;
+    SHOW_AFTER_MAIN_DURATION = 1300;
     WINDOW_CLASS = 'mistakeSplashScreen';
   private
     FResourceName: string;
@@ -54,10 +52,7 @@ type
     FHandle: LongWord;
     FFadeStartedAt, FFadeoutAt: TDateTime;
 
-    FBitmapSize: TSize;
-    FSplashBitmap: TBitmap;
-    FSplashBitmapPos: TPoint;
-    FBlendFunction: TBlendFunction;
+    FSplashImage: TPortableNetworkGraphic;
     FState: TSplashStates;
     FWindowClass: TWndClassEx;
     FStartPos: TRect;
@@ -66,7 +61,7 @@ type
     FMainWindowClass: string;
     FMainWindowFound: Boolean;
 
-    class function EnumWindowsProc(hHwnd: HWND; lParam: integer): boolean; stdcall; static;
+    class function EnumWindowsProc(hHwnd: HWND; lParam: Integer): boolean; stdcall; static;
     class function MonitorEnumProc(hm: HMONITOR; dc: HDC; r: PRect; l: LPARAM): Boolean; stdcall; static;
     class function WndProcWrapper(hwnd: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall; static;
 
@@ -74,8 +69,6 @@ type
     procedure FocusAppWindow;
     procedure SetAlpha(Value: Byte);
     function WndProc(uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT;
-
-    procedure PremultiplyBitmap(Bitmap: TBitmap);
   protected
     procedure Execute; override;
   public
@@ -87,7 +80,7 @@ implementation
 
 { TSplashThread }
 
-class function TSplashThread.EnumWindowsProc(hHwnd: HWND; lParam: integer): boolean; stdcall;
+class function TSplashThread.EnumWindowsProc(hHwnd: HWND; lParam: Integer): boolean; stdcall;
 var
   Pid: DWORD;
   ClassName: string;
@@ -156,15 +149,26 @@ end;
 
 procedure TSplashThread.SetAlpha(Value: Byte);
 begin
-  FBlendFunction.SourceConstantAlpha := Value;
-  UpdateLayeredWindow(FHandle, 0, nil, @FBitmapSize, FSplashBitmap.Canvas.Handle, @FSplashBitmapPos, 0, @FBlendFunction, ULW_ALPHA);
+  SetLayeredWindowAttributes(FHandle, 0, Value, LWA_ALPHA);
 end;
 
 function TSplashThread.WndProc(uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT;
 var
   N: TDateTime;
+  H: THandle;
+  PaintInfo: PAINTSTRUCT;
 begin
   case uMsg of
+    WM_PAINT:
+    begin
+      H := BeginPaint(FHandle, PaintInfo);
+      try
+        BitBlt(H, 0, 0, FSplashImage.Width, FSplashImage.Height, FSplashImage.Canvas.Handle, 0, 0, SRCCOPY);
+        FrameRect(H, RECT.Create(0, 0, FSplashImage.Width, FSplashImage.Height), GetStockObject(DKGRAY_BRUSH));
+      finally
+        EndPaint(FHandle, PaintInfo);
+      end;
+    end;
     WM_TIMER:
     begin
       if FAppWindow = 0 then
@@ -207,6 +211,9 @@ begin
       end;
 
       SetWindowPos(FHandle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE or SWP_NOACTIVATE);
+
+      if FState <> ssVisible then
+        InvalidateRect(FHandle, nil, False);
     end;
     WM_NCDESTROY:
       PostQuitMessage(0);
@@ -221,7 +228,7 @@ begin
 
   FreeOnTerminate := True;
 
-  FSplashBitmap := TBitmap.Create;
+  FSplashImage := TPortableNetworkGraphic.Create;
   FMainWindowClass := WindowClass;
   FResourceName := ResourceName;
   FStartPos := TRect.Create(MainLeft, MainTop, MainLeft + MainWidth, MainTop + MainHeight);
@@ -237,7 +244,7 @@ destructor TSplashThread.Destroy;
 begin
   UnregisterClassA(WINDOW_CLASS, HINSTANCE);
 
-  FSplashBitmap.Free;
+  FSplashImage.Free;
 
   inherited Destroy;
 end;
@@ -246,7 +253,6 @@ procedure TSplashThread.Execute;
 var
   i: Integer;
   Msg: TMsg;
-  PngImage: TPortableNetworkGraphic;
   ResStream: TResourceStream;
   Monitor: Integer;
   DummyRect: TRect;
@@ -287,30 +293,22 @@ begin
   FWindowClass.lpszClassName := WINDOW_CLASS;
   RegisterClassEx(FWindowClass);
 
-  PngImage := TPortableNetworkGraphic.Create;
   ResStream := TResourceStream.Create(HINSTANCE, FResourceName, Windows.RT_RCDATA);
   try
-    PngImage.LoadFromStream(ResStream);
+    FSplashImage.LoadFromStream(ResStream);
 
-    FSplashBitmap.Assign(PngImage);
+    FSplashImage.Canvas.Font.Name := 'Tahoma';
+    FSplashImage.Canvas.Font.Quality := fqCleartypeNatural;
+    FSplashImage.Canvas.Font.Color := clWhite;
+    FSplashImage.Canvas.Font.Size := 7;
+    FSplashImage.Canvas.AntialiasingMode := amOn;
+    SetBkMode(FSplashImage.Canvas.Handle, TRANSPARENT);
 
-    PremultiplyBitmap(FSplashBitmap);
-
-    FSplashBitmap.Canvas.Font.Name := 'Tahoma';
-    FSplashBitmap.Canvas.Font.Color := clWhite;
-    FSplashBitmap.Canvas.Font.Size := 8;
-    SetBkMode(FSplashBitmap.Canvas.Handle, TRANSPARENT);
-    FSplashBitmap.Canvas.TextOut(FSplashBitmap.Width - FSplashBitmap.Canvas.TextWidth(FVersion) - 25,
-      FSplashBitmap.Height - FSplashBitmap.Canvas.TextHeight(FVersion) - 20, FVersion);
-
-    FBitmapSize.cx := FSplashBitmap.Width;
-    FBitmapSize.cy := FSplashBitmap.Height;
-
-    FBlendFunction.BlendOp := AC_SRC_OVER;
-    FBlendFunction.AlphaFormat := AC_SRC_ALPHA;
+    FSplashImage.Canvas.TextOut(FSplashImage.Width - FSplashImage.Canvas.TextWidth(FVersion) - 10,
+      FSplashImage.Height - FSplashImage.Canvas.TextHeight(FVersion) - 10, FVersion);
 
     FHandle := CreateWindowEx(WS_EX_LAYERED or WS_EX_TOOLWINDOW, WINDOW_CLASS, '', WS_VISIBLE or WS_POPUP or WS_CHILD, (FMonitors[Monitor].Left + Abs(FMonitors[Monitor].Right - FMonitors[Monitor].Left) div 2) -
-      FSplashBitmap.Width div 2, (FMonitors[Monitor].Top + Abs(FMonitors[Monitor].Bottom - FMonitors[Monitor].Top) div 2) - FSplashBitmap.Height div 2, FSplashBitmap.Width, FSplashBitmap.Height, 0, 0, HINSTANCE, nil);
+      FSplashImage.Width div 2, (FMonitors[Monitor].Top + Abs(FMonitors[Monitor].Bottom - FMonitors[Monitor].Top) div 2) - FSplashImage.Height div 2, FSplashImage.Width, FSplashImage.Height, 0, 0, HINSTANCE, nil);
     if FHandle = 0 then
       raise Exception.Create('CreateWindowExW() failed: %d'.Format([GetLastError]));
 
@@ -326,7 +324,6 @@ begin
 
     SetTimer(FHandle, 0, 20, nil);
   finally
-    PngImage.Free;
     ResStream.Free;
   end;
 
@@ -336,35 +333,6 @@ begin
   begin
     TranslateMessage(Msg);
     DispatchMessage(Msg);
-  end;
-end;
-
-procedure TSplashThread.PremultiplyBitmap(Bitmap: TBitmap);
-var
-  Row, Col: Integer;
-  P: PRGBQuad;
-  PreMult: array[Byte, Byte] of Byte;
-begin
-  for Row := 0 to 255 do
-    for Col := Row to 255 do
-    begin
-      PreMult[Row, Col] := Row * Col div 255;
-      if Row <> Col then
-        PreMult[Col, Row] := PreMult[Row, Col];
-    end;
-
-  for Row := 0 to Bitmap.Height - 1 do
-  begin
-    Col := Bitmap.Width;
-    P := Bitmap.ScanLine[Row];
-    while Col > 0 do
-    begin
-      P.rgbBlue := PreMult[P.rgbReserved, P.rgbBlue];
-      P.rgbGreen := PreMult[P.rgbReserved, P.rgbGreen];
-      P.rgbRed := PreMult[P.rgbReserved, P.rgbRed];
-      Inc(P);
-      Dec(Col);
-    end;
   end;
 end;
 
