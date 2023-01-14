@@ -146,10 +146,10 @@ begin
       Exit;
 
     CommandHeader := TCommandHeader.Create;
-    Stream.Read(CommandHeader.FVersion);
-    Stream.Read(T);
+    Stream.Read(CommandHeader.FVersion, False);
+    Stream.Read(T, False);
     CommandHeader.FCommandType := TCommandTypes(T);
-    Stream.Read(CommandHeader.FCommandLength);
+    Stream.Read(CommandHeader.FCommandLength, False);
 
     Result := rrOk;
   except
@@ -159,9 +159,9 @@ end;
 
 procedure TCommandHeader.Write(Stream: TMemoryStream);
 begin
-  Stream.Write(FVersion);
-  Stream.Write(Cardinal(FCommandType));
-  Stream.Write(FCommandLength);
+  Stream.Write(FVersion, False);
+  Stream.Write(Cardinal(FCommandType), False);
+  Stream.Write(FCommandLength, False);
 end;
 
 { TCommand }

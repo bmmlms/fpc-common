@@ -285,7 +285,7 @@ begin
       if Dlg.Execute and (Dlg.FileName <> '') then
       begin
         GetExportDataHeader(S);
-        S.Write(Cardinal(1));
+        S.Write(Cardinal(1), False);
         AppGlobals.Storage.GetData(Lst);
         Lst.Save(S);
         GetExportData(S);

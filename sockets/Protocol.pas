@@ -379,8 +379,8 @@ begin
     if Stream.Size < PACKET_HEADER_LEN then
       Exit;
 
-    Stream.Read(PacketLen);
-    Stream.Read(IDx);
+    Stream.Read(PacketLen, False);
+    Stream.Read(IDx, False);
 
     if Stream.Size >= PacketLen then
     begin
@@ -402,8 +402,8 @@ end;
 procedure TPacket.Write(Stream: TMemoryStream);
 begin
   FStream.Seek(0, soFromBeginning);
-  Stream.Write(Cardinal(FStream.Size + PACKET_HEADER_LEN));
-  Stream.Write(FID);
+  Stream.Write(Cardinal(FStream.Size + PACKET_HEADER_LEN), False);
+  Stream.Write(FID, False);
   Stream.CopyFrom(FStream, FStream.Size);
 end;
 

@@ -300,7 +300,7 @@ function TSettingsInstalled.DeleteProfile: Boolean;
 var
   Reg: TRegistry;
   RegPath: string;
-  i, P: Integer;
+  P: Integer;
 begin
   inherited;
   Result := True;
@@ -956,8 +956,9 @@ var
   Name, Section: string;
 begin
   T := TDataType(Stream.ReadByte);
-  Stream.Read(Name);
-  Stream.Read(Section);
+
+  Stream.Read(Name, False);
+  Stream.Read(Section, False);
 
   case T of
     dtString:
@@ -989,8 +990,8 @@ begin
   else
     raise Exception.Create('Unknown data type');
 
-  Stream.Write(FName);
-  Stream.Write(FSection);
+  Stream.Write(FName, False);
+  Stream.Write(FSection, False);
 end;
 
 { TDataString }
@@ -1004,13 +1005,13 @@ end;
 
 procedure TDataString.Load(Stream: TMemoryStream);
 begin
-  Stream.Read(FValue);
+  Stream.Read(FValue, False);
 end;
 
 procedure TDataString.Save(Stream: TMemoryStream);
 begin
   inherited;
-  Stream.Write(FValue);
+  Stream.Write(FValue, False);
 end;
 
 { TDataInteger }
@@ -1024,13 +1025,13 @@ end;
 
 procedure TDataInteger.Load(Stream: TMemoryStream);
 begin
-  Stream.Read(FValue);
+  Stream.Read(FValue, False);
 end;
 
 procedure TDataInteger.Save(Stream: TMemoryStream);
 begin
   inherited;
-  Stream.Write(FValue);
+  Stream.Write(FValue, False);
 end;
 
 { TSettingsList }
@@ -1050,7 +1051,7 @@ var
   C: SizeInt;
 begin
   Result := TSettingsList.Create;
-  Stream.Read(C);
+  Stream.Read(C, False);
   for i := 0 to C - 1 do
     Result.Add(TDataEntry.Load(Stream));
 end;
@@ -1059,7 +1060,7 @@ procedure TSettingsList.Save(Stream: TMemoryStream);
 var
   i: Integer;
 begin
-  Stream.Write(Count);
+  Stream.Write(Count, False);
   for i := 0 to Count - 1 do
     Items[i].Save(Stream);
 end;
