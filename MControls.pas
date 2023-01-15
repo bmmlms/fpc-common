@@ -162,6 +162,7 @@ type
     FSettingText: Boolean;
     FEditRect: TRect;
     FItemIndexBeforeDropDown: Integer;
+    FBuffer: Graphics.TBitmap;
 
     function FGetFocusedItemData: TCustomData;
   protected
@@ -703,14 +704,16 @@ begin
   if not Assigned(Images) then
     Exit;
 
-  Canvas.Brush.Color := clWindow;
-  Canvas.Brush.Style := bsSolid;
-  Canvas.FillRect(FEditRect.Left, FEditRect.Top, FEditRect.Left + 16, FEditRect.Top + 16);
+  FBuffer.Canvas.Brush.Color := clWindow;
+  FBuffer.Canvas.Brush.Style := bsSolid;
+  FBuffer.Canvas.FillRect(0, 0, 16, 16);
 
   if ItemIndex > -1 then
-    Images.Resolution[16].Draw(Canvas, FEditRect.Left, ClientRect.Height div 2 - 16 div 2, ItemsEx[ItemIndex].ImageIndex, gdeNormal)
+    Images.Resolution[16].Draw(FBuffer.Canvas, 0, 0, ItemsEx[ItemIndex].ImageIndex, gdeNormal)
   else if FItemIndexBeforeDropDown > -1 then
-    Images.Resolution[16].Draw(Canvas, FEditRect.Left, ClientRect.Height div 2 - 16 div 2, ItemsEx[FItemIndexBeforeDropDown].ImageIndex, gdeNormal);
+    Images.Resolution[16].Draw(FBuffer.Canvas, 0, 0, ItemsEx[FItemIndexBeforeDropDown].ImageIndex, gdeNormal);
+
+  Canvas.Draw(FEditRect.Left, ClientRect.Height div 2 - 16 div 2, FBuffer);
 end;
 
 procedure TComboBoxExEditable.Select;
@@ -785,14 +788,15 @@ begin
 
   FItemIndexBeforeDropDown := -2;
   TCustomComboBox(Self).Style := csOwnerDrawEditableFixed;
-
-  FWinControlFlags += [wcfEraseBackground];
+  FBuffer := Graphics.TBitmap.Create;
+  FBuffer.SetSize(16, 16);
 
   ItemsEx.FPOAttachObserver(Self);
 end;
 
 destructor TComboBoxExEditable.Destroy;
 begin
+  FBuffer.Free;
   ItemsEx.FPODetachObserver(Self);
 
   inherited Destroy;
