@@ -676,22 +676,20 @@ end;
 
 procedure TComboBoxExEditable.AlignEdit(var Msg: TMessage);
 var
-  EditHandle: THandle;
   EditTextRect: TRect;
+  ComboBoxInfo: TComboboxInfo;
 begin
-  EditHandle := FindWindowEx(Handle, 0, 'Edit', nil);
+  ComboBoxInfo.cbSize := SizeOf(ComboBoxInfo);
+  GetComboBoxInfo(Handle, @ComboBoxInfo);
 
-  GetWindowRect(EditHandle, @FEditRect);
+  FEditRect := ComboBoxInfo.rcItem;
 
-  Windows.ScreenToClient(GetParent(EditHandle), @FEditRect.TopLeft);
-  Windows.ScreenToClient(GetParent(EditHandle), @FEditRect.BottomRight);
-
-  SendMessage(EditHandle, EM_GETRECT, 0, LPARAM(@EditTextRect));
+  SendMessage(ComboBoxInfo.hwndItem, EM_GETRECT, 0, LPARAM(@EditTextRect));
 
   if Assigned(Images) then
-    MoveWindow(EditHandle, 16 + FEditRect.Left * 2, ClientRect.Height div 2 - EditTextRect.Height div 2, FEditRect.Width - 16 - FEditRect.Left * 2, EditTextRect.Height, False)
+    MoveWindow(ComboBoxInfo.hwndItem, 16 + FEditRect.Left * 2, ClientRect.Height div 2 - EditTextRect.Height div 2, FEditRect.Width - 16 - FEditRect.Left * 2, EditTextRect.Height, False)
   else
-    MoveWindow(EditHandle, FEditRect.Left, ClientRect.Height div 2 - EditTextRect.Height div 2, FEditRect.Width, EditTextRect.Height, False);
+    MoveWindow(ComboBoxInfo.hwndItem, FEditRect.Left, ClientRect.Height div 2 - EditTextRect.Height div 2, FEditRect.Width, EditTextRect.Height, False);
 
   Repaint;
 end;
