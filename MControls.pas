@@ -40,11 +40,9 @@ uses
   LMessages,
   Math,
   Menus,
-  Messages,
   StdCtrls,
   SysUtils,
   Themes,
-  Types,
   VirtualTrees,
   Windows;
 
@@ -63,12 +61,14 @@ type
     procedure UpdateProperties;
     procedure FSetCaption(Value: TCaption);
     procedure FSetShowCloseButton(Value: Boolean);
+  protected
+    procedure CreateHandle; override;
   public
     constructor Create(AOwner: TComponent); override;
 
     function CanClose: Boolean; virtual;
-
     function ProcessShortCut(Msg: TWMKey): Boolean; virtual;
+
     property ShowCloseButton: Boolean read FShowCloseButton write FSetShowCloseButton;
   published
     property Caption: TCaption read FCaption write FSetCaption;
@@ -199,6 +199,13 @@ implementation
 function TMTabSheet.CanClose: Boolean;
 begin
   Result := True;
+end;
+
+procedure TMTabSheet.CreateHandle;
+begin
+  inherited CreateHandle;
+
+  SetWindowLong(Handle, GWL_EXSTYLE, GetWindowLong(Handle, GWL_EXSTYLE) or WS_EX_COMPOSITED);
 end;
 
 constructor TMTabSheet.Create(AOwner: TComponent);
@@ -708,7 +715,7 @@ begin
   FBuffer.Canvas.Brush.Style := bsSolid;
   FBuffer.Canvas.FillRect(0, 0, 16, 16);
 
-  if ItemIndex > -1 then
+  if (not DroppedDown) and (ItemIndex > -1) then
     Images.Resolution[16].Draw(FBuffer.Canvas, 0, 0, ItemsEx[ItemIndex].ImageIndex, gdeNormal)
   else if FItemIndexBeforeDropDown > -1 then
     Images.Resolution[16].Draw(FBuffer.Canvas, 0, 0, ItemsEx[FItemIndexBeforeDropDown].ImageIndex, gdeNormal);
@@ -790,6 +797,8 @@ begin
   TCustomComboBox(Self).Style := csOwnerDrawEditableFixed;
   FBuffer := Graphics.TBitmap.Create;
   FBuffer.SetSize(16, 16);
+
+  FWinControlFlags += [wcfEraseBackground];
 
   ItemsEx.FPOAttachObserver(Self);
 end;
