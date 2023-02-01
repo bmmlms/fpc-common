@@ -125,6 +125,8 @@ type
   protected
     procedure WMRButtonDown(var Message: TLMRButtonDown); message LM_RBUTTONDOWN;
     procedure WMRButtonUp(var Message: TLMRButtonUp); message LM_RBUTTONUP;
+
+    procedure ResetColors;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -612,6 +614,20 @@ begin
     inherited;
   finally
     FSuppressNodeEdit := False;
+  end;
+end;
+
+procedure TMVirtualStringTree.ResetColors;
+var
+  Colors: TVTColors;
+begin
+  Colors := TVTColors.Create(Self);
+  try
+    Self.Colors.Assign(Colors);
+    Font.Color := clWindowText;
+    Color := clWindow;
+  finally
+    Colors.Free;
   end;
 end;
 
