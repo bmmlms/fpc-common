@@ -54,6 +54,7 @@ type
   private
     FCaption: TCaption;
     FShowCloseButton: Boolean;
+    FShownOnce: Boolean;
     FButtonRect: TRect;
 
     FFocusedControlBeforeChange: TWinControl;
@@ -62,7 +63,9 @@ type
     procedure FSetCaption(Value: TCaption);
     procedure FSetShowCloseButton(Value: Boolean);
   protected
-    procedure CreateHandle; override;
+    procedure DoShow; override;
+
+    procedure ShownFirst; virtual;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -123,6 +126,7 @@ type
   private
     FSuppressNodeEdit: Boolean;
   protected
+    procedure CreateHandle; override;
     procedure WMRButtonDown(var Message: TLMRButtonDown); message LM_RBUTTONDOWN;
     procedure WMRButtonUp(var Message: TLMRButtonUp); message LM_RBUTTONUP;
 
@@ -203,11 +207,20 @@ begin
   Result := True;
 end;
 
-procedure TMTabSheet.CreateHandle;
+procedure TMTabSheet.DoShow;
 begin
-  inherited CreateHandle;
+  inherited DoShow;
 
-  SetWindowLong(Handle, GWL_EXSTYLE, GetWindowLong(Handle, GWL_EXSTYLE) or WS_EX_COMPOSITED);
+  if not FShownOnce then
+  begin
+    ShownFirst;
+    FShownOnce := True;
+  end;
+end;
+
+procedure TMTabSheet.ShownFirst;
+begin
+
 end;
 
 constructor TMTabSheet.Create(AOwner: TComponent);
@@ -585,6 +598,17 @@ begin
     Exit(False);
 
   Result := inherited;
+end;
+
+procedure TMVirtualStringTree.CreateHandle;
+begin
+  inherited CreateHandle;
+
+  if RootNodeCount > 0 then
+  begin
+    Selected[GetFirst] := True;
+    FocusedNode := GetFirst;
+  end;
 end;
 
 procedure TMVirtualStringTree.WMRButtonDown(var Message: TLMRButtonDown);
