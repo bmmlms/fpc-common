@@ -129,6 +129,7 @@ type
     procedure CreateHandle; override;
     procedure WMRButtonDown(var Message: TLMRButtonDown); message LM_RBUTTONDOWN;
     procedure WMRButtonUp(var Message: TLMRButtonUp); message LM_RBUTTONUP;
+    procedure WMContextMenu(var Message: TLMContextMenu); message LM_CONTEXTMENU;
 
     procedure ResetColors;
   public
@@ -639,6 +640,24 @@ begin
   finally
     FSuppressNodeEdit := False;
   end;
+end;
+
+procedure TMVirtualStringTree.WMContextMenu(var Message: TLMContextMenu);
+var
+  P: TPoint;
+  HitInfo: THitInfo;
+begin
+  if Message.Result <> 0 then
+    Exit;
+
+  P := GetMousePosFromMessage(Message.Pos);
+  if P.X <> -1 then
+    P := ScreenToClient(P);
+
+  GetHitTestInfoAt(P.X, P.Y, True, HitInfo);
+
+  if not (hiToRight in HitInfo.HitPositions) then
+    inherited;
 end;
 
 procedure TMVirtualStringTree.ResetColors;
