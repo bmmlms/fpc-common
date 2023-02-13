@@ -120,6 +120,13 @@ type
     property Pages[Index: Integer]: TMTabSheet read FGetTabSheet;
   end;
 
+  { TMStringEditLink }
+
+  TMStringEditLink = class(TStringEditLink)
+  public
+    function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; override; stdcall;
+  end;
+
   { TMVirtualStringTree }
 
   TMVirtualStringTree = class(TVirtualStringTree, IPostTranslatable)
@@ -127,6 +134,7 @@ type
     FSuppressNodeEdit: Boolean;
   protected
     procedure CreateHandle; override;
+    function DoCreateEditor(Node: PVirtualNode; Column: TColumnIndex): IVTEditLink; override;
     procedure WMRButtonDown(var Message: TLMRButtonDown); message LM_RBUTTONDOWN;
     procedure WMRButtonUp(var Message: TLMRButtonUp); message LM_RBUTTONUP;
     procedure WMContextMenu(var Message: TLMContextMenu); message LM_CONTEXTMENU;
@@ -203,6 +211,16 @@ const
   TABSHEET_PADDING = 3;
 
 implementation
+
+{ TMStringEditLink }
+
+function TMStringEditLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
+begin
+  Result := inherited PrepareEdit(Tree, Node, Column);
+
+  if Assigned(Edit) then
+    Edit.Font := Tree.Font;
+end;
 
 { TMTabSheet }
 
@@ -613,6 +631,11 @@ begin
     Selected[GetFirst] := True;
     FocusedNode := GetFirst;
   end;
+end;
+
+function TMVirtualStringTree.DoCreateEditor(Node: PVirtualNode; Column: TColumnIndex): IVTEditLink;
+begin
+  Result := TMStringEditLink.Create;
 end;
 
 procedure TMVirtualStringTree.WMRButtonDown(var Message: TLMRButtonDown);
