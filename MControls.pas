@@ -130,6 +130,9 @@ type
     procedure WMRButtonDown(var Message: TLMRButtonDown); message LM_RBUTTONDOWN;
     procedure WMRButtonUp(var Message: TLMRButtonUp); message LM_RBUTTONUP;
     procedure WMContextMenu(var Message: TLMContextMenu); message LM_CONTEXTMENU;
+    procedure WMSetFocus(var Msg: TLMSetFocus); message LM_SETFOCUS;
+    procedure HandleMouseUp(Keys: PtrUInt; const HitInfo: THitInfo); override;
+    procedure WndProc(var Message: TLMessage); override;
 
     procedure ResetColors;
   public
@@ -658,6 +661,32 @@ begin
 
   if not (hiToRight in HitInfo.HitPositions) then
     inherited;
+end;
+
+procedure TMVirtualStringTree.WMSetFocus(var Msg: TLMSetFocus);
+begin
+  inherited;
+
+  FSuppressNodeEdit := True;
+end;
+
+procedure TMVirtualStringTree.HandleMouseUp(Keys: PtrUInt; const HitInfo: THitInfo);
+begin
+  if FSuppressNodeEdit then
+  begin
+    Self.TreeStates := Self.TreeStates - [tsEditPending];
+    FSuppressNodeEdit := False;
+  end;
+
+  inherited HandleMouseUp(Keys, HitInfo);
+end;
+
+procedure TMVirtualStringTree.WndProc(var Message: TLMessage);
+begin
+  inherited WndProc(Message);
+
+  if (Message.msg >= WM_KEYFIRST) and (Message.msg <= WM_KEYLAST) then
+    FSuppressNodeEdit := False;
 end;
 
 procedure TMVirtualStringTree.ResetColors;
