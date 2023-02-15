@@ -131,9 +131,13 @@ type
 
   TMVirtualStringTree = class(TVirtualStringTree, IPostTranslatable)
   private
+    FPaintedOnce: Boolean;
+    FAsyncCallPending: Boolean;
     FSuppressNodeEdit: Boolean;
+
+    FOnSelectionChange: TNotifyEvent;
   protected
-    procedure CreateHandle; override;
+    procedure DoChange(Node: PVirtualNode); override;
     function DoCreateEditor(Node: PVirtualNode; Column: TColumnIndex): IVTEditLink; override;
     procedure WMRButtonDown(var Message: TLMRButtonDown); message LM_RBUTTONDOWN;
     procedure WMRButtonUp(var Message: TLMRButtonUp); message LM_RBUTTONUP;
@@ -141,7 +145,9 @@ type
     procedure WMSetFocus(var Msg: TLMSetFocus); message LM_SETFOCUS;
     procedure HandleMouseUp(Keys: PtrUInt; const HitInfo: THitInfo); override;
     procedure WndProc(var Message: TLMessage); override;
+    procedure DoBeforePaint(Canvas: TCanvas); override;
 
+    procedure AfterChange(Data: PtrInt);
     procedure ResetColors;
   public
     constructor Create(AOwner: TComponent); override;
@@ -149,6 +155,8 @@ type
     function CanEdit(Node: PVirtualNode; Column: TColumnIndex): Boolean; override;
 
     procedure PostTranslate; virtual;
+
+    property OnSelectionChange: TNotifyEvent read FOnSelectionChange write FOnSelectionChange;
   end;
 
   TMShowHidePanel = class(TCustomControl)
@@ -622,15 +630,12 @@ begin
   Result := inherited;
 end;
 
-procedure TMVirtualStringTree.CreateHandle;
+procedure TMVirtualStringTree.DoChange(Node: PVirtualNode);
 begin
-  inherited CreateHandle;
+  inherited;
 
-  if RootNodeCount > 0 then
-  begin
-    Selected[GetFirst] := True;
-    FocusedNode := GetFirst;
-  end;
+  if not FAsyncCallPending then
+    Application.QueueAsyncCall(AfterChange, 0);
 end;
 
 function TMVirtualStringTree.DoCreateEditor(Node: PVirtualNode; Column: TColumnIndex): IVTEditLink;
@@ -710,6 +715,26 @@ begin
 
   if (Message.msg >= WM_KEYFIRST) and (Message.msg <= WM_KEYLAST) then
     FSuppressNodeEdit := False;
+end;
+
+procedure TMVirtualStringTree.DoBeforePaint(Canvas: TCanvas);
+begin
+  // Since some trees get populated with a delay (ChartsTree, LogTree) initially select the first node this way.
+  if not FPaintedOnce and (RootNodeCount > 0) then
+  begin
+    FPaintedOnce := False;
+    Selected[GetFirst] := True;
+  end;
+
+  inherited DoBeforePaint(Canvas);
+end;
+
+procedure TMVirtualStringTree.AfterChange(Data: PtrInt);
+begin
+  FAsyncCallPending := False;
+
+  if Assigned(OnSelectionChange) then
+    OnSelectionChange(Self);
 end;
 
 procedure TMVirtualStringTree.ResetColors;
