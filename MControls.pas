@@ -722,7 +722,7 @@ begin
   // Since some trees get populated with a delay (ChartsTree, LogTree) initially select the first node this way.
   if not FPaintedOnce and (RootNodeCount > 0) then
   begin
-    FPaintedOnce := False;
+    FPaintedOnce := True;
     Selected[GetFirst] := True;
   end;
 
