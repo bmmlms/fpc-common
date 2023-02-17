@@ -193,10 +193,10 @@ type
     function FGetFocusedItemData: TCustomData;
   protected
     procedure WMPaint(var Msg: TLMPaint); message LM_PAINT;
-    procedure Select; override;
+    procedure WMWindowPosChanging(var Message: TLMWindowPosChanging); message LM_WINDOWPOSCHANGING;
     procedure SetTextByIndex(var Msg: TMessage); message WM_SETTEXTBYINDEX;
     procedure AlignEdit(var Msg: TMessage); message WM_ALIGNEDIT;
-    procedure DoSetBounds(ALeft, ATop, AWidth, AHeight: Integer); override;
+    procedure Select; override;
     procedure SetItemIndex(const Val: Integer); override;
     procedure DropDown; override;
     procedure CloseUp; override;
@@ -723,7 +723,9 @@ begin
   if not FPaintedOnce and (RootNodeCount > 0) then
   begin
     FPaintedOnce := True;
+
     Selected[GetFirst] := True;
+    Self.OffsetY := 0;
   end;
 
   inherited DoBeforePaint(Canvas);
@@ -733,7 +735,7 @@ procedure TMVirtualStringTree.AfterChange(Data: PtrInt);
 begin
   FAsyncCallPending := False;
 
-  if Assigned(OnSelectionChange) then
+  if (not Application.Terminated) and Assigned(OnSelectionChange) then
     OnSelectionChange(Self);
 end;
 
@@ -830,6 +832,13 @@ begin
   Repaint;
 end;
 
+procedure TComboBoxExEditable.WMWindowPosChanging(var Message: TLMWindowPosChanging);
+begin
+  inherited;
+
+  PostMessage(Handle, WM_ALIGNEDIT, 0, 0);
+end;
+
 function TComboBoxExEditable.FGetFocusedItemData: TCustomData;
 begin
   if ItemIndex = -1 then
@@ -877,16 +886,6 @@ begin
     if Focused then
       SelectAll;
   end;
-end;
-
-procedure TComboBoxExEditable.DoSetBounds(ALeft, ATop, AWidth, AHeight: Integer);
-begin
-  inherited DoSetBounds(ALeft, ATop, AWidth, AHeight);
-
-  if not HandleAllocated then
-    Exit;
-
-  PostMessage(Handle, WM_ALIGNEDIT, 0, 0);
 end;
 
 procedure TComboBoxExEditable.SetItemIndex(const Val: Integer);
