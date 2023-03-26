@@ -36,6 +36,7 @@ uses
   Functions,
   Graphics,
   LanguageObjects,
+  MControlFocuser,
   MControls,
   SettingsStorage,
   StdCtrls,

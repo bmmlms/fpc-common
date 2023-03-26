@@ -33,6 +33,7 @@ uses
   Functions,
   Graphics,
   LanguageObjects,
+  MControlFocuser,
   MControls,
   StdCtrls,
   SysUtils,

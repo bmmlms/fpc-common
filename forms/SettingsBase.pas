@@ -39,8 +39,10 @@ uses
   ImgList,
   LanguageObjects,
   LCLType,
+  MControlFocuser,
   MControls,
   MLabeledEdit,
+  MStringFunctions,
   SettingsStorage,
   StdCtrls,
   StreamHelper,
@@ -204,13 +206,10 @@ begin
   begin
     lblPortable.Visible := False;
     btnCopyProfile.Visible := False;
-  end else
-  begin
-    if AppGlobals.Portable = poYes then
-      lblPortable.Caption := _('This application is using portable settings. ' + 'To copy these settings to the registry/application data folder, press ''Copy profile''.')
-    else if AppGlobals.Portable = poNo then
-      lblPortable.Caption := _('This application is using settings from the registry/application data folder. ' + 'To copy these settings to a portable profile, press ''Copy profile''.');
-  end;
+  end else if AppGlobals.Portable = poYes then
+    lblPortable.Caption := _('This application is using portable settings. ' + 'To copy these settings to the registry/application data folder, press ''Copy profile''.')
+  else if AppGlobals.Portable = poNo then
+    lblPortable.Caption := _('This application is using settings from the registry/application data folder. ' + 'To copy these settings to a portable profile, press ''Copy profile''.');
 
   for i := 0 to FPageList.Count - 1 do
   begin
@@ -605,7 +604,7 @@ begin
   TreeOptions.PaintOptions := [toThemeAware, toHideFocusRect];
   TreeOptions.MiscOptions := TreeOptions.MiscOptions - [toAcceptOLEDrop] + [toFullRowDrag];
 
-  DefaultNodeHeight := TFunctions.GetTextSize('Wyg', Font).cy + 12;;
+  DefaultNodeHeight := TMStringFunctions.GetTextSize(MeasureTextHeightString, Font).cy + 12;
 end;
 
 function TPageTree.DoCollapsing(Node: PVirtualNode): Boolean;

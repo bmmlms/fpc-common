@@ -31,6 +31,7 @@ uses
   Forms,
   Graphics,
   LanguageObjects,
+  MControlFocuser,
   MControls,
   StdCtrls,
   SysUtils,
