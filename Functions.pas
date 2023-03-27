@@ -32,6 +32,7 @@ uses
   FileUtil,
   Forms,
   Graphics,
+  GraphUtil,
   IdURI,
   regexpr,
   ShellAPI,
@@ -105,6 +106,7 @@ type
     class function PatternReplaceNew(S: string; ReplaceList: TPatternReplaceArray): string; static;
     class function IsAdmin: LongBool; static;
     class function HTML2Color(const HTML: string): Integer; static;
+    class function SimilarColor(const Color: TColor; Diff: Integer): TColor; static;
     class function GetFileSize(const AFilename: string): Int64; static;
     class function CmpInt(const A, B: Int64; R: Boolean = False): Integer; static;
     class function CmpUInt64(const A, B: UInt64; R: Boolean = False): Integer; static;
@@ -809,6 +811,23 @@ begin
   Result := Integer(StrToInt('$' + Copy(HTML, Offset + 1, 2))) + Integer(StrToInt('$' + Copy(HTML, Offset + 3, 2))) shl 8 + Integer(StrToInt('$' + Copy(HTML, Offset + 5, 2))) shl 16;
 end;
 
+class function TFunctions.SimilarColor(const Color: TColor; Diff: Integer): TColor;
+var
+  H, S, L: Word;
+  IsDark: Boolean;
+begin
+  GraphUtil.ColorRGBToHLS(Color, H, L, S);
+
+  IsDark := L < 32;
+
+  if L < 32 then
+    L := 32;
+
+  Diff := IfThen<Integer>(IsDark, 100 + Diff, 100 - Diff);
+
+  Result := GraphUtil.ColorHLSToRGB(H, (Cardinal(L) * Diff) div 100, S);
+end;
+
 class function TFunctions.GetFileSize(const AFilename: string): Int64;
 var
   FileStream: TFileStream;
@@ -1185,19 +1204,20 @@ var
   LastResult: string;
 begin
   Result := Data;
+
+  R := TRegExpr.Create(RegEx);
+  R.ModifierI := True;
   try
-    R := TRegExpr.Create(RegEx);
-    R.ModifierI := True;
+    // Das muss so. Sonst wird z.B. aus 'ft. ft. ft. ft.' ein 'Feat. ft. Feat. ft.'
     try
-      // Das muss so. Sonst wird z.B. aus 'ft. ft. ft. ft.' ein 'Feat. ft. Feat. ft.'
       repeat
         LastResult := Result;
         Result := R.Replace(Result, ReplaceWith, True);
       until LastResult = Result;
-    finally
-      R.Free;
+    except
     end;
-  except
+  finally
+    R.Free;
   end;
 end;
 
