@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="5">
+    <PathDelim Value="\"/>
+    <Name Value="MControls"/>
+    <Type Value="RunAndDesignTime"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <PathDelim Value="\"/>
+      <SearchPaths>
+        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+      </SearchPaths>
+      <Parsing>
+        <SyntaxOptions>
+          <SyntaxMode Value="Delphi"/>
+        </SyntaxOptions>
+      </Parsing>
+      <CodeGeneration>
+        <SmartLinkUnit Value="True"/>
+      </CodeGeneration>
+    </CompilerOptions>
+    <Version Release="1"/>
+    <Files>
+      <Item>
+        <Filename Value="MLabeledEdit.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="MLabeledEdit"/>
+      </Item>
+      <Item>
+        <Filename Value="MHotKeyEdit.pas"/>
+        <UnitName Value="mhotkeyedit"/>
+      </Item>
+      <Item>
+        <Filename Value="MPageControl.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="MPageControl"/>
+      </Item>
+      <Item>
+        <Filename Value="MControls.pas"/>
+        <UnitName Value="MControls"/>
+      </Item>
+      <Item>
+        <Filename Value="MControlFocuser.pas"/>
+        <UnitName Value="MControlFocuser"/>
+      </Item>
+      <Item>
+        <Filename Value="MStringFunctions.pas"/>
+        <UnitName Value="MStringFunctions"/>
+      </Item>
+      <Item>
+        <Filename Value="MComboBoxExEditable.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="MComboBoxExEditable"/>
+      </Item>
+      <Item>
+        <Filename Value="MVirtualTree.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="MVirtualTree"/>
+      </Item>
+      <Item>
+        <Filename Value="MSeekBar.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="MSeekBar"/>
+      </Item>
+      <Item>
+        <Filename Value="MVolumePanel.pas"/>
+        <HasRegisterProc Value="True"/>
+      </Item>
+    </Files>
+    <RequiredPkgs>
+      <Item>
+        <PackageName Value="virtualtreeview_package"/>
+      </Item>
+      <Item>
+        <PackageName Value="IDEIntf"/>
+      </Item>
+      <Item>
+        <PackageName Value="LCL"/>
+      </Item>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+      <UseFileFilters Value="True"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>
