@@ -82,7 +82,7 @@ begin
   SendMessage(ComboBoxInfo.hwndItem, EM_GETRECT, 0, LPARAM(@EditTextRect));
 
   if Assigned(Images) then
-    MoveWindow(ComboBoxInfo.hwndItem, 16 + FEditRect.Left * 2, ClientRect.Height div 2 - EditTextRect.Height div 2, FEditRect.Width - 16 - FEditRect.Left * 2, EditTextRect.Height, False)
+    MoveWindow(ComboBoxInfo.hwndItem, 20 + FEditRect.Left, ClientRect.Height div 2 - EditTextRect.Height div 2, FEditRect.Width - 20 - FEditRect.Left, EditTextRect.Height, False)
   else
     MoveWindow(ComboBoxInfo.hwndItem, FEditRect.Left, ClientRect.Height div 2 - EditTextRect.Height div 2, FEditRect.Width, EditTextRect.Height, False);
 
@@ -120,7 +120,7 @@ begin
   else if FItemIndexBeforeDropDown > -1 then
     Images.Resolution[16].Draw(FBuffer.Canvas, 0, 0, ItemsEx[FItemIndexBeforeDropDown].ImageIndex, gdeNormal);
 
-  Canvas.Draw(FEditRect.Left, ClientRect.Height div 2 - 16 div 2, FBuffer);
+  Canvas.Draw(FEditRect.Left + 2, ClientRect.Height div 2 - 16 div 2, FBuffer);
 end;
 
 procedure TMComboBoxExEditable.Select;
