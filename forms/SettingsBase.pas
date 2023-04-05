@@ -82,7 +82,6 @@ type
   protected
     procedure DoGetText(Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var Text: string); override;
     function DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var Index: Integer): TCustomImageList; override;
-    procedure DoInitNode(Parent: PVirtualNode; Node: PVirtualNode; var InitStates: TVirtualNodeInitStates); override;
     procedure Resize; override;
     function DoCollapsing(Node: PVirtualNode): Boolean; override;
   public
@@ -635,12 +634,6 @@ begin
     for i := 0 to FPages.Count - 1 do
       if FPages[i].Node = Node then
         Text := FPages[i].Caption;
-end;
-
-procedure TPageTree.DoInitNode(Parent, Node: PVirtualNode; var InitStates: TVirtualNodeInitStates);
-begin
-  inherited;
-
 end;
 
 procedure TPageTree.Resize;

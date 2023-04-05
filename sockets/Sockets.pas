@@ -246,6 +246,8 @@ begin
     Result := WSAGetLastError;
     if Result = WSAEWOULDBLOCK then
       Result := -MBEDTLS_ERR_SSL_WANT_WRITE
+    else if (Result = WSAECONNRESET) or (Result = WSAECONNABORTED) then
+      Result := -MBEDTLS_ERR_NET_CONN_RESET
     else
       Result := -MBEDTLS_ERR_NET_SEND_FAILED;
   end;
@@ -264,6 +266,8 @@ begin
     Result := WSAGetLastError;
     if Result = WSAEWOULDBLOCK then
       Result := -MBEDTLS_ERR_SSL_WANT_READ
+    else if (Result = WSAECONNRESET) or (Result = WSAECONNABORTED) then
+      Result := -MBEDTLS_ERR_NET_CONN_RESET
     else
       Result := -MBEDTLS_ERR_NET_RECV_FAILED;
   end;
@@ -281,7 +285,13 @@ begin
   if Res = 0 then
     Exit(-MBEDTLS_ERR_SSL_TIMEOUT)
   else if Res = SOCKET_ERROR then
-    Exit(-MBEDTLS_ERR_NET_RECV_FAILED);
+  begin
+    Result := WSAGetLastError;
+    if (Result = WSAECONNRESET) or (Result = WSAECONNABORTED) then
+      Exit(-MBEDTLS_ERR_NET_CONN_RESET)
+    else
+      Exit(-MBEDTLS_ERR_NET_RECV_FAILED);
+  end;
 
   Result := NetRecv(ctx, buf, len);
 end;
@@ -638,10 +648,18 @@ begin
             // Fehler
             if FSecure then
             begin
-              if (Res <> -MBEDTLS_ERR_SSL_WANT_READ) and (Res <> -MBEDTLS_ERR_SSL_WANT_READ) then
+              if Res = -MBEDTLS_ERR_NET_CONN_RESET then
+                raise Exception.Create('Connection closed')
+              else if (Res <> -MBEDTLS_ERR_SSL_WANT_READ) and (Res <> -MBEDTLS_ERR_SSL_WANT_WRITE) then
                 raise EExceptionParams.CreateFmt('Function mbedtls_ssl_read() returned error %d', [Res]);
             end else
-              raise EExceptionParams.CreateFmt('Function recv() returned error %d', [WSAGetLastError]);
+            begin
+              Res := WSAGetLastError;
+              if (Res = WSAECONNRESET) or (Res = WSAECONNABORTED) then
+                raise Exception.Create('Connection closed')
+              else
+                raise EExceptionParams.CreateFmt('Function recv() returned error %d', [Res]);
+            end;
           end else if Res > 0 then
           begin
             // Alles cremig
@@ -667,10 +685,18 @@ begin
             begin
               if FSecure then
               begin
-                if (Res <> -MBEDTLS_ERR_SSL_WANT_READ) and (Res <> -MBEDTLS_ERR_SSL_WANT_READ) then
+                if Res = -MBEDTLS_ERR_NET_CONN_RESET then
+                  raise Exception.Create('Connection closed')
+                else if (Res <> -MBEDTLS_ERR_SSL_WANT_READ) and (Res <> -MBEDTLS_ERR_SSL_WANT_WRITE) then
                   raise EExceptionParams.CreateFmt('Function mbedtls_ssl_write() returned error %d', [Res]);
               end else
-                raise EExceptionParams.CreateFmt('Function send() returned error %d', [WSAGetLastError]);
+              begin
+                Res := WSAGetLastError;
+                if (Res = WSAECONNRESET) or (Res = WSAECONNABORTED) then
+                  raise Exception.Create('Connection closed')
+                else
+                  raise EExceptionParams.CreateFmt('Function send() returned error %d', [Res]);
+              end;
             end else if Res > 0 then
             begin
               FLastTimeSent := Ticks;
