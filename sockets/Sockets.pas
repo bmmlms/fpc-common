@@ -139,7 +139,6 @@ type
 
     FReceived: UInt64;
     FError: Boolean;
-    FClosed: Boolean;
 
     FProc: TSocketEvent;
 
@@ -578,10 +577,7 @@ begin
 
           Res := mbedtls_ssl_handshake(@ssl);
         end;
-      end;
 
-      if FSecure then
-      begin
         Res := mbedtls_ssl_get_verify_result(@ssl);
         if Res <> 0 then
         begin
@@ -616,7 +612,7 @@ begin
         FD_SET(FSocketHandle, ExceptFds);
 
         if Terminated then
-          Exit;
+          Break;
 
         Res := select(0, @ReadFds, @WriteFds, @ExceptFds, @TimeoutVal);
 
@@ -641,7 +637,6 @@ begin
           if (Res = 0) or (FSecure and (Res = -MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY)) then
           begin
             // Verbindung wurde geschlossen
-            FClosed := True;
             Break;
           end else if Res < 0 then
           begin
