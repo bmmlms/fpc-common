@@ -148,12 +148,13 @@ type
 implementation
 
 class function TFunctions.MsgBox(Text, Title: string; uType: Cardinal): Integer;
+var
+  ParentHandle: THandle = 0;
 begin
-  if not Assigned(Application.MainForm) then
-    // Wichtig ist Handle 0, weil wir gerne einen Taskleistenknopf hätten
-    Result := MessageBox(0, PChar(Text), PChar(Title), uType)
-  else
-    Result := Application.MessageBox(PChar(Text), PChar(Title), uType);
+  if Assigned(Screen.ActiveForm) then
+    ParentHandle := Screen.ActiveForm.Handle;
+
+  Result := MessageBox(ParentHandle, PChar(Text), PChar(Title), uType)
 end;
 
 class function TFunctions.ValidURL(URL: string): Boolean;
