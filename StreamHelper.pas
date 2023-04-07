@@ -24,6 +24,7 @@ interface
 
 uses
   Classes,
+  LazUTF8,
   SysUtils;
 
 { TStreamHelper }
@@ -384,7 +385,7 @@ begin
       WriteBuffer(Value[1], Len2);
   end else
   begin
-    Len := Length(Value) * 2;
+    Len := UTF8Length(Value) * 2;
     WriteBuffer(Len, SizeOf(Len));
     if Len > 0 then
     begin
