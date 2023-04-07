@@ -25,6 +25,7 @@ interface
 uses
   Classes,
   ComCtrls,
+  Generics.Collections,
   JwaWinNT,
   Logging,
   SysUtils,
@@ -34,6 +35,16 @@ type
   TFileWatcherEventActions = (eaAdded, eaRemoved, eaModified, eaMoved);
 
   TFileWatcherEvent = procedure(Sender: TObject; Action: TFileWatcherEventActions; Path, PathNew: string) of object;
+
+  { TDeletedFile }
+
+  TDeletedFile = record
+  public
+    Expires: Int64;
+    Path: string;
+
+    constructor Create(Path: string);
+  end;
 
   { TFileWatcher }
 
@@ -50,7 +61,7 @@ type
     FFilter: DWORD;
 
     FTermEvent: THandle;
-    FDeleted: TStringList;
+    FDeleted: TList<TDeletedFile>;
 
     FOnEvent: TFileWatcherEvent;
 
@@ -58,7 +69,7 @@ type
   protected
     procedure Execute; override;
     procedure DoChangeDetected(Path: string; Action: DWORD); virtual;
-    procedure DoAfterDelete; virtual;
+    procedure ProcessDeleted; virtual;
   public
     constructor Create(WatchPath: string; Filter: DWORD); virtual;
     destructor Destroy; override;
@@ -69,6 +80,14 @@ type
 
 implementation
 
+{ TDeletedFile }
+
+constructor TDeletedFile.Create(Path: string);
+begin
+  Self.Path := Path;
+  Expires := GetTickCount64 + 1000;
+end;
+
 constructor TFileWatcher.Create(WatchPath: string; Filter: DWORD);
 begin
   inherited Create(True);
@@ -77,7 +96,7 @@ begin
   FFilter := Filter;
 
   FTermEvent := CreateEvent(nil, False, False, nil);
-  FDeleted := TStringList.Create;
+  FDeleted := TList<TDeletedFile>.Create;
 
   FreeOnTerminate := True;
 end;
@@ -99,7 +118,6 @@ var
   EventArray: array [0..1] of THandle;
   ChangeEvent: THandle;
   Path: string;
-  WasDeleted: Boolean;
 begin
   ChangeEvent := CreateEvent(nil, False, False, nil);
 
@@ -107,8 +125,6 @@ begin
 
   EventArray[0] := FTermEvent;
   EventArray[1] := ChangeEvent;
-
-  WasDeleted := False;
 
   try
     while not Terminated do
@@ -135,7 +151,7 @@ begin
             Break;
           end;
 
-          WaitResult := WaitForMultipleObjects(2, @EventArray, False, IfThen<DWORD>(WasDeleted, 1000, INFINITE));
+          WaitResult := WaitForMultipleObjects(2, @EventArray, False, IfThen<DWORD>(FDeleted.Count > 0, 1000, INFINITE));
           case WaitResult of
             WAIT_DIR:
             begin
@@ -147,9 +163,6 @@ begin
                 NextOffset := Info.NextEntryOffset;
                 Path := ConcatPaths([FWatchPath, WideCharLenToString(@Info.FileName, Info.FileNameLength div 2)]);
 
-                if (Info.Action = FILE_ACTION_REMOVED) and (not FileExists(Path)) then
-                  WasDeleted := True;
-
                 DoChangeDetected(Path, Info.Action);
 
                 Info := Pointer(Info) + NextOffset;
@@ -160,18 +173,9 @@ begin
             end;
             WAIT_TERMINATE:
               Exit;
-            WAIT_TIMEOUT:
-            begin
-              DoAfterDelete;
-              WasDeleted := False;
-            end else
-            begin
-              if WaitForSingleObject(FTermEvent, 2000) = WAIT_TERMINATE then
-                Exit;
-
-              Break;
-            end;
           end;
+
+          ProcessDeleted;
         end;
       finally
         CloseHandle(DirHandle);
@@ -203,17 +207,33 @@ var
 begin
   case Action of
     FILE_ACTION_REMOVED:
-      FDeleted.Add(Path);
+      FDeleted.Add(TDeletedFile.Create(Path));
     FILE_ACTION_ADDED:
     begin
       for i := 0 to FDeleted.Count - 1 do
-        if ExtractFileName(FDeleted[i]) = ExtractFileName(Path) then
+        if FDeleted[i].Path = Path then
+        begin
+          FAction := eaModified;
+          FPath := Path;
+
+          FDeleted.Delete(i);
+
+          Synchronize(TriggerEvent);
+
+          Exit;
+        end;
+
+      for i := 0 to FDeleted.Count - 1 do
+        if ExtractFileName(FDeleted[i].Path) = ExtractFileName(Path) then
         begin
           FAction := eaMoved;
-          FPath := FDeleted[i];
+          FPath := FDeleted[i].Path;
           FPathNew := Path;
 
           FDeleted.Delete(i);
+
+          Synchronize(TriggerEvent);
+
           Exit;
         end;
 
@@ -233,6 +253,19 @@ begin
       FPath := Path;
     FILE_ACTION_RENAMED_NEW_NAME:
     begin
+      for i := 0 to FDeleted.Count - 1 do
+        if FDeleted[i].Path = Path then
+        begin
+          FAction := eaModified;
+          FPath := Path;
+
+          FDeleted.Delete(i);
+
+          Synchronize(TriggerEvent);
+
+          Exit;
+        end;
+
       FAction := eaMoved;
       FPathNew := Path;
 
@@ -241,19 +274,22 @@ begin
   end;
 end;
 
-procedure TFileWatcher.DoAfterDelete;
+procedure TFileWatcher.ProcessDeleted;
 var
-  P: string;
+  i: Integer;
 begin
-  for P in FDeleted do
+  for i := FDeleted.Count - 1 downto 0 do
   begin
+    if GetTickCount64 < FDeleted[i].Expires then
+      Continue;
+
     FAction := eaRemoved;
-    FPath := P;
+    FPath := FDeleted[i].Path;
+
+    FDeleted.Delete(i);
 
     Synchronize(TriggerEvent);
   end;
-
-  FDeleted.Clear;
 end;
 
 end.
