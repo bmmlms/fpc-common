@@ -66,7 +66,6 @@ type
   { TfrmAbout }
 
   TfrmAbout = class(TForm)
-    btnDonateLocalized: TImage;
     btnDonate: TImage;
     lblAbout: TLabel;
     lblCopyright: TLabel;
@@ -96,7 +95,7 @@ type
     procedure pnlNavClick(Sender: TObject);
   private
     FScrollText: TScrollText;
-    function PointInImagePicture(const X, Y: Integer; const Img: TImage): Boolean;
+    function PointInImagePicture(const X: Integer): Boolean;
   public
     constructor Create(AOwner: TComponent; Caption: string); reintroduce;
   end;
@@ -112,7 +111,8 @@ end;
 
 constructor TfrmAbout.Create(AOwner: TComponent; Caption: string);
 var
-  DonateButtonImage: TPicture;
+  P, P2: TPicture;
+  P3: Graphics.TBitmap;
 begin
   inherited Create(AOwner);
 
@@ -169,20 +169,30 @@ begin
 
   if AppGlobals.ProjectDonateLink <> '' then
   begin
-    DonateButtonImage := TPicture.Create;
+    P := TPicture.Create;
+    P2 := TPicture.Create;
+    P3 := Graphics.TBitmap.Create;
     try
       if Language.CurrentLanguage.ID = 'de' then
-        DonateButtonImage.LoadFromResourceName(HINSTANCE, 'DONATE_DE')
+        P.LoadFromResourceName(HINSTANCE, 'DONATE_DE')
       else
-        DonateButtonImage.LoadFromResourceName(HINSTANCE, 'DONATE_EN');
+        P.LoadFromResourceName(HINSTANCE, 'DONATE_EN');
 
-      btnDonateLocalized.Picture := DonateButtonImage;
+      P2.LoadFromResourceName(HINSTANCE, 'DONATE');
+
+      P3.SetSize(P.Width + 12 + P2.Width, P2.Height);
+      P3.PixelFormat := pf32bit;
+      P3.Canvas.Draw(0, P3.Height div 2 - P.Height div 2, P.Pixmap);
+      P3.Canvas.Draw(P.Width + 12, 0, P2.Pixmap);
+
+      btnDonate.Picture.Graphic := P3;
     finally
-      DonateButtonImage.Free;
+      P.Free;
+      P2.Free;
+      P3.Free;
     end;
 
     btnDonate.Visible := True;
-    btnDonateLocalized.Visible := True;
   end;
 
   if AppGlobals.ProjectThanksText <> '' then
@@ -207,20 +217,18 @@ begin
 end;
 
 procedure TfrmAbout.btnDonateMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-var
-  Img: TImage absolute Sender;
 begin
-  if PointInImagePicture(X, Y, Img) then
-    Img.Cursor := crHandPoint
+  if PointInImagePicture(X) then
+    btnDonate.Cursor := crHandPoint
   else
-    Img.Cursor := crArrow;
+    btnDonate.Cursor := crArrow;
 end;
 
 procedure TfrmAbout.btnDonateMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   Img: TImage absolute Sender;
 begin
-  if PointInImagePicture(X, Y, Img) then
+  if PointInImagePicture(X) then
     TFunctions.ShellExecute(0, 'open', AppGlobals.ProjectDonateLink);
 end;
 
@@ -263,9 +271,9 @@ begin
 
 end;
 
-function TfrmAbout.PointInImagePicture(const X, Y: Integer; const Img: TImage): Boolean;
+function TfrmAbout.PointInImagePicture(const X: Integer): Boolean;
 begin
-  Result := (X + 5 > Img.ClientWidth / 2 - Img.Picture.Width / 2) and (X - 5 < Img.ClientWidth / 2 + Img.Picture.Width / 2);
+  Result := (X + 5 > btnDonate.ClientWidth / 2 - btnDonate.Picture.Width / 2) and (X - 5 < btnDonate.ClientWidth / 2 + btnDonate.Picture.Width / 2);
 end;
 
 { TScrollText }

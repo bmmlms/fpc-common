@@ -44,20 +44,23 @@ type
   { TfrmUpdatedInfo }
 
   TfrmUpdatedInfo = class(TForm)
-    btnDonateDe: TImage;
-    btnDonateEn: TImage;
-    Panel1: TPanel;
+    btnDonate: TImage;
     txtInfo: TMemo;
     pnlNav: TPanel;
     Bevel2: TBevel;
     btnClose: TBitBtn;
     chkNotShowAgain: TCheckBox;
+    procedure btnDonateMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
+    procedure btnDonateMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure btnCloseClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure btnDonateClick(Sender: TObject);
-    procedure FormResize(Sender: TObject);
+  private
+    function PointInImagePicture(const X: Integer): Boolean;
   end;
 
 implementation
@@ -78,6 +81,9 @@ begin
 end;
 
 procedure TfrmUpdatedInfo.FormCreate(Sender: TObject);
+var
+  P, P2: TPicture;
+  P3: TBitmap;
 begin
   Language.Translate(Self);
 
@@ -87,10 +93,32 @@ begin
   txtInfo.Text := Format(txtInfo.Text, [AppGlobals.AppName, AppGlobals.AppVersion.AsString, AppGlobals.AppName]);
 
   if AppGlobals.ProjectDonateLink <> '' then
-    if Language.CurrentLanguage.ID = 'de' then
-      btnDonateDe.Visible := True
-    else
-      btnDonateEn.Visible := True;
+  begin
+    P := TPicture.Create;
+    P2 := TPicture.Create;
+    P3 := TBitmap.Create;
+    try
+      if Language.CurrentLanguage.ID = 'de' then
+        P.LoadFromResourceName(HINSTANCE, 'DONATE_DE')
+      else
+        P.LoadFromResourceName(HINSTANCE, 'DONATE_EN');
+
+      P2.LoadFromResourceName(HINSTANCE, 'DONATE');
+
+      P3.SetSize(P.Width + 12 + P2.Width, P2.Height);
+      P3.PixelFormat := pf32bit;
+      P3.Canvas.Draw(0, P3.Height div 2 - P.Height div 2, P.Pixmap);
+      P3.Canvas.Draw(P.Width + 12, 0, P2.Pixmap);
+
+      btnDonate.Picture.Graphic := P3;
+    finally
+      P.Free;
+      P2.Free;
+      P3.Free;
+    end;
+
+    btnDonate.Visible := True;
+  end;
 end;
 
 procedure TfrmUpdatedInfo.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -102,15 +130,28 @@ begin
   end;
 end;
 
-procedure TfrmUpdatedInfo.FormResize(Sender: TObject);
+procedure TfrmUpdatedInfo.btnDonateMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 begin
-  btnDonateDe.Left := ClientWidth div 2 - btnDonateDe.Width div 2;
-  btnDonateEn.Left := ClientWidth div 2 - btnDonateEn.Width div 2;
+  if PointInImagePicture(X) then
+    btnDonate.Cursor := crHandPoint
+  else
+    btnDonate.Cursor := crArrow;
+end;
+
+procedure TfrmUpdatedInfo.btnDonateMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  if PointInImagePicture(X) then
+    TFunctions.ShellExecute(0, 'open', AppGlobals.ProjectDonateLink);
 end;
 
 procedure TfrmUpdatedInfo.FormShow(Sender: TObject);
 begin
   btnClose.ApplyFocus;
+end;
+
+function TfrmUpdatedInfo.PointInImagePicture(const X: Integer): Boolean;
+begin
+  Result := (X + 5 > btnDonate.ClientWidth / 2 - btnDonate.Picture.Width / 2) and (X - 5 < btnDonate.ClientWidth / 2 + btnDonate.Picture.Width / 2);
 end;
 
 end.
