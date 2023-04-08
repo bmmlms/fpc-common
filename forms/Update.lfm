@@ -1,13 +1,13 @@
 object frmUpdate: TfrmUpdate
   Left = 0
-  Height = 95
+  Height = 108
   Top = 0
   Width = 250
   AutoSize = True
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Update'
-  ClientHeight = 95
+  ClientHeight = 108
   ClientWidth = 250
   Color = clBtnFace
   Font.Color = clWindowText
@@ -57,7 +57,6 @@ object frmUpdate: TfrmUpdate
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
   Position = poOwnerFormCenter
-  LCLVersion = '2.2.4.0'
   object lblState: TLabel
     Left = 0
     Height = 13
@@ -70,12 +69,12 @@ object frmUpdate: TfrmUpdate
   end
   object lblChangeLog: TLabel
     Cursor = crHandPoint
-    Left = 112
+    Left = 0
     Height = 13
-    Top = 0
-    Width = 6
+    Top = 39
+    Width = 250
+    Align = alTop
     Alignment = taCenter
-    Anchors = [akTop, akLeft, akRight]
     Caption = 'Changelog'
     Font.Color = clBlue
     Font.Height = -11
@@ -89,7 +88,7 @@ object frmUpdate: TfrmUpdate
   object ProgressBar1: TProgressBar
     Left = 0
     Height = 17
-    Top = 39
+    Top = 52
     Width = 250
     Align = alTop
     TabOrder = 0
@@ -97,7 +96,7 @@ object frmUpdate: TfrmUpdate
   object pnlNav: TPanel
     Left = 0
     Height = 39
-    Top = 56
+    Top = 69
     Width = 250
     Align = alTop
     AutoSize = True
