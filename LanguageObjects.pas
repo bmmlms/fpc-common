@@ -1098,7 +1098,10 @@ begin
       PoFile.Free;
     end;
   except
-    raise Exception.Create('Error loading LCL translations');
+    on E: EResNotFound do
+      Exit
+    else
+      raise Exception.Create('Error loading LCL translations');
   end;
 end;
 
