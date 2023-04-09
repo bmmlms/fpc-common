@@ -11,6 +11,7 @@ uses
   Dialogs,
   FileUtil,
   Forms,
+  LazUTF8,
   Graphics,
   ShellAPI,
   ShlObj,
@@ -51,7 +52,7 @@ begin
 
       EW := Canvas.TextWidth('...');
 
-      Exit(Text.Substring(0, Canvas.TextFitInfo(Text, MaxWidth - EW)).Trim + '...');
+      Exit(UTF8Copy(Text, 1, Canvas.TextFitInfo(Text, MaxWidth - EW)).Trim + '...');
     finally
       ReleaseDC(GetDesktopWindow, Canvas.Handle);
     end;

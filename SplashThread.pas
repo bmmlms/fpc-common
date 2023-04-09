@@ -262,7 +262,7 @@ begin
   if FindAppWindow then
     Exit;
 
-  SetLength(FMonitors, 0);
+  FMonitors := [];
   EnumDisplayMonitors(0, nil, @MonitorEnumProc, THandle(Self));
 
   Monitor := -1;

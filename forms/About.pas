@@ -290,7 +290,7 @@ begin
   FOffset := MaxInt;
 
   FText := TStringList.Create;
-  SetLength(FBmps, 0);
+  FBmps := [];
 
   while FindResource(HINSTANCE, PChar('THANKSIMAGE' + IntToStr(i)), Windows.RT_RCDATA) <> 0 do
   begin

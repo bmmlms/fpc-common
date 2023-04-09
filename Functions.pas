@@ -34,6 +34,7 @@ uses
   Graphics,
   GraphUtil,
   IdURI,
+  LazUTF8,
   regexpr,
   ShellAPI,
   ShlObj,
@@ -154,7 +155,7 @@ begin
   if Assigned(Screen.ActiveForm) then
     ParentHandle := Screen.ActiveForm.Handle;
 
-  Result := MessageBox(ParentHandle, PChar(Text), PChar(Title), uType)
+  Result := MessageBox(ParentHandle, PChar(Text), PChar(Title), uType);
 end;
 
 class function TFunctions.ValidURL(URL: string): Boolean;
@@ -267,13 +268,10 @@ class function TFunctions.RemoveFileExt(const s: string): string;
 var
   i: Integer;
 begin
-  for i := Length(s) downto 1 do
-    if s[i] = '.' then
-    begin
-      Result := Copy(s, 1, Length(s) - (Length(s) - i) - 1);
-      Exit;
-    end;
-  Result := s;
+  i := RPos('.', s);
+  if i > 1 then
+    Exit(Copy(s, 1, i - 1));
+  Exit(s);
 end;
 
 class function TFunctions.StringToMask(s: string): string;
@@ -618,19 +616,10 @@ var
   CharSep: Integer;
 begin
   Result := s;
-  CharSep := 0;
+  CharSep := UTF8RPos('\', s);
 
-  for i := 0 to Length(s) - 1 do
-    if s[i] = '\' then
-      CharSep := i;
-
-  if CharSep > 0 then
-    if CharSep - 1 > MaxPathChars then
-    begin
-      Result := Copy(s, 0, MaxPathChars - 3);
-      Result := Result + '...';
-      Result := Result + Copy(s, CharSep, Length(s) - CharSep + 1);
-    end;
+  if (CharSep > 0) and (CharSep - 1 > MaxPathChars) then
+    Result := UTF8Copy(s, 1, MaxPathChars - 3) + '...' + UTF8Copy(s, CharSep, UTF8LengthFast(s) - CharSep + 1);
 end;
 
 class function TFunctions.HashString(Value: string): Cardinal;
@@ -686,7 +675,7 @@ var
 begin
   Result := s;
 
-  SetLength(TokenIndices, 0);
+  TokenIndices := [];
   for i := 1 to Length(Result) - 1 do
     if Result[i] = '%' then
       for j := 0 to High(ReplaceList) do
@@ -722,7 +711,7 @@ var
 begin
   Result := s;
 
-  SetLength(TokenIndices, 0);
+  TokenIndices := [];
   for i := 1 to Length(Result) do
     if Result[i] = '%' then
     begin
@@ -1024,7 +1013,7 @@ class function TFunctions.FixPathName(Path: string): string;
 var
   i, LastI: Integer;
   Drive: string;
-  Parts: array of string;
+  Parts: array of string = [];
 
   procedure AddPart(S: string);
   begin
@@ -1035,7 +1024,6 @@ var
 begin
   Result := '';
   Drive := '';
-  SetLength(Parts, 0);
 
   // Laufwerk/Share-Anfang ermitteln
   if (Length(Path) >= 3) and (Copy(Path, 2, 2) = ':\') then
@@ -1150,14 +1138,12 @@ var
   SepLen: Integer;
   F, P: PChar;
   ALen, Index: Integer;
-  Res: array of string;
+  Res: array of string = [];
   i: Integer;
 begin
   Lst.Clear;
 
   try
-    SetLength(Res, 0);
-
     if S = '' then
       Exit;
 
