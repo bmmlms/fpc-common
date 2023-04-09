@@ -270,6 +270,7 @@ var
 begin
   try
     Dlg := TSaveDialog.Create(Self);
+    Dlg.Title := _('Save file');
     Dlg.Filter := 'streamWriter profile (*.dat)|*.dat';
     Dlg.Options := Dlg.Options + [ofOverwritePrompt];
     Dlg.DefaultExt := '.dat';
@@ -308,6 +309,7 @@ begin
   if TFunctions.MsgBox(_('The profile currently in use will be replaced with the imported one. After successful import streamWriter will restart.'#13#10'Do you want to continue?'), _('Question'), MB_ICONQUESTION or MB_YESNO) = IDYES then
   begin
     Dlg := TOpenDialog.Create(Self);
+    Dlg.Title := _('Open file');
     Dlg.Filter := 'streamWriter profile (*.dat)|*.dat';
     try
       if Dlg.Execute then

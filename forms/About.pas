@@ -305,8 +305,7 @@ begin
         Bmp.Height := Image.Height;
         Bmp.Canvas.Draw(0, 0, Image);
 
-        SetLength(FBmps, Length(FBmps) + 1);
-        FBmps[Length(FBmps) - 1] := Bmp;
+        FBmps += [Bmp];
       finally
         Image.Free;
       end;
@@ -323,12 +322,15 @@ end;
 
 destructor TScrollText.Destroy;
 var
-  i: Integer;
+  Bmp: Graphics.TBitmap;
 begin
   FText.Free;
-  for i := 0 to Length(FBmps) - 1 do
-    FBmps[i].Free;
+
+  for Bmp in FBmps do
+    Bmp.Free;
+
   FBmp.Free;
+
   inherited;
 end;
 

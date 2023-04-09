@@ -714,10 +714,7 @@ begin
   TokenIndices := [];
   for i := 1 to Length(Result) do
     if Result[i] = '%' then
-    begin
-      SetLength(TokenIndices, Length(TokenIndices) + 1);
-      TokenIndices[High(TokenIndices)] := i;
-    end;
+      TokenIndices += [i];
 
   if Length(TokenIndices) < 2 then
     Exit;
@@ -882,7 +879,7 @@ begin
   Dots[0] := Pos('.', string(Version));
   Dots[1] := PosEx('.', string(Version), Dots[0] + 1);
   Dots[2] := PosEx('.', string(Version), Dots[1] + 1);
-  for i := 0 to Length(Dots) - 1 do
+  for i := 0 to High(Dots) do
     if Dots[i] < i then
       raise Exception.Create('Error parsing version.');
   Result.Major := StrToInt(Copy(string(Version), 0, Dots[0] - 1));
@@ -1012,15 +1009,8 @@ end;
 class function TFunctions.FixPathName(Path: string): string;
 var
   i, LastI: Integer;
-  Drive: string;
+  Drive, Part: string;
   Parts: array of string = [];
-
-  procedure AddPart(S: string);
-  begin
-    SetLength(Parts, Length(Parts) + 1);
-    Parts[High(Parts)] := Trim(S);
-  end;
-
 begin
   Result := '';
   Drive := '';
@@ -1047,13 +1037,13 @@ begin
   for i := 1 to Length(Path) do
     if Path[i] = '\' then
     begin
-      AddPart(Copy(Path, LastI, i - LastI));
+      Parts += [Trim(Copy(Path, LastI, i - LastI))];
       LastI := i + 1;
     end;
 
   // Wenn am Ende noch Rest ist, ist das auch ein Part
   if Length(Path) > LastI then
-    AddPart(Copy(Path, LastI, Length(Path) - LastI + 1));
+    Parts += [Trim(Copy(Path, LastI, Length(Path) - LastI + 1))];
 
   // '.' und ' ' am Anfang und am Ende entfernen
   for i := 0 to High(Parts) do
@@ -1075,12 +1065,12 @@ begin
 
   // Den Pfad aus den Parts zusammenbauen
   Result := Result + Drive;
-  for i := 0 to High(Parts) do
-    if Parts[i] <> '' then
+  for Part in Parts do
+    if Part <> '' then
       if (Length(Result) > 1) and (Result[Length(Result)] <> '\') then
-        Result := Result + '\' + Parts[i]
+        Result := Result + '\' + Part
       else
-        Result := Result + Parts[i];
+        Result := Result + Part;
 
   // Wenn in der Eingangsvariable am Ende ein '\' war, dann auch anhängen
   if (Length(Path) >= 1) and (Path[Length(Path)] = '\') and (Result <> '') then
