@@ -26,7 +26,6 @@ type
 
   TMVolumePanel = class(TPanel)
   private
-    FTrackBarPanel: TPanel;
     FTrackBar: TMSeekBar;
     FMute: TSpeedButton;
     FVolume: Integer;
@@ -161,22 +160,18 @@ begin
   FMute.AllowAllUp := True;
   FMute.Down := True;
   FMute.OnClick := MuteClick;
-  FMute.Parent := Self;
   FMute.AutoSize := True;
-
-  FTrackBarPanel := TPanel.Create(Self);
-  FTrackBarPanel.Align := alClient;
-  FTrackBarPanel.BevelOuter := bvNone;
-  FTrackBarPanel.Parent := Self;
+  FMute.Parent := Self;
 
   FTrackBar := TMSeekBar.Create(Self);
   FTrackBar.Max := 100;
   FTrackBar.Align := alClient;
   FTrackBar.OnPositionChanged := VolumeChange;
-  FTrackBar.Parent := FTrackBarPanel;
   FTrackBar.GripperVisible := True;
   FTrackBar.NotifyOnMove := True;
   FTrackBar.NotifyOnDown := True;
+  FTrackBar.BorderSpacing.Bottom := 1;
+  FTrackBar.Parent := Self;
 
   Constraints.MinHeight := 21;
   Constraints.MaxHeight := 21;
