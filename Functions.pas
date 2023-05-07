@@ -803,7 +803,7 @@ var
   H, S, L: Word;
   IsDark: Boolean;
 begin
-  GraphUtil.ColorRGBToHLS(Color, H, L, S);
+  GraphUtil.ColorRGBToHLS(ColorToRGB(Color), H, L, S);
 
   IsDark := L < 32;
 
