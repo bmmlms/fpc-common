@@ -14,6 +14,7 @@ uses
   Math,
   Menus,
   MSeekBar,
+  MSpeedButton,
   MVirtualTree,
   SysUtils,
   Themes,
@@ -151,15 +152,15 @@ begin
 
   BevelOuter := bvNone;
 
-  FMute := TSpeedButton.Create(Self);
+  FMute := TMSpeedButton.Create(Self);
   FMute.Hint := 'Mute';
   FMute.Flat := True;
   FMute.Align := alLeft;
   FMute.GroupIndex := 1;
   FMute.AllowAllUp := True;
   FMute.Down := True;
+  FMute.Width := 23;
   FMute.OnClick := MuteClick;
-  FMute.AutoSize := True;
   FMute.Parent := Self;
 
   FTrackBar := TMSeekBar.Create(Self);
@@ -169,11 +170,10 @@ begin
   FTrackBar.GripperVisible := True;
   FTrackBar.NotifyOnMove := True;
   FTrackBar.NotifyOnDown := True;
-  FTrackBar.BorderSpacing.Bottom := 1;
   FTrackBar.Parent := Self;
 
-  Constraints.MinHeight := 21;
-  Constraints.MaxHeight := 21;
+  Constraints.MinHeight := 23;
+  Constraints.MaxHeight := 23;
 
   RefreshButtonState;
 end;
