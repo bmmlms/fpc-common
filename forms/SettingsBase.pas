@@ -42,7 +42,7 @@ uses
   MControlFocuser,
   MControls,
   MLabeledEdit,
-  MStringFunctions,
+  MStringFunctions, MVirtualTree,
   SettingsStorage,
   StdCtrls,
   StreamHelper,
@@ -102,9 +102,6 @@ type
     FlowPanelSettingsBase2: TFlowPanel;
     lstLanguages: TMLabeledComboBoxEx;
     txtHost: TMLabeledEdit;
-    pnlHeader: TPanel;
-    Shape1: TShape;
-    lblTop: TLabel;
     pnlNav: TPanel;
     Bevel2: TBevel;
     btnOK: TBitBtn;
@@ -368,7 +365,7 @@ begin
 
   // Alle Panels verstecken
   for i := 0 to ControlCount - 1 do
-    if Controls[i].InheritsFrom(TPanel) and (Controls[i] <> pnlHeader) and (Controls[i] <> pnlLeft) and (Controls[i] <> pnlNav) then
+    if Controls[i].InheritsFrom(TPanel) and (Controls[i] <> pnlLeft) and (Controls[i] <> pnlNav) then
       Controls[i].Visible := False;
 
   FActivePage := nil;
@@ -496,9 +493,6 @@ begin
   FTreeView.Setup;
   SetPage(FPageList[0]);
   FTreeView.ApplyFocus;
-
-  pnlHeader.Height := MulDiv(pnlHeader.Height, lblTop.Font.Size, 12);
-  pnlNav.Height := MulDiv(pnlNav.Height, btnOK.Font.Size, 8);
 end;
 
 procedure TfrmSettingsBase.GetExportData(Stream: TMemoryStream);

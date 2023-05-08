@@ -297,15 +297,13 @@ begin
   try
     FSplashImage.LoadFromStream(ResStream);
 
-    FSplashImage.Canvas.Font.Name := 'Tahoma';
     FSplashImage.Canvas.Font.Quality := fqCleartypeNatural;
     FSplashImage.Canvas.Font.Color := clWhite;
     FSplashImage.Canvas.Font.Size := 7;
     FSplashImage.Canvas.AntialiasingMode := amOn;
     SetBkMode(FSplashImage.Canvas.Handle, TRANSPARENT);
 
-    FSplashImage.Canvas.TextOut(FSplashImage.Width - FSplashImage.Canvas.TextWidth(FVersion) - 10,
-      FSplashImage.Height - FSplashImage.Canvas.TextHeight(FVersion) - 10, FVersion);
+    FSplashImage.Canvas.TextOut(FSplashImage.Width - FSplashImage.Canvas.TextWidth(FVersion) - 8, FSplashImage.Height - FSplashImage.Canvas.TextHeight(FVersion) - 8, FVersion);
 
     FHandle := CreateWindowEx(WS_EX_LAYERED or WS_EX_TOOLWINDOW, WINDOW_CLASS, '', WS_VISIBLE or WS_POPUP or WS_CHILD, (FMonitors[Monitor].Left + Abs(FMonitors[Monitor].Right - FMonitors[Monitor].Left) div 2) -
       FSplashImage.Width div 2, (FMonitors[Monitor].Top + Abs(FMonitors[Monitor].Bottom - FMonitors[Monitor].Top) div 2) - FSplashImage.Height div 2, FSplashImage.Width, FSplashImage.Height, 0, 0, HINSTANCE, nil);

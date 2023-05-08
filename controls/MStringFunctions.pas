@@ -85,7 +85,6 @@ end;
 class function TMStringFunctions.GetTextSize(Text: string; Font: TFont): TSize;
 var
   Canvas: TCanvas;
-  a,b:integer;
 begin
   Canvas := TCanvas.Create;
   try

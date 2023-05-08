@@ -70,7 +70,11 @@ type
     property Control: TMHotkeyEdit read FControl;
   end;
 
+  { TMLabeledComboBoxEx }
+
   TMLabeledComboBoxEx = class(TMLabeledControl<TComboBoxEx>)
+  public
+    constructor Create(TheOwner: TComponent); override;
   published
     property Control: TComboBoxEx read FControl;
   end;
@@ -151,6 +155,15 @@ begin
   FControl.Align := alLeft;
   FControl.Parent := Self;
   FControl.SetSubComponent(True);
+end;
+
+{ TMLabeledComboBoxEx }
+
+constructor TMLabeledComboBoxEx.Create(TheOwner: TComponent);
+begin
+  inherited Create(TheOwner);
+
+  Control.ItemHeight := 17;
 end;
 
 end.

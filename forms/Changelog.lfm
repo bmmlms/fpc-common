@@ -8,9 +8,6 @@ object frmChangeLog: TfrmChangeLog
   ClientHeight = 285
   ClientWidth = 449
   Color = clBtnFace
-  Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'Tahoma'
   Icon.Data = {
     7E04000000000100010010100000010020006804000016000000280000001000
     0000200000000100200000000000000400006400000064000000000000000000
@@ -55,6 +52,8 @@ object frmChangeLog: TfrmChangeLog
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poOwnerFormCenter
+  ShowHint = True
+  LCLVersion = '2.2.6.0'
   object txtChangeLog: TMemo
     Left = 0
     Height = 246

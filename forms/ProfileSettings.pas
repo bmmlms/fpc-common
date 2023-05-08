@@ -54,9 +54,6 @@ type
     Panel2: TPanel;
     pnlNav: TPanel;
     Bevel2: TBevel;
-    pnlHeader: TPanel;
-    Shape1: TShape;
-    lblTop: TLabel;
     lblProfiles: TLabel;
     rbInstalled: TRadioButton;
     rbPortable: TRadioButton;

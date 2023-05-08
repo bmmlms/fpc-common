@@ -9,7 +9,8 @@ interface
 
 uses
   MLabeledEdit, MHotKeyEdit, MPageControl, MControlFocuser, MStringFunctions, 
-  MComboBoxExEditable, MVirtualTree, MSeekBar, MVolumePanel, LazarusPackageIntf;
+  MComboBoxExEditable, MVirtualTree, MSeekBar, MVolumePanel, 
+  MToolbarForcedHorizontal, MSpeedButton, LazarusPackageIntf;
 
 implementation
 
@@ -21,9 +22,10 @@ begin
   RegisterUnit('MVirtualTree', @MVirtualTree.Register);
   RegisterUnit('MSeekBar', @MSeekBar.Register);
   RegisterUnit('MVolumePanel', @MVolumePanel.Register);
+  RegisterUnit('MToolbarForcedHorizontal', @MToolbarForcedHorizontal.Register);
+  RegisterUnit('MSpeedButton', @MSpeedButton.Register);
 end;
 
 initialization
-  RegisterPackage('mcontrols', @Register);
-
+  RegisterPackage('MControls', @Register);
 end.

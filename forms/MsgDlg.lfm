@@ -11,15 +11,12 @@ object frmMsgDlg: TfrmMsgDlg
   ClientHeight = 170
   ClientWidth = 421
   Color = clBtnFace
-  Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'Tahoma'
   KeyPreview = True
-  OnActivate = FormActivate
   OnClose = FormClose
   OnKeyUp = FormKeyUp
   OnShow = FormShow
   Position = poOwnerFormCenter
+  ShowHint = True
   object imgIcon: TImage
     Left = 0
     Height = 112

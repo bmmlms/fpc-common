@@ -9,18 +9,16 @@ object frmSettingsBase: TfrmSettingsBase
   ClientHeight = 874
   ClientWidth = 1618
   Color = clBtnFace
-  Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'Tahoma'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnKeyDown = FormKeyDown
   OnShow = FormShow
+  ShowHint = True
   LCLVersion = '2.2.6.0'
   object FlowPanelPages: TFlowPanel
     Left = 93
-    Height = 802
-    Top = 33
+    Height = 835
+    Top = 0
     Width = 1525
     Align = alClient
     BevelOuter = bvNone
@@ -28,45 +26,7 @@ object frmSettingsBase: TfrmSettingsBase
     FlowLayout = tlTop
     FlowStyle = fsLeftRightTopBottom
     ParentColor = False
-    TabOrder = 4
-  end
-  object pnlHeader: TPanel
-    Left = 0
-    Height = 33
-    Top = 0
-    Width = 1618
-    Align = alTop
-    BevelOuter = bvNone
-    ClientHeight = 33
-    ClientWidth = 1618
-    TabOrder = 0
-    object Shape1: TShape
-      Left = 0
-      Height = 33
-      Top = 0
-      Width = 1618
-      Align = alClient
-      Brush.Color = clActiveCaption
-      Pen.Color = clActiveBorder
-    end
-    object lblTop: TLabel
-      Left = 0
-      Height = 33
-      Top = 0
-      Width = 1618
-      Align = alClient
-      AutoSize = False
-      Caption = 'Settings'
-      Color = clActiveCaption
-      Font.Color = clWhite
-      Font.Height = -16
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      Layout = tlCenter
-      ParentColor = False
-      ParentFont = False
-      Transparent = False
-    end
+    TabOrder = 3
   end
   object pnlNav: TPanel
     Left = 0
@@ -78,7 +38,7 @@ object frmSettingsBase: TfrmSettingsBase
     BevelOuter = bvNone
     ClientHeight = 39
     ClientWidth = 1618
-    TabOrder = 1
+    TabOrder = 0
     object Bevel2: TBevel
       Left = 0
       Height = 4
@@ -103,12 +63,12 @@ object frmSettingsBase: TfrmSettingsBase
   end
   object pnlLeft: TPanel
     Left = 0
-    Height = 802
-    Top = 33
+    Height = 835
+    Top = 0
     Width = 93
     Align = alLeft
     BevelOuter = bvNone
-    TabOrder = 2
+    TabOrder = 1
   end
   object pnlGeneral: TPanel
     Left = 100
@@ -117,12 +77,12 @@ object frmSettingsBase: TfrmSettingsBase
     Width = 312
     ClientHeight = 280
     ClientWidth = 312
-    TabOrder = 3
+    TabOrder = 2
     Visible = False
     object lblPortable: TLabel
       Left = 1
-      Height = 13
-      Top = 212
+      Height = 15
+      Top = 210
       Width = 310
       Align = alBottom
       Anchors = [akLeft, akBottom]
@@ -133,7 +93,7 @@ object frmSettingsBase: TfrmSettingsBase
     object chkAutoUpdateCheck: TCheckBox
       Left = 1
       Height = 19
-      Top = 39
+      Top = 42
       Width = 310
       Align = alTop
       Caption = 'Enable automatic search for updates'
@@ -142,7 +102,7 @@ object frmSettingsBase: TfrmSettingsBase
     object chkProxy: TCheckBox
       Left = 1
       Height = 19
-      Top = 77
+      Top = 80
       Width = 310
       Align = alTop
       Caption = 'Use HTTP proxy'
@@ -152,7 +112,7 @@ object frmSettingsBase: TfrmSettingsBase
     object chkCheckCertificate: TCheckBox
       Left = 1
       Height = 19
-      Top = 58
+      Top = 61
       Width = 310
       Align = alTop
       Caption = 'Cancel connections on invalid certificate'
@@ -160,31 +120,31 @@ object frmSettingsBase: TfrmSettingsBase
     end
     object lstLanguages: TMLabeledComboBoxEx
       Left = 1
-      Height = 38
+      Height = 41
       Top = 1
       Width = 310
       Align = alTop
       Caption = 'Language:'
       Control.Left = 0
-      Control.Height = 22
-      Control.Top = 16
+      Control.Height = 23
+      Control.Top = 18
       Control.Width = 310
       Control.Align = alClient
-      Control.ItemHeight = 16
+      Control.ItemHeight = 17
       Control.ItemsEx = <>
       Control.OnChange = lstLanguagesChange
       Control.TabOrder = 0
     end
     object txtHost: TMLabeledEdit
       Left = 1
-      Height = 37
-      Top = 96
+      Height = 41
+      Top = 99
       Width = 310
       Align = alTop
       Caption = 'Host:'
       Control.Left = 0
-      Control.Height = 21
-      Control.Top = 16
+      Control.Height = 23
+      Control.Top = 18
       Control.Width = 310
       Control.Align = alClient
       Control.TabOrder = 0
@@ -277,14 +237,14 @@ object frmSettingsBase: TfrmSettingsBase
     end
     object txtPort: TMLabeledSpinEdit
       Left = 1
-      Height = 37
-      Top = 133
+      Height = 41
+      Top = 140
       Width = 310
       Align = alTop
       Caption = 'Port:'
       Control.Left = 0
-      Control.Height = 21
-      Control.Top = 16
+      Control.Height = 23
+      Control.Top = 18
       Control.Width = 310
       Control.Align = alClient
       Control.TabOrder = 0

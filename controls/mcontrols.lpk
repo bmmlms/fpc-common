@@ -65,6 +65,17 @@
       <Item>
         <Filename Value="MVolumePanel.pas"/>
         <HasRegisterProc Value="True"/>
+        <UnitName Value="MVolumePanel"/>
+      </Item>
+      <Item>
+        <Filename Value="MToolbarForcedHorizontal.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="MToolbarForcedHorizontal"/>
+      </Item>
+      <Item>
+        <Filename Value="MSpeedButton.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="MSpeedButton"/>
       </Item>
     </Files>
     <RequiredPkgs>

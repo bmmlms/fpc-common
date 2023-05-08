@@ -1,18 +1,15 @@
 object frmUpdate: TfrmUpdate
   Left = 0
-  Height = 108
+  Height = 116
   Top = 0
   Width = 250
   AutoSize = True
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Update'
-  ClientHeight = 108
+  ClientHeight = 116
   ClientWidth = 250
   Color = clBtnFace
-  Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'Tahoma'
   Icon.Data = {
     7E04000000000100010010100000010020006804000016000000280000001000
     0000200000000100200000000000000400006400000064000000000000000000
@@ -57,10 +54,11 @@ object frmUpdate: TfrmUpdate
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
   Position = poOwnerFormCenter
+  ShowHint = True
   object lblState: TLabel
     Left = 0
-    Height = 13
-    Top = 26
+    Height = 15
+    Top = 30
     Width = 250
     Align = alTop
     Alignment = taCenter
@@ -70,15 +68,13 @@ object frmUpdate: TfrmUpdate
   object lblChangeLog: TLabel
     Cursor = crHandPoint
     Left = 0
-    Height = 13
-    Top = 39
+    Height = 15
+    Top = 45
     Width = 250
     Align = alTop
     Alignment = taCenter
     Caption = 'Changelog'
     Font.Color = clBlue
-    Font.Height = -11
-    Font.Name = 'Tahoma'
     Font.Style = [fsUnderline]
     ParentColor = False
     ParentFont = False
@@ -88,7 +84,7 @@ object frmUpdate: TfrmUpdate
   object ProgressBar1: TProgressBar
     Left = 0
     Height = 17
-    Top = 52
+    Top = 60
     Width = 250
     Align = alTop
     TabOrder = 0
@@ -96,7 +92,7 @@ object frmUpdate: TfrmUpdate
   object pnlNav: TPanel
     Left = 0
     Height = 39
-    Top = 69
+    Top = 77
     Width = 250
     Align = alTop
     AutoSize = True
@@ -144,29 +140,29 @@ object frmUpdate: TfrmUpdate
   end
   object Panel1: TPanel
     Left = 0
-    Height = 13
+    Height = 15
     Top = 0
     Width = 250
     Align = alTop
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 13
+    ClientHeight = 15
     ClientWidth = 250
     TabOrder = 2
     object Label1: TLabel
       Left = 0
-      Height = 13
+      Height = 15
       Top = 0
-      Width = 83
+      Width = 88
       Align = alLeft
       Caption = 'Installed version:'
       ParentColor = False
     end
     object lblVersion: TLabel
-      Left = 246
-      Height = 13
+      Left = 245
+      Height = 15
       Top = 0
-      Width = 4
+      Width = 5
       Align = alRight
       Alignment = taRightJustify
       Caption = '-'
@@ -175,29 +171,29 @@ object frmUpdate: TfrmUpdate
   end
   object Panel2: TPanel
     Left = 0
-    Height = 13
-    Top = 13
+    Height = 15
+    Top = 15
     Width = 250
     Align = alTop
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 13
+    ClientHeight = 15
     ClientWidth = 250
     TabOrder = 3
     object Label2: TLabel
       Left = 0
-      Height = 13
+      Height = 15
       Top = 0
-      Width = 78
+      Width = 83
       Align = alLeft
       Caption = 'Newest version:'
       ParentColor = False
     end
     object lblNewestVersion: TLabel
-      Left = 246
-      Height = 13
+      Left = 245
+      Height = 15
       Top = 0
-      Width = 4
+      Width = 5
       Align = alRight
       Alignment = taRightJustify
       Caption = '-'

@@ -153,7 +153,6 @@ begin
 
   FMute := TSpeedButton.Create(Self);
   FMute.Hint := 'Mute';
-  FMute.ShowHint := True;
   FMute.Flat := True;
   FMute.Align := alLeft;
   FMute.GroupIndex := 1;

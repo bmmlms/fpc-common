@@ -93,7 +93,6 @@ begin
   AutoScrollInterval := 400;
   IncrementalSearch := isVisibleOnly;
   HintMode := hmTooltip;
-  ShowHint := True;
 
   TreeOptions.PaintOptions := [toShowButtons, toShowDropmark, toShowRoot, toThemeAware, toUseBlendedImages, toHideFocusRect];
   TreeOptions.AutoOptions := [toAutoScroll, toAutoScrollOnExpand];

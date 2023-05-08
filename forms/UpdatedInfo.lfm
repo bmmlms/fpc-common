@@ -9,15 +9,14 @@ object frmUpdatedInfo: TfrmUpdatedInfo
   ClientHeight = 241
   ClientWidth = 393
   Color = clBtnFace
-  Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'Tahoma'
   KeyPreview = True
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
+  ShowHint = True
   ShowInTaskBar = stAlways
+  LCLVersion = '2.2.6.0'
   object txtInfo: TMemo
     Left = 0
     Height = 135

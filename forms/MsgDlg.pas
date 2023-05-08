@@ -55,7 +55,6 @@ type
     procedure cmdYesOKClick(Sender: TObject);
     procedure cmdNoCancelClick(Sender: TObject);
     procedure FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure FormActivate(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
     FID: Integer;
@@ -89,14 +88,6 @@ begin
     FResult := mrOk;
 
   Close;
-end;
-
-procedure TfrmMsgDlg.FormActivate(Sender: TObject);
-begin
-  if not chkNotShowAgain.Visible then
-    txtText.Height := pnlNav.Top - 4 - txtText.Top
-  else
-    txtText.Height := chkNotShowAgain.Top - 4 - txtText.Top;
 end;
 
 procedure TfrmMsgDlg.FormClose(Sender: TObject; var Action: TCloseAction);
