@@ -10,7 +10,8 @@ interface
 uses
   MLabeledEdit, MHotKeyEdit, MPageControl, MControlFocuser, MStringFunctions, 
   MComboBoxExEditable, MVirtualTree, MSeekBar, MVolumePanel, 
-  MToolbarForcedHorizontal, MSpeedButton, MEditButton, LazarusPackageIntf;
+  MToolbarForcedHorizontal, MSpeedButton, MEditButton, MDropdownButton, 
+  LazarusPackageIntf;
 
 implementation
 
@@ -25,6 +26,7 @@ begin
   RegisterUnit('MToolbarForcedHorizontal', @MToolbarForcedHorizontal.Register);
   RegisterUnit('MSpeedButton', @MSpeedButton.Register);
   RegisterUnit('MEditButton', @MEditButton.Register);
+  RegisterUnit('MDropdownButton', @MDropdownButton.Register);
 end;
 
 initialization

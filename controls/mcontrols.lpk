@@ -82,6 +82,11 @@
         <HasRegisterProc Value="True"/>
         <UnitName Value="MEditButton"/>
       </Item>
+      <Item>
+        <Filename Value="MDropdownButton.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="MDropdownButton"/>
+      </Item>
     </Files>
     <RequiredPkgs>
       <Item>
