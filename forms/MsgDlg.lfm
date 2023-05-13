@@ -79,7 +79,7 @@ object frmMsgDlg: TfrmMsgDlg
       Width = 100
       Align = alRight
       Caption = '&Cancel'
-      Constraints.MinHeight = 35
+      Constraints.MinHeight = 30
       Constraints.MinWidth = 100
       OnClick = cmdNoCancelClick
       TabOrder = 1
@@ -91,7 +91,7 @@ object frmMsgDlg: TfrmMsgDlg
       Width = 100
       Align = alLeft
       Caption = '&OK'
-      Constraints.MinHeight = 35
+      Constraints.MinHeight = 30
       Constraints.MinWidth = 100
       OnClick = cmdYesOKClick
       TabOrder = 0

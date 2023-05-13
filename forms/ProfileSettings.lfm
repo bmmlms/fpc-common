@@ -44,7 +44,7 @@ object frmProfileSettings: TfrmProfileSettings
       Align = alRight
       AutoSize = True
       Caption = '&OK'
-      Constraints.MinHeight = 35
+      Constraints.MinHeight = 30
       Constraints.MinWidth = 100
       OnClick = btnOkClick
       TabOrder = 0
@@ -92,7 +92,7 @@ object frmProfileSettings: TfrmProfileSettings
         Align = alLeft
         AutoSize = True
         Caption = 'Delete'
-        Constraints.MinHeight = 35
+        Constraints.MinHeight = 30
         Constraints.MinWidth = 100
         OnClick = btnDeleteClick
         TabOrder = 0
@@ -105,7 +105,7 @@ object frmProfileSettings: TfrmProfileSettings
         Align = alLeft
         AutoSize = True
         Caption = 'Copy'
-        Constraints.MinHeight = 35
+        Constraints.MinHeight = 30
         Constraints.MinWidth = 100
         OnClick = btnCopyClick
         TabOrder = 1
@@ -131,7 +131,7 @@ object frmProfileSettings: TfrmProfileSettings
         Align = alLeft
         AutoSize = True
         Caption = 'Delete'
-        Constraints.MinHeight = 35
+        Constraints.MinHeight = 30
         Constraints.MinWidth = 100
         OnClick = btnDeleteClick
         TabOrder = 0
@@ -144,7 +144,7 @@ object frmProfileSettings: TfrmProfileSettings
         Align = alLeft
         AutoSize = True
         Caption = 'Copy'
-        Constraints.MinHeight = 35
+        Constraints.MinHeight = 30
         Constraints.MinWidth = 100
         OnClick = btnCopyClick
         TabOrder = 1

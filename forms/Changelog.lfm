@@ -92,7 +92,7 @@ object frmChangeLog: TfrmChangeLog
       Align = alRight
       AutoSize = True
       Caption = '&Close'
-      Constraints.MinHeight = 35
+      Constraints.MinHeight = 30
       Constraints.MinWidth = 100
       Default = True
       OnClick = btnCloseClick

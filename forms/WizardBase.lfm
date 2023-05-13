@@ -74,7 +74,7 @@ object frmWizardBase: TfrmWizardBase
       Align = alRight
       AutoSize = True
       Caption = '&Next'
-      Constraints.MinHeight = 35
+      Constraints.MinHeight = 30
       Constraints.MinWidth = 100
       Glyph.Data = {
         36040000424D3604000000000000360000002800000010000000100000000100
@@ -124,7 +124,7 @@ object frmWizardBase: TfrmWizardBase
       Align = alLeft
       AutoSize = True
       Caption = '&Cancel'
-      Constraints.MinHeight = 35
+      Constraints.MinHeight = 30
       Constraints.MinWidth = 100
       Glyph.Data = {
         36040000424D3604000000000000360000002800000010000000100000000100
