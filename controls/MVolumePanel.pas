@@ -28,7 +28,7 @@ type
   TMVolumePanel = class(TPanel)
   private
     FTrackBar: TMSeekBar;
-    FMute: TSpeedButton;
+    FMute: TMSpeedButton;
     FVolume: Integer;
     FVolumeBeforeDrag: Integer;
     FVolumeChange: TNotifyEvent;

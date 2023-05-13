@@ -50,11 +50,12 @@ type
     btnDelete: TButton;
     btnDelete2: TButton;
     btnOk: TBitBtn;
+    lblProfiles: TLabel;
     Panel1: TPanel;
     Panel2: TPanel;
+    Panel3: TPanel;
     pnlNav: TPanel;
     Bevel2: TBevel;
-    lblProfiles: TLabel;
     rbInstalled: TRadioButton;
     rbPortable: TRadioButton;
     procedure btnOkClick(Sender: TObject);

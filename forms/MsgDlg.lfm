@@ -2,15 +2,18 @@ object frmMsgDlg: TfrmMsgDlg
   Left = 488
   Height = 170
   Top = 454
-  Width = 421
+  Width = 420
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
+  BorderWidth = 4
   Caption = 'Info'
   ClientHeight = 170
-  ClientWidth = 421
+  ClientWidth = 420
   Color = clBtnFace
+  Constraints.MinHeight = 170
+  Constraints.MinWidth = 420
   KeyPreview = True
   OnClose = FormClose
   OnKeyUp = FormKeyUp
@@ -18,29 +21,31 @@ object frmMsgDlg: TfrmMsgDlg
   Position = poOwnerFormCenter
   ShowHint = True
   object imgIcon: TImage
-    Left = 0
-    Height = 112
-    Top = 0
+    Left = 4
+    Height = 92
+    Top = 4
     Width = 32
     Align = alLeft
+    AutoSize = True
     Constraints.MinWidth = 32
   end
   object chkNotShowAgain: TCheckBox
-    Left = 0
+    Left = 4
     Height = 19
-    Top = 112
-    Width = 421
+    Top = 100
+    Width = 412
     Align = alBottom
-    Anchors = [akLeft, akBottom]
+    BorderSpacing.Top = 4
     Caption = '&Don''t show this message again'
     TabOrder = 1
   end
   object txtText: TMemo
-    Left = 32
-    Height = 112
-    Top = 0
-    Width = 389
+    Left = 44
+    Height = 92
+    Top = 4
+    Width = 372
     Align = alClient
+    BorderSpacing.Left = 8
     BorderStyle = bsNone
     Color = clBtnFace
     ReadOnly = True
@@ -48,26 +53,27 @@ object frmMsgDlg: TfrmMsgDlg
     TabOrder = 0
   end
   object pnlNav: TPanel
-    Left = 0
+    Left = 4
     Height = 39
-    Top = 131
-    Width = 421
+    Top = 127
+    Width = 412
     Align = alBottom
     AutoSize = True
+    BorderSpacing.Top = 8
     BevelOuter = bvNone
     ClientHeight = 39
-    ClientWidth = 421
+    ClientWidth = 412
     TabOrder = 2
     object Bevel2: TBevel
       Left = 0
       Height = 4
       Top = 0
-      Width = 421
+      Width = 412
       Align = alTop
       Shape = bsTopLine
     end
     object cmdNoCancel: TButton
-      Left = 321
+      Left = 312
       Height = 35
       Top = 4
       Width = 100

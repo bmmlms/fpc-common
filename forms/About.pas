@@ -92,7 +92,6 @@ type
     procedure lblHomepageClick(Sender: TObject);
     procedure pagAboutChange(Sender: TObject);
     procedure pbLogoPaint(Sender: TObject);
-    procedure pnlNavClick(Sender: TObject);
   private
     FScrollText: TScrollText;
     function PointInImagePicture(const X: Integer): Boolean;
@@ -264,11 +263,6 @@ procedure TfrmAbout.pagAboutChange(Sender: TObject);
 begin
   if pagAbout.ActivePage = tabThanks then
     FScrollText.Start;
-end;
-
-procedure TfrmAbout.pnlNavClick(Sender: TObject);
-begin
-
 end;
 
 function TfrmAbout.PointInImagePicture(const X: Integer): Boolean;

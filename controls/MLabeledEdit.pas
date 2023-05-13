@@ -13,7 +13,8 @@ uses
   Graphics,
   IDEIntf,
   LResources,
-  mhotkeyedit,
+  MEditButton,
+  MHotkeyEdit,
   PropEdits,
   Spin,
   StdCtrls,
@@ -21,7 +22,6 @@ uses
   TypInfo;
 
 type
-  TLabeledControlType = (ctEdit, ctEditButton, ctSpinEdit);
 
   { TMLabeledControl }
 
@@ -60,9 +60,9 @@ type
     property Control: TSpinEdit read FControl;
   end;
 
-  TMLabeledEditButton = class(TMLabeledControl<TEditButton>)
+  TMLabeledEditButton = class(TMLabeledControl<TMEditButton>)
   published
-    property Control: TEditButton read FControl;
+    property Control: TMEditButton read FControl;
   end;
 
   TMLabeledHotkeyEdit = class(TMLabeledControl<TMHotkeyEdit>)

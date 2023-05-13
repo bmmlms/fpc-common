@@ -5,6 +5,7 @@ object frmSettingsBase: TfrmSettingsBase
   Width = 1618
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
+  BorderWidth = 4
   Caption = 'Settings'
   ClientHeight = 874
   ClientWidth = 1618
@@ -14,12 +15,11 @@ object frmSettingsBase: TfrmSettingsBase
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   ShowHint = True
-  LCLVersion = '2.2.6.0'
   object FlowPanelPages: TFlowPanel
-    Left = 93
-    Height = 835
-    Top = 0
-    Width = 1525
+    Left = 105
+    Height = 819
+    Top = 4
+    Width = 1509
     Align = alClient
     BevelOuter = bvNone
     ControlList = <>
@@ -29,26 +29,27 @@ object frmSettingsBase: TfrmSettingsBase
     TabOrder = 3
   end
   object pnlNav: TPanel
-    Left = 0
+    Left = 4
     Height = 39
-    Top = 835
-    Width = 1618
+    Top = 831
+    Width = 1610
     Align = alBottom
     AutoSize = True
+    BorderSpacing.Top = 8
     BevelOuter = bvNone
     ClientHeight = 39
-    ClientWidth = 1618
+    ClientWidth = 1610
     TabOrder = 0
     object Bevel2: TBevel
       Left = 0
       Height = 4
       Top = 0
-      Width = 1618
+      Width = 1610
       Align = alTop
       Shape = bsTopLine
     end
     object btnOK: TBitBtn
-      Left = 1518
+      Left = 1510
       Height = 35
       Top = 4
       Width = 100
@@ -62,39 +63,41 @@ object frmSettingsBase: TfrmSettingsBase
     end
   end
   object pnlLeft: TPanel
-    Left = 0
-    Height = 835
-    Top = 0
+    Left = 4
+    Height = 819
+    Top = 4
     Width = 93
     Align = alLeft
+    BorderSpacing.Right = 8
     BevelOuter = bvNone
     TabOrder = 1
   end
   object pnlGeneral: TPanel
     Left = 100
-    Height = 280
+    Height = 331
     Top = 52
-    Width = 312
-    ClientHeight = 280
-    ClientWidth = 312
+    Width = 320
+    ChildSizing.VerticalSpacing = 4
+    ClientHeight = 331
+    ClientWidth = 320
     TabOrder = 2
     Visible = False
     object lblPortable: TLabel
       Left = 1
-      Height = 15
-      Top = 210
-      Width = 310
-      Align = alBottom
-      Anchors = [akLeft, akBottom]
+      Height = 67
+      Top = 205
+      Width = 318
+      Align = alClient
       Caption = '-'
+      Layout = tlBottom
       ParentColor = False
       WordWrap = True
     end
     object chkAutoUpdateCheck: TCheckBox
       Left = 1
       Height = 19
-      Top = 42
-      Width = 310
+      Top = 46
+      Width = 318
       Align = alTop
       Caption = 'Enable automatic search for updates'
       TabOrder = 0
@@ -102,8 +105,8 @@ object frmSettingsBase: TfrmSettingsBase
     object chkProxy: TCheckBox
       Left = 1
       Height = 19
-      Top = 80
-      Width = 310
+      Top = 92
+      Width = 318
       Align = alTop
       Caption = 'Use HTTP proxy'
       OnClick = chkProxyClick
@@ -112,8 +115,8 @@ object frmSettingsBase: TfrmSettingsBase
     object chkCheckCertificate: TCheckBox
       Left = 1
       Height = 19
-      Top = 61
-      Width = 310
+      Top = 69
+      Width = 318
       Align = alTop
       Caption = 'Cancel connections on invalid certificate'
       TabOrder = 1
@@ -122,13 +125,13 @@ object frmSettingsBase: TfrmSettingsBase
       Left = 1
       Height = 41
       Top = 1
-      Width = 310
+      Width = 318
       Align = alTop
       Caption = 'Language:'
       Control.Left = 0
       Control.Height = 23
       Control.Top = 18
-      Control.Width = 310
+      Control.Width = 318
       Control.Align = alClient
       Control.ItemHeight = 17
       Control.ItemsEx = <>
@@ -138,22 +141,22 @@ object frmSettingsBase: TfrmSettingsBase
     object txtHost: TMLabeledEdit
       Left = 1
       Height = 41
-      Top = 99
-      Width = 310
+      Top = 115
+      Width = 318
       Align = alTop
       Caption = 'Host:'
       Control.Left = 0
       Control.Height = 23
       Control.Top = 18
-      Control.Width = 310
+      Control.Width = 318
       Control.Align = alClient
       Control.TabOrder = 0
     end
     object FlowPanelSettingsBase1: TFlowPanel
       Left = 1
-      Height = 27
-      Top = 225
-      Width = 310
+      Height = 25
+      Top = 276
+      Width = 318
       Align = alBottom
       AutoSize = True
       BevelOuter = bvNone
@@ -173,20 +176,22 @@ object frmSettingsBase: TfrmSettingsBase
       TabOrder = 5
       object btnCopyProfile: TButton
         Left = 0
-        Height = 27
+        Height = 25
         Top = 0
-        Width = 129
+        Width = 91
         Anchors = [akLeft, akBottom]
+        AutoSize = True
         Caption = '&Copy profile'
         OnClick = btnCopyProfileClick
         TabOrder = 0
       end
       object btnExportProfile: TButton
-        Left = 129
-        Height = 27
+        Left = 91
+        Height = 25
         Top = 0
-        Width = 129
+        Width = 97
         Anchors = [akLeft, akBottom]
+        AutoSize = True
         Caption = '&Export profile'
         OnClick = btnExportProfileClick
         TabOrder = 1
@@ -194,9 +199,9 @@ object frmSettingsBase: TfrmSettingsBase
     end
     object FlowPanelSettingsBase2: TFlowPanel
       Left = 1
-      Height = 27
-      Top = 252
-      Width = 310
+      Height = 25
+      Top = 305
+      Width = 318
       Align = alBottom
       AutoSize = True
       BevelOuter = bvNone
@@ -216,20 +221,22 @@ object frmSettingsBase: TfrmSettingsBase
       TabOrder = 6
       object btnDeleteProfile: TButton
         Left = 0
-        Height = 27
+        Height = 25
         Top = 0
-        Width = 129
+        Width = 96
         Anchors = [akLeft, akBottom]
+        AutoSize = True
         Caption = '&Delete profile'
         OnClick = btnDeleteProfileClick
         TabOrder = 0
       end
       object btnImportProfile: TButton
-        Left = 129
-        Height = 27
+        Left = 96
+        Height = 25
         Top = 0
-        Width = 129
+        Width = 99
         Anchors = [akLeft, akBottom]
+        AutoSize = True
         Caption = '&Import profile'
         OnClick = btnImportProfileClick
         TabOrder = 1
@@ -238,14 +245,14 @@ object frmSettingsBase: TfrmSettingsBase
     object txtPort: TMLabeledSpinEdit
       Left = 1
       Height = 41
-      Top = 140
-      Width = 310
+      Top = 160
+      Width = 318
       Align = alTop
       Caption = 'Port:'
       Control.Left = 0
       Control.Height = 23
       Control.Top = 18
-      Control.Width = 310
+      Control.Width = 318
       Control.Align = alClient
       Control.TabOrder = 0
     end

@@ -77,6 +77,11 @@
         <HasRegisterProc Value="True"/>
         <UnitName Value="MSpeedButton"/>
       </Item>
+      <Item>
+        <Filename Value="MEditButton.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="MEditButton"/>
+      </Item>
     </Files>
     <RequiredPkgs>
       <Item>

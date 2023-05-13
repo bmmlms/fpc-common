@@ -1,14 +1,15 @@
 object frmUpdate: TfrmUpdate
   Left = 0
-  Height = 116
+  Height = 148
   Top = 0
-  Width = 250
+  Width = 258
   AutoSize = True
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
+  BorderWidth = 4
   Caption = 'Update'
-  ClientHeight = 116
-  ClientWidth = 250
+  ClientHeight = 148
+  ClientWidth = 258
   Color = clBtnFace
   Icon.Data = {
     7E04000000000100010010100000010020006804000016000000280000001000
@@ -56,23 +57,25 @@ object frmUpdate: TfrmUpdate
   Position = poOwnerFormCenter
   ShowHint = True
   object lblState: TLabel
-    Left = 0
+    Left = 4
     Height = 15
-    Top = 30
+    Top = 42
     Width = 250
     Align = alTop
     Alignment = taCenter
+    BorderSpacing.Bottom = 4
     Caption = 'Searching for new version...'
     ParentColor = False
   end
   object lblChangeLog: TLabel
     Cursor = crHandPoint
-    Left = 0
+    Left = 4
     Height = 15
-    Top = 45
+    Top = 61
     Width = 250
     Align = alTop
     Alignment = taCenter
+    BorderSpacing.Bottom = 4
     Caption = 'Changelog'
     Font.Color = clBlue
     Font.Style = [fsUnderline]
@@ -82,20 +85,21 @@ object frmUpdate: TfrmUpdate
     OnClick = lblChangeLogClick
   end
   object ProgressBar1: TProgressBar
-    Left = 0
+    Left = 4
     Height = 17
-    Top = 60
+    Top = 80
     Width = 250
     Align = alTop
     TabOrder = 0
   end
   object pnlNav: TPanel
-    Left = 0
+    Left = 4
     Height = 39
-    Top = 77
+    Top = 105
     Width = 250
     Align = alTop
     AutoSize = True
+    BorderSpacing.Top = 8
     BevelOuter = bvNone
     ClientHeight = 39
     ClientWidth = 250
@@ -119,7 +123,6 @@ object frmUpdate: TfrmUpdate
       Caption = '&Download'
       Constraints.MinHeight = 35
       Constraints.MinWidth = 100
-      Default = True
       Enabled = False
       OnClick = cmdOKClick
       TabOrder = 0
@@ -139,9 +142,9 @@ object frmUpdate: TfrmUpdate
     end
   end
   object Panel1: TPanel
-    Left = 0
+    Left = 4
     Height = 15
-    Top = 0
+    Top = 4
     Width = 250
     Align = alTop
     AutoSize = True
@@ -170,12 +173,13 @@ object frmUpdate: TfrmUpdate
     end
   end
   object Panel2: TPanel
-    Left = 0
+    Left = 4
     Height = 15
-    Top = 15
+    Top = 19
     Width = 250
     Align = alTop
     AutoSize = True
+    BorderSpacing.Bottom = 8
     BevelOuter = bvNone
     ClientHeight = 15
     ClientWidth = 250

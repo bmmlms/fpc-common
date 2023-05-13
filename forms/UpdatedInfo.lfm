@@ -1,14 +1,17 @@
 object frmUpdatedInfo: TfrmUpdatedInfo
   Left = 0
-  Height = 241
+  Height = 230
   Top = 0
-  Width = 393
+  Width = 350
+  AutoSize = True
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
+  BorderWidth = 4
   Caption = 'Update installed'
-  ClientHeight = 241
-  ClientWidth = 393
+  ClientHeight = 230
+  ClientWidth = 350
   Color = clBtnFace
+  Constraints.MinWidth = 350
   KeyPreview = True
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
@@ -16,39 +19,40 @@ object frmUpdatedInfo: TfrmUpdatedInfo
   Position = poScreenCenter
   ShowHint = True
   ShowInTaskBar = stAlways
-  LCLVersion = '2.2.6.0'
   object txtInfo: TMemo
-    Left = 0
-    Height = 135
-    Top = 0
-    Width = 393
+    Left = 4
+    Height = 100
+    Top = 4
+    Width = 342
     Align = alClient
     Color = clBtnFace
+    Constraints.MinHeight = 100
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 0
   end
   object pnlNav: TPanel
-    Left = 0
+    Left = 4
     Height = 39
-    Top = 202
-    Width = 393
+    Top = 187
+    Width = 342
     Align = alBottom
     AutoSize = True
+    BorderSpacing.Top = 8
     BevelOuter = bvNone
     ClientHeight = 39
-    ClientWidth = 393
+    ClientWidth = 342
     TabOrder = 2
     object Bevel2: TBevel
       Left = 0
       Height = 4
       Top = 0
-      Width = 393
+      Width = 342
       Align = alTop
       Shape = bsTopLine
     end
     object btnClose: TBitBtn
-      Left = 293
+      Left = 242
       Height = 35
       Top = 4
       Width = 100
@@ -62,23 +66,25 @@ object frmUpdatedInfo: TfrmUpdatedInfo
     end
   end
   object chkNotShowAgain: TCheckBox
-    Left = 0
+    Left = 4
     Height = 19
-    Top = 183
-    Width = 393
+    Top = 160
+    Width = 342
     Align = alBottom
+    BorderSpacing.Top = 4
     Caption = '&Don''t show this message again'
     TabOrder = 1
   end
   object btnDonate: TImage
-    Left = 0
+    Left = 4
     Height = 48
-    Top = 135
-    Width = 393
+    Top = 108
+    Width = 342
     Align = alBottom
-    Anchors = []
     AutoSize = True
+    BorderSpacing.Top = 4
     Center = True
+    Constraints.MinHeight = 39
     OnMouseMove = btnDonateMouseMove
     OnMouseUp = btnDonateMouseUp
     Visible = False

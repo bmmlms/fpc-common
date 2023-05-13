@@ -38,6 +38,7 @@ uses
   LanguageObjects,
   MControlFocuser,
   MControls,
+  MLabeledEdit,
   SettingsStorage,
   StdCtrls,
   SysUtils,
@@ -70,6 +71,7 @@ type
 
   TfrmWizardBase = class(TForm)
     lblDesc: TLabel;
+    lstLanguages: TMLabeledComboBoxEx;
     pnlLanguage: TPanel;
     pnlNav: TPanel;
     Bevel2: TBevel;
@@ -79,8 +81,6 @@ type
     pnlHeader: TPanel;
     Shape1: TShape;
     lblTop: TLabel;
-    lstLanguages: TComboBoxEx;
-    lblLanguageList: TLabel;
     optAppData: TRadioButton;
     optPortable: TRadioButton;
     lblAppData: TLabel;
@@ -149,9 +149,9 @@ end;
 
 procedure TfrmWizardBase.Finish;
 begin
-  if lstLanguages.ItemIndex > -1 then
+  if lstLanguages.Control.ItemIndex > -1 then
   begin
-    Language.CurrentLanguage := TLanguage(lstLanguages.ItemsEx[lstLanguages.ItemIndex].Data);
+    Language.CurrentLanguage := TLanguage(lstLanguages.Control.ItemsEx[lstLanguages.Control.ItemIndex].Data);
     AppGlobals.Language := Language.CurrentLanguage.ID;
   end;
 
@@ -191,25 +191,25 @@ begin
         Break;
       end;
 
-  lstLanguages.Clear;
-  lstLanguages.Images := AppGlobals.LanguageIcons.List;
+  lstLanguages.Control.Clear;
+  lstLanguages.Control.Images := AppGlobals.LanguageIcons.List;
   for i := 0 to LanguageList.Count - 1 do
     if LanguageList[i].Available then
     begin
-      ComboItem := lstLanguages.ItemsEx.Add;
+      ComboItem := lstLanguages.Control.ItemsEx.Add;
       ComboItem.Caption := LanguageList[i].Name;
       ComboItem.Data := LanguageList[i];
       ComboItem.ImageIndex := AppGlobals.LanguageIcons.GetIconIndex(LanguageList[i].ID);
     end;
 
-  for i := 0 to lstLanguages.ItemsEx.Count - 1 do
-    if Language.CurrentLanguage.ID = TLanguage(lstLanguages.ItemsEx[i].Data).ID then
+  for i := 0 to lstLanguages.Control.ItemsEx.Count - 1 do
+    if Language.CurrentLanguage.ID = TLanguage(lstLanguages.Control.ItemsEx[i].Data).ID then
     begin
-      lstLanguages.ItemIndex := i;
+      lstLanguages.Control.ItemIndex := i;
       Break;
     end;
 
-  lstLanguages.ItemsEx.SortType := stText;
+  lstLanguages.Control.ItemsEx.SortType := stText;
 
   SetStep(0);
 end;
@@ -237,8 +237,6 @@ procedure TfrmWizardBase.FormShow(Sender: TObject);
 begin
   btnNext.ApplyFocus;
   SetText;
-
-  lblDesc.Left := lblLanguageList.Left;
 end;
 
 procedure TfrmWizardBase.FSetDescription(Value: string);
@@ -298,9 +296,9 @@ end;
 
 procedure TfrmWizardBase.lstLanguagesSelect(Sender: TObject);
 begin
-  if lstLanguages.ItemIndex > -1 then
+  if lstLanguages.Control.ItemIndex > -1 then
   begin
-    Language.CurrentLanguage := TLanguage(lstLanguages.ItemsEx[lstLanguages.ItemIndex].Data);
+    Language.CurrentLanguage := TLanguage(lstLanguages.Control.ItemsEx[lstLanguages.Control.ItemIndex].Data);
     Language.Translate(Self);
 
     SetText;

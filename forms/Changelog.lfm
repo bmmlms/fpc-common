@@ -4,6 +4,7 @@ object frmChangeLog: TfrmChangeLog
   Top = 0
   Width = 449
   BorderIcons = [biSystemMenu]
+  BorderWidth = 4
   Caption = 'Changelog'
   ClientHeight = 285
   ClientWidth = 449
@@ -53,38 +54,38 @@ object frmChangeLog: TfrmChangeLog
   OnShow = FormShow
   Position = poOwnerFormCenter
   ShowHint = True
-  LCLVersion = '2.2.6.0'
   object txtChangeLog: TMemo
-    Left = 0
-    Height = 246
-    Top = 0
-    Width = 449
+    Left = 4
+    Height = 230
+    Top = 4
+    Width = 441
     Align = alClient
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 0
   end
   object pnlNav: TPanel
-    Left = 0
+    Left = 4
     Height = 39
-    Top = 246
-    Width = 449
+    Top = 242
+    Width = 441
     Align = alBottom
     AutoSize = True
+    BorderSpacing.Top = 8
     BevelOuter = bvNone
     ClientHeight = 39
-    ClientWidth = 449
+    ClientWidth = 441
     TabOrder = 1
     object Bevel2: TBevel
       Left = 0
       Height = 4
       Top = 0
-      Width = 449
+      Width = 441
       Align = alTop
       Shape = bsTopLine
     end
     object btnClose: TBitBtn
-      Left = 349
+      Left = 341
       Height = 35
       Top = 4
       Width = 100

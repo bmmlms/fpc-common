@@ -63,7 +63,7 @@ type
     CT_ACTIVE = 0;
     CT_ALL = 1;
     CT_ALL_BUT_ACTIVE = 2;
-    PADDING_CHAR = ' ';
+    PADDING_CHAR = ' ';
   private
     FRemoving: Boolean;
     FMaxTabWidth: Integer;
@@ -415,7 +415,7 @@ begin
     NewText := NewText.TrimRight(PADDING_CHAR);
 
     if (FMaxTabWidth = 0) and Pages[Message.wParam].FShowCloseButton then
-      NewText := NewText + TMStringFunctions.StringForWidth(PADDING_CHAR, Pages[Message.wParam].FButtonRect.Width + MulDiv(TABSHEET_PADDING, Screen.PixelsPerInch, 96), Font)
+      NewText := NewText + TMStringFunctions.StringForWidth(PADDING_CHAR, Pages[Message.wParam].FButtonRect.Width + Scale96ToFont(TABSHEET_PADDING) * 2, Font)
     else if (FMaxTabWidth > 0) and Pages[Message.wParam].FShowCloseButton then
       NewText := TMStringFunctions.TruncateText(NewText, FMaxTabWidth - (TabRect(Message.wParam).Width - Pages[Message.wParam].FButtonRect.Left), Font) + TMStringFunctions.StringForWidth(
         PADDING_CHAR, Pages[Message.wParam].FButtonRect.Width, Font)
