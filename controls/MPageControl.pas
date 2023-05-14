@@ -417,8 +417,8 @@ begin
     if (FMaxTabWidth = 0) and Pages[Message.wParam].FShowCloseButton then
       NewText := NewText + TMStringFunctions.StringForWidth(PADDING_CHAR, Pages[Message.wParam].FButtonRect.Width + Scale96ToFont(TABSHEET_PADDING) * 2, Font)
     else if (FMaxTabWidth > 0) and Pages[Message.wParam].FShowCloseButton then
-      NewText := TMStringFunctions.TruncateText(NewText, FMaxTabWidth - (TabRect(Message.wParam).Width - Pages[Message.wParam].FButtonRect.Left), Font) + TMStringFunctions.StringForWidth(
-        PADDING_CHAR, Pages[Message.wParam].FButtonRect.Width, Font)
+      NewText := TMStringFunctions.TruncateText(NewText, FMaxTabWidth - Pages[Message.wParam].FButtonRect.Width - Scale96ToFont(TABSHEET_PADDING) * 2, Font)
+        + TMStringFunctions.StringForWidth(PADDING_CHAR, Pages[Message.wParam].FButtonRect.Width + Scale96ToFont(TABSHEET_PADDING) * 2, Font)
     else if (FMaxTabWidth > 0) and (not Pages[Message.wParam].FShowCloseButton) then
       NewText := TMStringFunctions.TruncateText(NewText, FMaxTabWidth, Font);
 
