@@ -43,9 +43,11 @@ const
 
 type
 
+  { TfrmMsgDlg }
+
   TfrmMsgDlg = class(TForm)
     chkNotShowAgain: TCheckBox;
-    txtText: TMemo;
+    lblMessage: TLabel;
     pnlNav: TPanel;
     Bevel2: TBevel;
     cmdNoCancel: TButton;
@@ -216,7 +218,7 @@ begin
 
   Language.Translate(Self);
 
-  txtText.Text := Text;
+  lblMessage.Caption := Text;
 end;
 
 end.

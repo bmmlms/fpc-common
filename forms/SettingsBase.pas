@@ -98,9 +98,9 @@ type
     btnExportProfile: TButton;
     btnImportProfile: TButton;
     FlowPanelPages: TFlowPanel;
-    FlowPanelSettingsBase1: TFlowPanel;
-    FlowPanelSettingsBase2: TFlowPanel;
     lstLanguages: TMLabeledComboBoxEx;
+    pnlProfileBottom: TPanel;
+    pnlProfileButtons: TPanel;
     txtHost: TMLabeledEdit;
     pnlNav: TPanel;
     Bevel2: TBevel;
