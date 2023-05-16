@@ -383,9 +383,6 @@ begin
   FTreeView.OnChange := TreeViewChange;
   FTreeView.Show;
 
-  for i := 0 to FPageList.Count - 1 do
-    FPageList[i].Panel.Visible := True;
-
   btnCopyProfile.Enabled := not AppGlobals.Storage.DataDirOverridden;
   btnDeleteProfile.Enabled := not AppGlobals.Storage.DataDirOverridden;
   btnExportProfile.Enabled := not AppGlobals.Storage.DataDirOverridden;
@@ -478,17 +475,14 @@ end;
 
 procedure TfrmSettingsBase.FormShow(Sender: TObject);
 var
-  i, n: Integer;
+  i: Integer;
 begin
-  for n := 0 to ControlCount - 1 do
-    for i := 0 to FPageList.Count - 1 do
-      if Controls[n] = FPageList[i].Panel then
-      begin
-        TPanel(Controls[n]).Enabled := False;
-        TPanel(Controls[n]).Align := alClient;
-        TPanel(Controls[n]).BevelOuter := bvNone;
-        Break;
-      end;
+  for i := 0 to ControlCount - 1 do
+    if Controls[i].InheritsFrom(TPanel) and (Controls[i] <> pnlLeft) and (Controls[i] <> pnlNav) then
+    begin
+      Controls[i].Align := alClient;
+      TPanel(Controls[i]).BevelOuter := bvNone;
+    end;
 
   FTreeView.Setup;
   SetPage(FPageList[0]);
@@ -542,10 +536,9 @@ begin
   if Page = FActivePage then
     Exit;
   if FActivePage <> nil then
-    FActivePage.Panel.Enabled := False;
+    FActivePage.Panel.Visible := False;
 
   FActivePage := Page;
-  FActivePage.Panel.Enabled := True;
   FActivePage.Panel.Visible := True;
   FActivePage.Panel.BringToFront;
 
@@ -556,24 +549,13 @@ end;
 procedure TfrmSettingsBase.SetPage(Panel: TPanel);
 var
   Page: TPage;
-  i: Integer;
 begin
-  Page := nil;
-  for i := 0 to FPageList.Count - 1 do
-    if FPageList[i].Panel = Panel then
+  for Page in FPageList do
+    if Page.Panel = Panel then
     begin
-      Page := FPageList[i];
+      SetPage(Page);
       Break;
     end;
-  if Page = nil then
-    Exit;
-
-  if FActivePage <> nil then
-    FActivePage.Panel.Enabled := False;
-
-  FActivePage := Page;
-  FActivePage.Panel.Enabled := True;
-  FActivePage.Panel.BringToFront;
 end;
 
 { TPageTree }
