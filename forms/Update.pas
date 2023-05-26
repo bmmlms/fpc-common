@@ -149,8 +149,6 @@ begin
   lblChangeLog.Left := ClientWidth div 2 - lblChangeLog.Width div 2;
 
   ProgressBar1.Visible := AppGlobals.RunningFromInstalledLocation;
-  if not AppGlobals.RunningFromInstalledLocation then
-    ClientHeight := ClientHeight - ProgressBar1.Height;
 end;
 
 procedure TfrmUpdate.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);

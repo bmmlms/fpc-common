@@ -1,6 +1,6 @@
 object frmUpdate: TfrmUpdate
   Left = 0
-  Height = 148
+  Height = 143
   Top = 0
   Width = 258
   AutoSize = True
@@ -8,7 +8,7 @@ object frmUpdate: TfrmUpdate
   BorderStyle = bsSingle
   BorderWidth = 4
   Caption = 'Update'
-  ClientHeight = 148
+  ClientHeight = 143
   ClientWidth = 258
   Color = clBtnFace
   Icon.Data = {
@@ -94,14 +94,14 @@ object frmUpdate: TfrmUpdate
   end
   object pnlNav: TPanel
     Left = 4
-    Height = 39
+    Height = 34
     Top = 105
     Width = 250
     Align = alTop
     AutoSize = True
     BorderSpacing.Top = 8
     BevelOuter = bvNone
-    ClientHeight = 39
+    ClientHeight = 34
     ClientWidth = 250
     Constraints.MinWidth = 250
     TabOrder = 1
@@ -115,7 +115,7 @@ object frmUpdate: TfrmUpdate
     end
     object cmdOK: TButton
       Left = 150
-      Height = 35
+      Height = 30
       Top = 4
       Width = 100
       Align = alRight
@@ -129,7 +129,7 @@ object frmUpdate: TfrmUpdate
     end
     object cmdCancel: TButton
       Left = 0
-      Height = 35
+      Height = 30
       Top = 4
       Width = 100
       Align = alLeft
