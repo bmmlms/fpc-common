@@ -47,7 +47,7 @@ type
     constructor Create(AOwner: TComponent); override;
 
     function CanClose: Boolean; virtual;
-    function ProcessShortCut(Msg: TWMKey): Boolean; virtual;
+    function ProcessShortcut(Msg: TWMKey): Boolean; virtual;
 
     property ShowCloseButton: Boolean read FShowCloseButton write FSetShowCloseButton;
   published
@@ -92,6 +92,8 @@ type
     procedure CloseTab(Idx: Integer);
     procedure CloseAll;
     procedure CloseAllButActive;
+
+    function ProcessShortcut(Msg: TWMKey): Boolean; virtual;
 
     property MaxTabWidth: Integer read FMaxTabWidth write FSetMaxTabWidth;
     property Pages[Index: Integer]: TMTabSheet read FGetTabSheet;
@@ -155,7 +157,7 @@ begin
   UpdateProperties;
 end;
 
-function TMTabSheet.ProcessShortCut(Msg: TWMKey): Boolean;
+function TMTabSheet.ProcessShortcut(Msg: TWMKey): Boolean;
 begin
   Update;
 
@@ -312,6 +314,30 @@ end;
 procedure TMPageControl.CloseAllButActive;
 begin
   PostMessage(Handle, WM_CLOSETAB, CT_ALL_BUT_ACTIVE, 0);
+end;
+
+function TMPageControl.ProcessShortcut(Msg: TWMKey): Boolean;
+begin
+  Result := False;
+
+  if (GetKeyState(VK_CONTROL) < 0) and (Msg.CharCode = VK_TAB) then
+  begin
+    if GetKeyState(VK_SHIFT) >= 0 then
+    begin
+      if ActivePage.TabIndex < PageCount - 1 then
+        ActivePage := Pages[ActivePage.TabIndex + 1]
+      else
+        ActivePage := Pages[0];
+    end else
+    begin
+      if ActivePage.TabIndex > 0 then
+        ActivePage := Pages[ActivePage.TabIndex - 1]
+      else
+        ActivePage := Pages[PageCount - 1];
+    end;
+
+    Result := True;
+  end;
 end;
 
 procedure TMPageControl.FSetMaxTabWidth(Value: Integer);
