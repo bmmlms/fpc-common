@@ -135,6 +135,8 @@ begin
     cmdOK.Click;
   end else
     Updater.Start(uaVersion, True);
+
+  Constraints.MinWidth := Scale96ToFont(Constraints.MinWidth);
 end;
 
 procedure TfrmUpdate.FormClose(Sender: TObject; var Action: TCloseAction);

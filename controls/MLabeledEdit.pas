@@ -75,6 +75,8 @@ type
   TMLabeledComboBoxEx = class(TMLabeledControl<TComboBoxEx>)
   public
     constructor Create(TheOwner: TComponent); override;
+  protected
+    procedure Loaded; override;
   published
     property Control: TComboBoxEx read FControl;
   end;
@@ -127,6 +129,8 @@ procedure TMLabeledControl<T>.Loaded;
 begin
   inherited Loaded;
 
+  FControl.Width := Scale96ToFont(FControl.Width);
+
   FSetCaption(FCaption);
 end;
 
@@ -164,6 +168,13 @@ begin
   inherited Create(TheOwner);
 
   Control.ItemHeight := 17;
+end;
+
+procedure TMLabeledComboBoxEx.Loaded;
+begin
+  inherited Loaded;
+
+  Control.ItemHeight := Scale96ToFont(Control.ItemHeight);
 end;
 
 end.

@@ -145,6 +145,9 @@ begin
   RegisterSteps;
 
   Language.Translate(Self);
+
+  Constraints.MinWidth := Scale96ToFont(Constraints.MinWidth);
+  Constraints.MinHeight := Scale96ToFont(Constraints.MinHeight);
 end;
 
 procedure TfrmWizardBase.Finish;

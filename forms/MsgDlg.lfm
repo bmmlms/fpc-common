@@ -94,7 +94,6 @@ object frmMsgDlg: TfrmMsgDlg
     Align = alClient
     BorderSpacing.Left = 8
     Caption = 'lblMessage'
-    Constraints.MaxWidth = 372
     ParentColor = False
     WordWrap = True
   end

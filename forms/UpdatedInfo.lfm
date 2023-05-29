@@ -1,6 +1,6 @@
 object frmUpdatedInfo: TfrmUpdatedInfo
   Left = 0
-  Height = 230
+  Height = 225
   Top = 0
   Width = 350
   AutoSize = True
@@ -8,7 +8,7 @@ object frmUpdatedInfo: TfrmUpdatedInfo
   BorderStyle = bsSingle
   BorderWidth = 4
   Caption = 'Update installed'
-  ClientHeight = 230
+  ClientHeight = 225
   ClientWidth = 350
   Color = clBtnFace
   Constraints.MinWidth = 350
@@ -33,14 +33,14 @@ object frmUpdatedInfo: TfrmUpdatedInfo
   end
   object pnlNav: TPanel
     Left = 4
-    Height = 39
+    Height = 34
     Top = 187
     Width = 342
     Align = alBottom
     AutoSize = True
     BorderSpacing.Top = 8
     BevelOuter = bvNone
-    ClientHeight = 39
+    ClientHeight = 34
     ClientWidth = 342
     TabOrder = 2
     object Bevel2: TBevel
@@ -53,7 +53,7 @@ object frmUpdatedInfo: TfrmUpdatedInfo
     end
     object btnClose: TBitBtn
       Left = 242
-      Height = 35
+      Height = 30
       Top = 4
       Width = 100
       Align = alRight

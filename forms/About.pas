@@ -204,6 +204,9 @@ begin
     tabThanks.PageControl := nil;
 
   pagAbout.ActivePageIndex := 0;
+
+  Constraints.MinWidth := Scale96ToFont(Constraints.MinWidth);
+  Constraints.MinHeight := Scale96ToFont(Constraints.MinHeight);
 end;
 
 procedure TfrmAbout.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);

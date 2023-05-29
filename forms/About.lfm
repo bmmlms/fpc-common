@@ -1,15 +1,18 @@
 object frmAbout: TfrmAbout
   Left = 0
-  Height = 262
+  Height = 281
   Top = 0
-  Width = 421
+  Width = 420
+  AutoSize = True
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   BorderWidth = 4
   Caption = 'About'
-  ClientHeight = 262
-  ClientWidth = 421
+  ClientHeight = 281
+  ClientWidth = 420
   Color = clBtnFace
+  Constraints.MinHeight = 260
+  Constraints.MinWidth = 420
   Icon.Data = {
     7E04000000000100010010100000010020006804000016000000280000001000
     0000200000000100200000000000000400006400000064000000000000000000
@@ -55,41 +58,41 @@ object frmAbout: TfrmAbout
   ShowHint = True
   object pagAbout: TPageControl
     Left = 4
-    Height = 207
+    Height = 231
     Top = 4
-    Width = 413
-    ActivePage = tabAbout
+    Width = 412
+    ActivePage = tabLicense
     Align = alClient
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 1
     OnChange = pagAboutChange
     object tabAbout: TTabSheet
       Caption = 'About'
-      ClientHeight = 179
-      ClientWidth = 405
+      ClientHeight = 203
+      ClientWidth = 404
       object Panel1: TPanel
         Left = 4
-        Height = 171
+        Height = 195
         Top = 4
-        Width = 397
+        Width = 396
         Align = alClient
         BorderSpacing.Left = 4
         BorderSpacing.Top = 4
         BorderSpacing.Right = 4
         BorderSpacing.Bottom = 4
         BevelOuter = bvNone
-        ClientHeight = 171
-        ClientWidth = 397
+        ClientHeight = 195
+        ClientWidth = 396
         Color = clWindow
         ParentColor = False
         TabOrder = 0
         object btnDonate: TImage
           Left = 0
-          Height = 39
+          Height = 63
           Top = 132
-          Width = 397
+          Width = 396
           Align = alBottom
-          Anchors = [akTop, akLeft, akRight]
+          Anchors = [akTop, akLeft, akRight, akBottom]
           AutoSize = True
           Center = True
           Constraints.MinHeight = 39
@@ -101,14 +104,14 @@ object frmAbout: TfrmAbout
           Left = 0
           Height = 132
           Top = 0
-          Width = 397
+          Width = 396
           Align = alClient
           BevelOuter = bvNone
           ClientHeight = 132
-          ClientWidth = 397
+          ClientWidth = 396
           TabOrder = 0
           object pbLogo: TPaintBox
-            Left = 292
+            Left = 291
             Height = 132
             Top = 0
             Width = 105
@@ -121,18 +124,18 @@ object frmAbout: TfrmAbout
             Left = 0
             Height = 132
             Top = 0
-            Width = 292
+            Width = 291
             Align = alClient
             BevelOuter = bvNone
             ClientHeight = 132
-            ClientWidth = 292
+            ClientWidth = 291
             TabOrder = 0
             object lblHomepage: TLabel
               Cursor = crHandPoint
               Left = 0
               Height = 15
               Top = 53
-              Width = 292
+              Width = 291
               Align = alTop
               BorderSpacing.Top = 4
               Caption = 'http://mistake.ws/'
@@ -146,7 +149,7 @@ object frmAbout: TfrmAbout
               Left = 0
               Height = 15
               Top = 34
-              Width = 292
+              Width = 291
               Align = alTop
               BorderSpacing.Top = 4
               Caption = 'Copyright © 2010-2023 Alexander Nottelmann et al.'
@@ -156,7 +159,7 @@ object frmAbout: TfrmAbout
               Left = 0
               Height = 15
               Top = 15
-              Width = 292
+              Width = 291
               Align = alTop
               Caption = '-'
               ParentColor = False
@@ -165,7 +168,7 @@ object frmAbout: TfrmAbout
               Left = 0
               Height = 15
               Top = 0
-              Width = 292
+              Width = 291
               Align = alTop
               Caption = '-'
               Font.Style = [fsBold]
@@ -178,23 +181,21 @@ object frmAbout: TfrmAbout
     end
     object tabLicense: TTabSheet
       Caption = 'License'
-      ClientHeight = 179
-      ClientWidth = 405
+      ClientHeight = 203
+      ClientWidth = 404
       ImageIndex = 1
       object lblGPL: TLabel
         Cursor = crHandPoint
         Left = 0
         Height = 15
         Top = 4
-        Width = 405
+        Width = 404
         Align = alTop
         Alignment = taCenter
-        AutoSize = False
         BorderSpacing.Top = 4
         BorderSpacing.Bottom = 4
         Caption = '-'
         Font.Color = clBlue
-        Font.Height = 16
         Font.Style = [fsUnderline]
         ParentColor = False
         ParentFont = False
@@ -202,9 +203,9 @@ object frmAbout: TfrmAbout
       end
       object txtAbout: TMemo
         Left = 0
-        Height = 156
+        Height = 180
         Top = 23
-        Width = 405
+        Width = 404
         Align = alClient
         Color = clBtnFace
         ReadOnly = True
@@ -219,27 +220,27 @@ object frmAbout: TfrmAbout
   end
   object pnlNav: TPanel
     Left = 4
-    Height = 39
-    Top = 219
-    Width = 413
+    Height = 34
+    Top = 243
+    Width = 412
     Align = alBottom
     AutoSize = True
     BorderSpacing.Top = 8
     BevelOuter = bvNone
-    ClientHeight = 39
-    ClientWidth = 413
+    ClientHeight = 34
+    ClientWidth = 412
     TabOrder = 0
     object Bevel2: TBevel
       Left = 0
       Height = 4
       Top = 0
-      Width = 413
+      Width = 412
       Align = alTop
       Shape = bsTopLine
     end
     object btnClose: TBitBtn
-      Left = 313
-      Height = 35
+      Left = 312
+      Height = 30
       Top = 4
       Width = 100
       Align = alRight

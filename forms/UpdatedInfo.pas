@@ -119,6 +119,8 @@ begin
 
     btnDonate.Visible := True;
   end;
+
+  Constraints.MinWidth := Scale96ToFont(Constraints.MinWidth);
 end;
 
 procedure TfrmUpdatedInfo.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);

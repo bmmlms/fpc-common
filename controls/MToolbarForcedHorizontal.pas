@@ -16,6 +16,7 @@ type
   protected
     function IsVertical: Boolean; override;
     procedure AdjustClientRect(var ARect: TRect); override;
+    procedure Loaded; override;
   end;
 
 procedure Register;
@@ -38,8 +39,8 @@ begin
   Indent := 0;
   EdgeBorders := [];
   AutoSize := True;
-  ButtonWidth := 23;
-  ButtonHeight := 24;
+  ButtonWidth := Scale96ToFont(23);
+  ButtonHeight := Scale96ToFont(24);
 end;
 
 function TMToolbarForcedHorizontal.IsVertical: Boolean;
@@ -52,6 +53,14 @@ begin
   inherited AdjustClientRect(ARect);
 
   ARect.Bottom += 1;
+end;
+
+procedure TMToolbarForcedHorizontal.Loaded;
+begin
+  inherited Loaded;
+
+  ButtonWidth := Scale96ToFont(ButtonWidth);
+  ButtonHeight := Scale96ToFont(ButtonHeight);
 end;
 
 end.

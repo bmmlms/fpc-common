@@ -33,10 +33,10 @@ type
     FHotModifiers: TMHKModifiers;
     FInvalidKeys: TMHKInvalidKeys;
 
-    procedure UpdateHotKey(Value: TShortCut);
-    function GetHotKey: TShortCut;
-    procedure SetHotKey(Value: TShortCut);
-    procedure ShortCutToHotKey(Value: TShortCut);
+    procedure UpdateHotKey(Value: TShortcut);
+    function GetHotKey: TShortcut;
+    procedure SetHotKey(Value: TShortcut);
+    procedure ShortcutToHotKey(Value: TShortcut);
     procedure UpdateHotText;
   protected
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
@@ -44,13 +44,13 @@ type
     procedure KeyPress(var Key: char); override;
     procedure KeyUp(var Key: Word; Shift: TShiftState); override;
   public
-    property HotKey: TShortCut read GetHotKey write SetHotKey;
+    property HotKey: TShortcut read GetHotKey write SetHotKey;
   published
     property Align;
     property OnChange;
   end;
 
-function ShortCutToText(ShortCut: TShortCut): string;
+function ShortcutToText(Shortcut: TShortcut): string;
 
 implementation
 
@@ -92,7 +92,7 @@ type
 var
   KeyCaps: array[TMKeyCap] of string = (skBkSp, skTab, skEsc, skEnter, skSpace, skPgUp, skPgDn, skEnd, skHome, skLeft, skUp, skRight, skDown, skIns, skDel, skShift, skCtrl, skAlt);
 
-function ShortCut(Key: Word; Shift: TShiftState): TShortCut;
+function Shortcut(Key: Word; Shift: TShiftState): TShortcut;
 begin
   Result := 0;
   if WordRec(Key).Hi <> 0 then
@@ -106,13 +106,13 @@ begin
     Inc(Result, scAlt);
 end;
 
-function GetSpecialKeyName(ShortCut: TShortCut): string;
+function GetSpecialKeyName(Shortcut: TShortcut): string;
 var
   ScanCode: Integer;
   KeyName: array[0..255] of Char;
 begin
   Result := '';
-  ScanCode := MapVirtualKey(WordRec(ShortCut).Lo, 0) shl 16;
+  ScanCode := MapVirtualKey(WordRec(Shortcut).Lo, 0) shl 16;
   if ScanCode <> 0 then
   begin
     GetKeyNameText(ScanCode, KeyName, SizeOf(KeyName));
@@ -120,34 +120,34 @@ begin
   end;
 end;
 
-function ShortCutToText(ShortCut: TShortCut): string;
+function ShortcutToText(Shortcut: TShortcut): string;
 var
   Name: string;
 begin
-  case WordRec(ShortCut).Lo of
+  case WordRec(Shortcut).Lo of
     $08, $09:
-      Name := KeyCaps[TMKeyCap(Ord(kcBkSp) + WordRec(ShortCut).Lo - $08)];
+      Name := KeyCaps[TMKeyCap(Ord(kcBkSp) + WordRec(Shortcut).Lo - $08)];
     $0D: Name := KeyCaps[kcEnter];
     $1B: Name := KeyCaps[kcEsc];
     $20..$28:
-      Name := KeyCaps[TMKeyCap(Ord(kcSpace) + WordRec(ShortCut).Lo - $20)];
+      Name := KeyCaps[TMKeyCap(Ord(kcSpace) + WordRec(Shortcut).Lo - $20)];
     $2D..$2E:
-      Name := KeyCaps[TMKeyCap(Ord(kcIns) + WordRec(ShortCut).Lo - $2D)];
-    $30..$39: Name := Chr(WordRec(ShortCut).Lo - $30 + Ord('0'));
-    $41..$5A: Name := Chr(WordRec(ShortCut).Lo - $41 + Ord('A'));
-    $60..$69: Name := Chr(WordRec(ShortCut).Lo - $60 + Ord('0'));
-    $70..$87: Name := 'F' + IntToStr(WordRec(ShortCut).Lo - $6F);
+      Name := KeyCaps[TMKeyCap(Ord(kcIns) + WordRec(Shortcut).Lo - $2D)];
+    $30..$39: Name := Chr(WordRec(Shortcut).Lo - $30 + Ord('0'));
+    $41..$5A: Name := Chr(WordRec(Shortcut).Lo - $41 + Ord('A'));
+    $60..$69: Name := Chr(WordRec(Shortcut).Lo - $60 + Ord('0'));
+    $70..$87: Name := 'F' + IntToStr(WordRec(Shortcut).Lo - $6F);
     else
-      Name := GetSpecialKeyName(ShortCut);
+      Name := GetSpecialKeyName(Shortcut);
   end;
   if Name <> '' then
   begin
     Result := '';
-    if ShortCut and scCtrl <> 0 then
+    if Shortcut and scCtrl <> 0 then
       Result := Result + KeyCaps[kcCtrl];
-    if ShortCut and scShift <> 0 then
+    if Shortcut and scShift <> 0 then
       Result := Result + KeyCaps[kcShift];
-    if ShortCut and scAlt <> 0 then
+    if Shortcut and scAlt <> 0 then
       Result := Result + KeyCaps[kcAlt];
     Result := Result + Name;
   end else
@@ -220,7 +220,7 @@ end;
 
 { TMHotkeyEdit }
 
-procedure TMHotkeyEdit.UpdateHotKey(Value: TShortCut);
+procedure TMHotkeyEdit.UpdateHotKey(Value: TShortcut);
 begin
   if FHotkeyUpdate = 0 then
   begin
@@ -233,7 +233,7 @@ begin
   end;
 end;
 
-function TMHotkeyEdit.GetHotKey: TShortCut;
+function TMHotkeyEdit.GetHotKey: TShortcut;
 var
   Shift: TShiftState;
 begin
@@ -256,16 +256,16 @@ begin
       Include(Shift, ssAlt);
   end;
 
-  Result := ShortCut(FHotKey, Shift);
+  Result := Shortcut(FHotKey, Shift);
 end;
 
-procedure TMHotkeyEdit.SetHotKey(Value: TShortCut);
+procedure TMHotkeyEdit.SetHotKey(Value: TShortcut);
 begin
-  ShortCutToHotKey(Value);
+  ShortcutToHotKey(Value);
   UpdateHotText;
 end;
 
-procedure TMHotkeyEdit.ShortCutToHotKey(Value: TShortCut);
+procedure TMHotkeyEdit.ShortcutToHotKey(Value: TShortcut);
 begin
   if (Value = VK_BACK) or (Value = VK_DELETE) then
     Value := 0;
@@ -322,7 +322,7 @@ begin
   Inc(FInternalUpdate);
   try
     if FHotKey <> 0 then
-      S := ShortCutToText(GetHotKey)
+      S := ShortcutToText(GetHotKey)
     else
     begin
       if hkCtrl in FHotModifiers then
@@ -350,7 +350,7 @@ begin
   if K in [VK_SHIFT, VK_CONTROL, VK_MENU] then
     K := 0;
 
-  UpdateHotKey(ShortCut(K, Shift));
+  UpdateHotKey(Shortcut(K, Shift));
 end;
 
 procedure TMHotkeyEdit.RealSetText(const AValue: TCaption);

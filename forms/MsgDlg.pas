@@ -219,6 +219,9 @@ begin
   Language.Translate(Self);
 
   lblMessage.Caption := Text;
+
+  Constraints.MinWidth := Scale96ToFont(Constraints.MinWidth);
+  Constraints.MinHeight := Scale96ToFont(Constraints.MinHeight);
 end;
 
 end.

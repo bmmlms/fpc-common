@@ -177,9 +177,9 @@ begin
   if TabRect.Height = 0 then
     Exit;
 
-  ButtonWidth := PageControl.TabHeight - MulDiv(TABSHEET_PADDING, Screen.PixelsPerInch, 96) * 2;
+  ButtonWidth := PageControl.TabHeight - Scale96ToFont(TABSHEET_PADDING) * 2;
 
-  FButtonRect := TRect.Create(TPoint.Create(TabRect.Right - ButtonWidth - MulDiv(TABSHEET_PADDING, Screen.PixelsPerInch, 96) * 3, TabRect.Top + (TabRect.Height div 2) - Floor(ButtonWidth / 2)), ButtonWidth, ButtonWidth);
+  FButtonRect := TRect.Create(TPoint.Create(TabRect.Right - ButtonWidth - Scale96ToFont(TABSHEET_PADDING) * 3, TabRect.Top + (TabRect.Height div 2) - Floor(ButtonWidth / 2)), ButtonWidth, ButtonWidth);
 
   if PageControl.ActivePageIndex = PageIndex then
     FButtonRect.Offset(0, -2);

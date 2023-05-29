@@ -183,7 +183,7 @@ constructor TMComboBoxExEditable.Create(TheOwner: TComponent);
 begin
   inherited Create(TheOwner);
 
-  ItemHeight := 17;
+  ItemHeight := Scale96ToFont(17);
   FItemIndexBeforeDropDown := -2;
   TCustomComboBox(Self).Style := csOwnerDrawEditableFixed;
   FBuffer := Graphics.TBitmap.Create;
