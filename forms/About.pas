@@ -35,14 +35,22 @@ uses
   FPCanvas,
   Functions,
   Graphics,
+  InterfaceBase,
   LanguageObjects,
+  LCLType,
   StdCtrls,
   SysUtils,
   Variants,
   Windows;
 
 type
+
+  { TScrollText }
+
   TScrollText = class(TGraphicControl)
+  private
+  const
+    IMAGE_SPACING = 20;
   private
     FOffset: Integer;
     FTextHeight: Integer;
@@ -54,6 +62,7 @@ type
     procedure TimerOnTimer(Sender: TObject);
     procedure BuildBitmap;
     function GetTextHeight: Integer;
+    function GetFontSpacing(Canvas: TCanvas): Integer;
   protected
     procedure Paint; override;
   public
@@ -333,38 +342,46 @@ end;
 
 function TScrollText.GetTextHeight: Integer;
 var
-  i, H, Idx, OS: Integer;
+  i, Idx: Integer;
   Line: string;
 begin
   Result := 0;
-  H := FBMP.Canvas.TextHeight('A');
+
   for i := 0 to FText.Count - 1 do
   begin
+    FBmp.Canvas.Font.Style := [];
+    FBmp.Canvas.Font.Size := 0;
+
     Line := FText[i];
     if Copy(Line, 1, 4) = '&IMG' then
     begin
       Idx := StrToInt(Copy(Line, 5, 1));
-      Result := Result + FBmps[Idx].Height + 20;
+      Result := Result + FBmps[Idx].Height + Scale96ToFont(IMAGE_SPACING);
     end else
     begin
       if Copy(Line, 1, 2) = '&U' then
       begin
         FBMP.Canvas.Font.Style := FBMP.Canvas.Font.Style + [fsBold];
-        H := FBMP.Canvas.TextHeight('A');
         Line := Copy(Line, 3, Length(Line));
-        FBMP.Canvas.Font.Style := FBMP.Canvas.Font.Style - [fsBold];
       end;
+
       if (Copy(Line, 1, 1) = '&') and (StrToIntDef(Copy(Line, 2, 2), -1) <> -1) then
       begin
-        OS := FBMP.Canvas.Font.Size;
         FBMP.Canvas.Font.Size := StrToInt(Copy(Line, 2, 2));
-        H := FBMP.Canvas.TextHeight('A');
         Line := Copy(Line, 4, Length(Line));
-        FBMP.Canvas.Font.Size := OS;
       end;
-      Result := Result + H + 3;
+
+      Result := Result + FBMP.Canvas.TextHeight(Line) + GetFontSpacing(FBMP.Canvas);
     end;
   end;
+end;
+
+function TScrollText.GetFontSpacing(Canvas: TCanvas): Integer;
+var
+  TextMetrics: LCLType.TTextMetric;
+begin
+  WidgetSet.GetTextMetrics(Canvas.Handle, TextMetrics);
+  Result := TextMetrics.tmExternalLeading + TextMetrics.tmInternalLeading + Scale96ToFont(2);
 end;
 
 procedure TScrollText.BuildBitmap;
@@ -403,7 +420,7 @@ procedure TScrollText.BuildBitmap;
 
 var
   R: TRect;
-  i, L, Y, H, Idx, ImageHeight: Integer;
+  i, Y, Idx: Integer;
   Line: string;
 begin
   if FBMP = nil then
@@ -425,25 +442,23 @@ begin
   R.Bottom := FBmp.Height;
   R.Right := FBmp.Width;
   FBmp.Canvas.FillRect(R);
-  ImageHeight := 0;
 
   if FTextHeight = 0 then
     FTextHeight := GetTextHeight;
 
-  H := FBmp.Canvas.TextHeight('Ay');
+  Y := FOffset;
   for i := 0 to FText.Count - 1 do
   begin
     Line := FText[i];
 
-    Y := i * H + (i * 3) + ImageHeight + FOffset;
-
     FBmp.Canvas.Font.Style := [];
-    FBmp.Canvas.Font.Size := 8;
+    FBmp.Canvas.Font.Size := 0;
+
     if Copy(Line, 1, 4) = '&IMG' then
     begin
       Idx := StrToInt(Copy(Line, 5, 1));
       FBMP.Canvas.Draw(FBmp.Width div 2 - FBmps[Idx].Width div 2, Y, FBmps[Idx]);
-      ImageHeight := ImageHeight + FBmps[Idx].Height + 20;
+      Y += FBmps[Idx].Height + Scale96ToFont(IMAGE_SPACING);
     end else
     begin
       if Copy(Line, 1, 2) = '&U' then
@@ -451,34 +466,35 @@ begin
         FBmp.Canvas.Font.Style := FBMP.Canvas.Font.Style + [fsBold];
         Line := Copy(Line, 3, Length(Line));
       end;
+
       if (Copy(Line, 1, 1) = '&') and (StrToIntDef(Copy(Line, 2, 2), -1) <> -1) then
       begin
         FBmp.Canvas.Font.Size := StrToInt(Copy(Line, 2, 2));
         Line := Copy(Line, 4, Length(Line));
       end;
 
-      L := FBmp.Width div 2 - FBmp.Canvas.TextWidth(Line) div 2;
+      FBmp.Canvas.TextOut(FBmp.Width div 2 - FBmp.Canvas.TextWidth(Line) div 2, Y, Line);
 
-      FBmp.Canvas.TextOut(L, Y, Line);
+      Y += FBMP.Canvas.TextHeight(Line) + GetFontSpacing(FBMP.Canvas);
     end;
   end;
 
-  i := 20;
-  Y := 4;
+  i := Scale96ToFont(20);
+  Y := Scale96ToFont(4);
   while i < 100 do
   begin
-    DistortArea(100 - i, Y - 4, Y);
-    Inc(i, 20);
-    Inc(Y, 4);
+    DistortArea(100 - i, Y - Scale96ToFont(4), Y);
+    Inc(i, Scale96ToFont(20));
+    Inc(Y, Scale96ToFont(4));
   end;
 
-  i := 20;
-  Y := 4;
+  i := Scale96ToFont(20);
+  Y := Scale96ToFont(4);
   while i < 100 do
   begin
-    DistortArea(100 - i, FBmp.Height - Y, FBmp.Height - Y + 4);
-    Inc(i, 20);
-    Inc(Y, 4);
+    DistortArea(100 - i, FBmp.Height - Y, FBmp.Height - Y + Scale96ToFont(4));
+    Inc(i, Scale96ToFont(20));
+    Inc(Y, Scale96ToFont(4));
   end;
 end;
 

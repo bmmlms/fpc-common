@@ -120,6 +120,7 @@ begin
     btnDonate.Visible := True;
   end;
 
+  Constraints.MinHeight := Scale96ToFont(Constraints.MinHeight);
   Constraints.MinWidth := Scale96ToFont(Constraints.MinWidth);
 end;
 

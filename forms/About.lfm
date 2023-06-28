@@ -56,6 +56,7 @@ object frmAbout: TfrmAbout
   OnKeyDown = FormKeyDown
   Position = poOwnerFormCenter
   ShowHint = True
+  LCLVersion = '2.2.6.0'
   object pagAbout: TPageControl
     Left = 4
     Height = 231

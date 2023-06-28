@@ -15,6 +15,7 @@ object frmSettingsBase: TfrmSettingsBase
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   ShowHint = True
+  LCLVersion = '2.2.6.0'
   object FlowPanelPages: TFlowPanel
     Left = 105
     Height = 824

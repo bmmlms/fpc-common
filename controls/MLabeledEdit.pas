@@ -29,7 +29,6 @@ type
   private
     FCaption: string;
     FEdit: TEdit;
-    FEditButton: TEditButton;
     FLabel: TLabel;
 
     procedure FSetCaption(Value: string);
@@ -152,7 +151,7 @@ begin
   FLabel := TLabel.Create(Self);
   FLabel.Align := alTop;
   FLabel.AutoSize := True;
-  FLabel.BorderSpacing.Bottom := 3;
+  FLabel.BorderSpacing.Bottom := Scale96ToFont(3);
   FLabel.Parent := Self;
 
   FControl := T.Create(Self);

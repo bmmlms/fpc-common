@@ -10,7 +10,10 @@ type
   { TMSpeedButton }
 
   TMSpeedButton = class(TSpeedButton)
+  public
+    constructor Create(AOwner: TComponent); override;
   protected
+    procedure Loaded; override;
     procedure PaintBackground(var PaintRect: TRect); override;
   end;
 
@@ -26,6 +29,22 @@ begin
 end;
 
 { TMSpeedButton }
+
+constructor TMSpeedButton.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+
+  Constraints.MinWidth := Scale96ToFont(23);
+  Constraints.MinHeight := Scale96ToFont(23);
+end;
+
+procedure TMSpeedButton.Loaded;
+begin
+  inherited Loaded;
+
+  Constraints.MinWidth := Scale96ToFont(23);
+  Constraints.MinHeight := Scale96ToFont(23);
+end;
 
 procedure TMSpeedButton.PaintBackground(var PaintRect: TRect);
 begin

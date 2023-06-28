@@ -159,7 +159,6 @@ begin
   FMute.GroupIndex := 1;
   FMute.AllowAllUp := True;
   FMute.Down := True;
-  FMute.Width := 23;
   FMute.OnClick := MuteClick;
   FMute.Parent := Self;
 
@@ -172,8 +171,8 @@ begin
   FTrackBar.NotifyOnDown := True;
   FTrackBar.Parent := Self;
 
-  Constraints.MinHeight := 23;
-  Constraints.MaxHeight := 23;
+  Constraints.MinHeight := Scale96ToFont(23);
+  Constraints.MaxHeight := Scale96ToFont(23);
 
   RefreshButtonState;
 end;

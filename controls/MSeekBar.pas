@@ -299,9 +299,6 @@ begin
   FMax := 0;
   FPositionBeforeDrag := -1;
   FOrientation := sbHorizontal;
-
-  Constraints.MinHeight := 21;
-  Constraints.MinWidth := 21;
 end;
 
 procedure TMSeekBar.FSetGripperVisible(Value: Boolean);

@@ -11,6 +11,7 @@ object frmUpdatedInfo: TfrmUpdatedInfo
   ClientHeight = 225
   ClientWidth = 350
   Color = clBtnFace
+  Constraints.MinHeight = 225
   Constraints.MinWidth = 350
   KeyPreview = True
   OnCreate = FormCreate

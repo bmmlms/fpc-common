@@ -374,7 +374,7 @@ begin
 
   RegisterPages;
 
-  pnlLeft.Width := MulDiv(190, Screen.PixelsPerInch, 96);
+  pnlLeft.Width := Scale96ToFont(190);
 
   FTreeView := TPageTree.Create(pnlLeft, FPageList);
   FTreeView.Parent := pnlLeft;
