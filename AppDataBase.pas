@@ -25,7 +25,6 @@ interface
 uses
   Classes,
   CommandLine,
-  Forms,
   Functions,
   LanguageObjects,
   Registry,
@@ -59,9 +58,6 @@ type
     FFirstStartShown: Boolean;
     FLastUsedVersion: TAppVersion;
     FSuppressUpdatedInfo: Boolean;
-
-    FMainWidthDefault: Integer;
-    FMainHeightDefault: Integer;
 
     FMainMaximized: Boolean;
     FMainLeft: Integer;
@@ -123,7 +119,7 @@ type
     procedure DoSave; virtual;
     procedure NotifyRunningInstance(Handle: Cardinal); virtual;
   public
-    constructor Create(AppName: String; OnlyOne: Boolean; DefWidth, DefHeight: Integer; License: TLicense);
+    constructor Create(AppName: String; OnlyOne: Boolean; License: TLicense);
     destructor Destroy; override;
     procedure Load; virtual;
     procedure Save(Handle: Cardinal = 0);
@@ -185,12 +181,10 @@ implementation
 
 { TAppDataBase }
 
-constructor TAppDataBase.Create(AppName: string; OnlyOne: Boolean; DefWidth, DefHeight: Integer; License: TLicense);
+constructor TAppDataBase.Create(AppName: string; OnlyOne: Boolean; License: TLicense);
 begin
   inherited Create;
 
-  FMainWidthDefault := DefWidth;
-  FMainHeightDefault := DefHeight;
   FSkipSave := False;
 
   FLicense := License;
@@ -335,34 +329,13 @@ end;
 
 procedure TAppDataBase.Load;
 var
-  F: Boolean;
-  i: Integer;
-  R, R2: TRect;
   LastUsedVersion: string;
 begin
   FStorage.Read('MainMaximized', FMainMaximized, False);
-  FStorage.Read('MainWidth', FMainWidth, FMainWidthDefault);
-  FStorage.Read('MainHeight', FMainHeight, FMainHeightDefault);
+  FStorage.Read('MainWidth', FMainWidth, -1);
+  FStorage.Read('MainHeight', FMainHeight, -1);
   FStorage.Read('MainLeft', FMainLeft, -1);
   FStorage.Read('MainTop', FMainTop, -1);
-
-  // Wenn Fenster nicht auf Bildschirmen, Position zurücksetzen
-  F := False;
-  R := Classes.Rect(FMainLeft + 20, FMainTop + 20, FMainLeft + FMainWidth - 40, FMainTop + FMainHeight - 40);
-  for i := 0 to Screen.MonitorCount - 1 do
-    if IntersectRect(R2, R, Screen.Monitors[i].WorkareaRect) then
-    begin
-      F := True;
-      Break;
-    end;
-  if not F then
-  begin
-    FMainMaximized := False;
-    FMainWidth := FMainWidthDefault;
-    FMainHeight := FMainHeightDefault;
-    FMainLeft := -1;
-    FMainTop := -1;
-  end;
 
   FStorage.Read('CheckCertificate', FCheckCertificate, True);
   FStorage.Read('ProxyEnabled', FProxyEnabled, False);
