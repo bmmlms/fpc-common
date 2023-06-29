@@ -102,7 +102,8 @@ var
 begin
   if FNotificationHandle <> 0 then
   begin
-    UnregisterDeviceNotification(FNotificationHandle);
+    // REMARK: Somehow this leads to exceptions
+    // UnregisterDeviceNotification(FNotificationHandle);
     FNotificationHandle := 0;
   end;
 
