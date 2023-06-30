@@ -33,7 +33,7 @@ type
 
   { TMVirtualTree }
 
-  TMVirtualTree = class(TVirtualStringTree) //, IPostTranslatable)
+  TMVirtualTree = class(TVirtualStringTree)
   private
     FPaintedOnce: Boolean;
     FAsyncCallPending: Boolean;
@@ -44,13 +44,14 @@ type
   protected
     procedure DoChange(Node: PVirtualNode); override;
     function DoCreateEditor(Node: PVirtualNode; Column: TColumnIndex): IVTEditLink; override;
+    function DoDragOver(Source: TObject; Shift: TShiftState; State: TDragState; const Pt: TPoint; Mode: TDropMode; var Effect: LongWord): Boolean; override;
+    procedure DoBeforePaint(Canvas: TCanvas); override;
     procedure WMRButtonDown(var Message: TLMRButtonDown); message LM_RBUTTONDOWN;
     procedure WMRButtonUp(var Message: TLMRButtonUp); message LM_RBUTTONUP;
     procedure WMContextMenu(var Message: TLMContextMenu); message LM_CONTEXTMENU;
     procedure WMSetFocus(var Msg: TLMSetFocus); message LM_SETFOCUS;
     procedure HandleMouseUp(Keys: PtrUInt; const HitInfo: THitInfo); override;
     procedure WndProc(var Message: TLMessage); override;
-    procedure DoBeforePaint(Canvas: TCanvas); override;
 
     procedure AfterChange(Data: PtrInt);
     procedure ResetColors;
@@ -120,6 +121,14 @@ end;
 function TMVirtualTree.DoCreateEditor(Node: PVirtualNode; Column: TColumnIndex): IVTEditLink;
 begin
   Result := TMStringEditLink.Create;
+end;
+
+function TMVirtualTree.DoDragOver(Source: TObject; Shift: TShiftState; State: TDragState; const Pt: TPoint; Mode: TDropMode; var Effect: LongWord): Boolean;
+var
+  HI: THitInfo;
+begin
+  GetHitTestInfoAt(Pt.X, Pt.Y, True, HI);
+  Exit(not ((hiAbove in HI.HitPositions) or (hiBelow in HI.HitPositions) or (hiToLeft in HI.HitPositions) or (hiToRight in HI.HitPositions)));
 end;
 
 procedure TMVirtualTree.WMRButtonDown(var Message: TLMRButtonDown);
