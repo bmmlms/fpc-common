@@ -158,7 +158,7 @@ begin
         if (FTypedStream.HeaderRemoved) and (RecvDataStream.Size > 0) then
         begin
           try
-            Data := RecvDataStream.ToString(0, RecvDataStream.Size);
+            Data := RecvDataStream.AsString(0, RecvDataStream.Size);
             Version := GetValue(Data, 'version');
             FFoundVersion := TFunctions.ParseVersion(Version);
             FUpdateURL := string(GetValue(Data, 'updateurl'));

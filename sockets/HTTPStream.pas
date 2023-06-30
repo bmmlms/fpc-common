@@ -116,7 +116,7 @@ begin
         P := PosInStream(#10, Position);
         if (P > -1) and (P - Position > 0) then
         begin
-          Len := StrToIntDef('$' + Trim(string(ToString(Position, P - Position))), -1);
+          Len := StrToIntDef('$' + Trim(string(AsString(Position, P - Position))), -1);
           if Len = -1 then
             raise Exception.Create('Error dechunking response');
           if Len = 0 then
@@ -210,7 +210,7 @@ begin
   i := PosInStream(#13#10#13#10, 0);
   if i > -1 then
   begin
-    FHeader := string(ToString(0, i));
+    FHeader := string(AsString(0, i));
     WriteLog('Header received', FHeader, slDebug);
 
     GetResponseCode;
