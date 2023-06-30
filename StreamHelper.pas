@@ -35,7 +35,7 @@ type
     function ReadLEB32S: Int32;
     function ReadLEB32U: Uint32;
     function ReadLEB64S: Int64;
-    function ReadLEB64U: Uint64;
+    function ReadLEB64U: UInt64;
 
     function WriteLEB32U(Value: UInt32): Byte;
     function WriteLEB32S(Value: Integer): Byte;
@@ -64,8 +64,8 @@ type
   TCustomMemoryStreamHelper = class helper for TCustomMemoryStream
   public
     function PosInStream(const Search: AnsiString; const FromOffset: Int64): Integer;
-    function ToString: AnsiString; overload;
-    function ToString(const FromOffset, Count: Int64): AnsiString; overload;
+    function AsString: AnsiString; overload;
+    function AsString(const FromOffset, Count: Int64): AnsiString; overload;
   end;
 
   { TMemoryStreamHelper }
@@ -445,12 +445,12 @@ begin
     Result := Result + FromOffset;
 end;
 
-function TCustomMemoryStreamHelper.ToString: AnsiString;
+function TCustomMemoryStreamHelper.AsString: AnsiString;
 begin
-  Result := ToString(0, Size);
+  Result := AsString(0, Size);
 end;
 
-function TCustomMemoryStreamHelper.ToString(const FromOffset, Count: Int64): AnsiString;
+function TCustomMemoryStreamHelper.AsString(const FromOffset, Count: Int64): AnsiString;
 begin
   Result := '';
   if Count = 0 then
