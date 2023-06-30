@@ -27,7 +27,7 @@ type
   TDeviceNotificationListener = class
   private
     FWndHandle: HWND;
-    FNotificationHandle: HANDLE;
+    FNotificationHandle: HDEVNOTIFY;
     FDeviceNotifications: TList<PDeviceNotification>;
     FOnDeviceNotification: TDeviceNotificationEvent;
 
@@ -46,8 +46,8 @@ type
 
 implementation
 
-function RegisterDeviceNotificationW(hRecipient: HANDLE; NotificationFilter: Pointer; Flags: DWORD): HANDLE; cdecl; external user32;
-function UnregisterDeviceNotification(Handle: HANDLE): BOOL; cdecl; external user32;
+function RegisterDeviceNotificationW(hRecipient: HANDLE; NotificationFilter: Pointer; Flags: DWORD): HDEVNOTIFY; stdcall; external user32;
+function UnregisterDeviceNotification(Handle: HDEVNOTIFY): BOOL; stdcall; external user32;
 
 { TDeviceNotificationListener }
 
@@ -102,8 +102,7 @@ var
 begin
   if FNotificationHandle <> 0 then
   begin
-    // REMARK: Somehow this leads to exceptions
-    // UnregisterDeviceNotification(FNotificationHandle);
+    UnregisterDeviceNotification(FNotificationHandle);
     FNotificationHandle := 0;
   end;
 
