@@ -78,6 +78,10 @@ const
   skShift = 'Shift+';
   skCtrl = 'Ctrl+';
   skAlt = 'Alt+';
+  skMediaNext = 'Next track';
+  skMediaPrev = 'Previous track';
+  skMediaStop = 'Stop';
+  skMediaPlayPause = 'Play/pause';
 
   M_LBUTTON = 1;
   M_RBUTTON = 2;
@@ -87,10 +91,10 @@ const
   M_MENU = 32;
 
 type
-  TMKeyCap = (kcBkSp, kcTab, kcEsc, kcEnter, kcSpace, kcPgUp, kcPgDn, kcEnd, kcHome, kcLeft, kcUp, kcRight, kcDown, kcIns, kcDel, kcShift, kcCtrl, kcAlt);
+  TMKeyCap = (kcBkSp, kcTab, kcEsc, kcEnter, kcSpace, kcPgUp, kcPgDn, kcEnd, kcHome, kcLeft, kcUp, kcRight, kcDown, kcIns, kcDel, kcShift, kcCtrl, kcAlt, kcMediaNext, kcMediaPrev, kcMediaStop, kcMediaPlayPause);
 
 var
-  KeyCaps: array[TMKeyCap] of string = (skBkSp, skTab, skEsc, skEnter, skSpace, skPgUp, skPgDn, skEnd, skHome, skLeft, skUp, skRight, skDown, skIns, skDel, skShift, skCtrl, skAlt);
+  KeyCaps: array[TMKeyCap] of string = (skBkSp, skTab, skEsc, skEnter, skSpace, skPgUp, skPgDn, skEnd, skHome, skLeft, skUp, skRight, skDown, skIns, skDel, skShift, skCtrl, skAlt, skMediaNext, skMediaPrev, skMediaStop, skMediaPlayPause);
 
 function Shortcut(Key: Word; Shift: TShiftState): TShortcut;
 begin
@@ -137,9 +141,11 @@ begin
     $41..$5A: Name := Chr(WordRec(Shortcut).Lo - $41 + Ord('A'));
     $60..$69: Name := Chr(WordRec(Shortcut).Lo - $60 + Ord('0'));
     $70..$87: Name := 'F' + IntToStr(WordRec(Shortcut).Lo - $6F);
+    $B0..$B3: Name := KeyCaps[TMKeyCap(Ord(kcMediaNext) + WordRec(Shortcut).Lo - $B0)];
     else
       Name := GetSpecialKeyName(Shortcut);
   end;
+
   if Name <> '' then
   begin
     Result := '';
