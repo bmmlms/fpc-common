@@ -128,6 +128,7 @@ type
     class function MoveFile(const Source, Dest: string; const ReplaceIfExists: Boolean): Boolean; static;
     class function IsHTTPUrl(const s: string): Boolean; static;
     class function FilterHTTPUrls(s: string; out URLs: TStringArray): Boolean; static;
+    class function FilterEndsWith(const Source, FilterList: TStringArray; out Results: TStringArray): Boolean; static;
 
     class function BrowseDialog(Owner: TComponent; Title: string): string; static;
     class procedure PropertiesDialog(Filename: string); static;
@@ -1269,9 +1270,23 @@ begin
 
   for s in s.Split(LineEnding) do
     if IsHTTPUrl(s) then
-      URLs := URLs + [s];
+      URLs += [s];
 
   Result := Length(URLs) > 0;
+end;
+
+class function TFunctions.FilterEndsWith(const Source, FilterList: TStringArray; out Results: TStringArray): Boolean;
+var
+  S, F: string;
+begin
+  Results := [];
+
+  for S in Source do
+    for F in FilterList do
+      if EndsText(F, S) then
+        Results += [S];
+
+  Result := Length(Results) > 0;
 end;
 
 class function TFunctions.BrowseDialog(Owner: TComponent; Title: string): string;
@@ -1453,7 +1468,7 @@ class function TFunctions.ReadDataObjectFiles(const DataObject: IDataObject; out
   var
     FormatEtc: TFormatEtc;
     Medium: TStgMedium;
-    Filename: string = '';
+    Filename: array[0..MAX_PATH] of Char;
     i, DroppedFileCount, FilenameLength: Integer;
   begin
     FormatEtc.cfFormat := CF_HDROP;
@@ -1467,10 +1482,9 @@ class function TFunctions.ReadDataObjectFiles(const DataObject: IDataObject; out
       for i := 0 to Pred(DroppedFileCount) do
       begin
         FilenameLength := DragQueryFileA(Medium.hGlobal, i, nil, 0) + 1;
-        SetLength(Filename, FilenameLength);
-        DragQueryFileA(Medium.hGlobal, i, @Filename[1], FilenameLength);
+        DragQueryFileA(Medium.hGlobal, i, @Filename[0], FilenameLength);
 
-        Files += [Filename];
+        Files += [StrPas(@Filename[0])];
       end;
     finally
       ReleaseStgMedium(Medium);
