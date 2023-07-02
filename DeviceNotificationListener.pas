@@ -16,7 +16,6 @@ type
   TDeviceNotificationEvent = procedure(const NotificationType: TDeviceNotificationType; const DeviceClass: TGUID; const DeviceName: string) of object;
 
   TDeviceNotification = record
-    NotificationType: TDeviceNotificationType;
     DeviceClass: TGUID;
     DeviceName: string;
   end;
@@ -28,12 +27,12 @@ type
   private
     FWndHandle: HWND;
     FNotificationHandle: HDEVNOTIFY;
-    FDeviceNotifications: TList<PDeviceNotification>;
+    FDeviceAddedNotifications: TList<PDeviceNotification>;
     FOnDeviceNotification: TDeviceNotificationEvent;
 
     procedure WndProc(var Msg: TMessage);
-    procedure Add(const NotificationType: TDeviceNotificationType; const DeviceClass: TGUID; const DeviceName: string);
-    function Remove(const NotificationType: TDeviceNotificationType; const DeviceName: string): Boolean;
+    procedure AddAddedEvent(const DeviceClass: TGUID; const DeviceName: string);
+    function RemoveAddedEvent(const DeviceName: string): Boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -53,13 +52,13 @@ function UnregisterDeviceNotification(Handle: HDEVNOTIFY): BOOL; stdcall; extern
 
 constructor TDeviceNotificationListener.Create;
 begin
-  FDeviceNotifications := TList<PDeviceNotification>.Create;
+  FDeviceAddedNotifications := TList<PDeviceNotification>.Create;
 end;
 
 destructor TDeviceNotificationListener.Destroy;
 begin
   Stop;
-  FDeviceNotifications.Free;
+  FDeviceAddedNotifications.Free;
 
   inherited Destroy;
 end;
@@ -113,9 +112,9 @@ begin
     FWndHandle := 0;
   end;
 
-  for Notification in FDeviceNotifications do
+  for Notification in FDeviceAddedNotifications do
     Dispose(Notification);
-  FDeviceNotifications.Clear;
+  FDeviceAddedNotifications.Clear;
 end;
 
 procedure TDeviceNotificationListener.WndProc(var Msg: TMessage);
@@ -130,53 +129,53 @@ begin
 
     DeviceName := PWideChar(@DevBroadcastDeviceInterface^.dbcc_name);
 
-    if (Msg.wParam = DBT_DEVICEARRIVAL) and not Remove(dntRemoved, DeviceName) then
-      Add(dntAdded, DevBroadcastDeviceInterface.dbcc_classguid, DeviceName)
-    else if (Msg.wParam = DBT_DEVICEREMOVECOMPLETE) and not Remove(dntAdded, DeviceName) then
-      Add(dntRemoved, DevBroadcastDeviceInterface.dbcc_classguid, DeviceName);
+    if Msg.wParam = DBT_DEVICEARRIVAL then
+      AddAddedEvent(DevBroadcastDeviceInterface.dbcc_classguid, DeviceName)
+    else if (Msg.wParam = DBT_DEVICEREMOVECOMPLETE) and not RemoveAddedEvent(DeviceName) and Assigned(FOnDeviceNotification) then
+      FOnDeviceNotification(dntRemoved, DevBroadcastDeviceInterface.dbcc_classguid, DeviceName);
 
     KillTimer(FWndHandle, 0);
-    SetTimer(FWndHandle, 0, 500, nil);
+    if FDeviceAddedNotifications.Count > 0 then
+      SetTimer(FWndHandle, 0, 500, nil);
 
     Msg.Result := 0;
   end else if Msg.msg = WM_TIMER then
   begin
     KillTimer(FWndHandle, 0);
 
-    for Notification in FDeviceNotifications do
+    for Notification in FDeviceAddedNotifications do
     begin
       if Assigned(FOnDeviceNotification) then
-        FOnDeviceNotification(Notification.NotificationType, Notification.DeviceClass, Notification.DeviceName);
+        FOnDeviceNotification(dntAdded, Notification.DeviceClass, Notification.DeviceName);
       Dispose(Notification);
     end;
 
-    FDeviceNotifications.Clear;
+    FDeviceAddedNotifications.Clear;
   end else
     Msg.Result := DefWindowProc(FWndHandle, Msg.Msg, Msg.WParam, Msg.LParam);
 end;
 
-procedure TDeviceNotificationListener.Add(const NotificationType: TDeviceNotificationType; const DeviceClass: TGUID; const DeviceName: string);
+procedure TDeviceNotificationListener.AddAddedEvent(const DeviceClass: TGUID; const DeviceName: string);
 var
   Notification: PDeviceNotification;
 begin
   New(Notification);
-  Notification.NotificationType := NotificationType;
   Notification.DeviceClass := DeviceClass;
   Notification.DeviceName := DeviceName;
 
-  FDeviceNotifications.Add(Notification);
+  FDeviceAddedNotifications.Add(Notification);
 end;
 
-function TDeviceNotificationListener.Remove(const NotificationType: TDeviceNotificationType; const DeviceName: string): Boolean;
+function TDeviceNotificationListener.RemoveAddedEvent(const DeviceName: string): Boolean;
 var
   Notification: PDeviceNotification;
 begin
   Result := False;
 
-  for Notification in FDeviceNotifications do
-    if (Notification.NotificationType = NotificationType) and (Notification.DeviceName = DeviceName) then
+  for Notification in FDeviceAddedNotifications do
+    if Notification.DeviceName = DeviceName then
     begin
-      FDeviceNotifications.Remove(Notification);
+      FDeviceAddedNotifications.Remove(Notification);
       Dispose(Notification);
       Exit(True);
     end;
