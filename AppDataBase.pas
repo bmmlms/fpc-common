@@ -564,38 +564,45 @@ begin
 end;
 
 procedure TAppDataBase.GetRunningFromInstalledLocation;
-const
-  UninstallPath = 'Software\Microsoft\Windows\CurrentVersion\Uninstall';
-var
-  i: Integer;
-  Reg: TRegistry;
-  TmpKeyNames: TStringList;
-begin
-  FRunningFromInstalledLocation := False;
-  TmpKeyNames := TStringList.Create;
-  Reg := TRegistry.Create;
-  try
-    Reg.RootKey := HKEY_LOCAL_MACHINE;
-    if Reg.KeyExists(UninstallPath) then
-      if Reg.OpenKeyReadOnly(UninstallPath) then
-        Reg.GetKeyNames(TmpKeyNames);
-    Reg.CloseKey;
-    for i := 0 to TmpKeyNames.Count - 1 do
-      if Reg.OpenKeyReadOnly(UninstallPath + '\' + TmpKeyNames.Strings[i]) then
-      begin
-        if Reg.ValueExists('DisplayName') then
-          if LowerCase(Reg.ReadString('DisplayName')) = LowerCase(AppName) then
+
+  function IsInstalled(const RootKey: HKEY): Boolean;
+  const
+    UninstallPath = 'Software\Microsoft\Windows\CurrentVersion\Uninstall';
+  var
+    i: Integer;
+    Reg: TRegistry;
+    KeyName: UnicodeString;
+    TmpKeyNames: TUnicodeStringArray = [];
+  begin
+    Result := False;
+    Reg := TRegistry.Create;
+    try
+      Reg.RootKey := RootKey;
+      if Reg.KeyExists(UninstallPath) then
+        if Reg.OpenKeyReadOnly(UninstallPath) then
+        begin
+          TmpKeyNames += Reg.GetKeyNames;
+          Reg.CloseKey;
+        end;
+
+      for KeyName in TmpKeyNames do
+        if Reg.OpenKeyReadOnly(UninstallPath + '\' + KeyName) then
+        begin
+          if Reg.ValueExists('DisplayName') and (LowerCase(Reg.ReadString('DisplayName')) = LowerCase(AppName)) then
           begin
             if LowerCase(IncludeTrailingPathDelimiter(Reg.ReadString('InstallLocation'))) = LowerCase(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)))) then
               FRunningFromInstalledLocation := True;
-            Exit;
+            Exit(True);
           end;
-        Reg.CloseKey;
-      end;
-  finally
-    Reg.Free;
-    TmpKeyNames.Free;
+          Reg.CloseKey;
+        end;
+    finally
+      Reg.Free;
+    end;
   end;
+
+begin
+  FRunningFromInstalledLocation := IsInstalled(HKEY_CURRENT_USER) or IsInstalled(HKEY_LOCAL_MACHINE);
 end;
 
 procedure TAppDataBase.GetTempDir;
