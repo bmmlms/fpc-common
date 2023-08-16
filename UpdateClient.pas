@@ -230,13 +230,13 @@ procedure TUpdateClient.RunUpdate(Handle: Cardinal);
 var
   osvi: OSVERSIONINFOEXW;
   ConditionMask: ULONGLONG;
-  op: Integer;
+  OP: Byte;
   Info: TSHELLEXECUTEINFO;
   Verb, Parameters: string;
 const
   VER_GREATER_EQUAL = 3;
 begin
-  op := VER_GREATER_EQUAL;
+  OP := VER_GREATER_EQUAL;
 
   FillChar(osvi, SizeOf(osvi), #0);
   osvi.dwOSVersionInfoSize := SizeOf(osvi);
@@ -244,8 +244,10 @@ begin
   osvi.dwMinorVersion := 0;
 
   ConditionMask := 0;
-  ConditionMask := VerSetConditionMask(ConditionMask, VER_MAJORVERSION, op);
-  ConditionMask := VerSetConditionMask(ConditionMask, VER_MINORVERSION, op);
+  {$PUSH}
+  {$RANGECHECKS OFF}
+  ConditionMask := VerSetConditionMask(ConditionMask, VER_MAJORVERSION, OP);
+  ConditionMask := VerSetConditionMask(ConditionMask, VER_MINORVERSION, OP);
 
   // Bei >= Vista gehts über das Manifest, ansonsten 'runas'...
   if TFunctions.IsAdmin then
@@ -272,6 +274,7 @@ begin
       ShellExecuteExA(@Info);
     end;
   end;
+  {$POP}
 end;
 
 procedure TUpdateClient.Start(Action: TUpdateAction; StartOver: Boolean);
