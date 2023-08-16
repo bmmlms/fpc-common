@@ -178,7 +178,7 @@ begin
         else if (not Terminated) then
           Sync(FOnError);
     end;
-  end else
+  end else if not Terminated then
     Sync(FOnError);
 end;
 
