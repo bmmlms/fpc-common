@@ -754,38 +754,43 @@ class function TFunctions.IsAdmin: LongBool;
   end;
 
 var
-  TokenHandle: THandle;
+  TokenHandle: THandle = 0;
   ReturnLength: DWORD;
   TokenInformation: PTokenGroups;
   AdminSid: PSID;
   Loop: Integer;
 begin
   Result := False;
-  TokenHandle := 0;
-  if OpenProcessToken(GetCurrentProcess, TOKEN_QUERY, TokenHandle) then
-    try
-      ReturnLength := 0;
-      GetTokenInformation(TokenHandle, TokenGroups, nil, 0, ReturnLength);
-      TokenInformation := GetMemory(ReturnLength);
-      if Assigned(TokenInformation) then
-        try
-          if GetTokenInformation(TokenHandle, TokenGroups, TokenInformation, ReturnLength, ReturnLength) then
-          begin
-            AdminSid := GetAdminSid;
+
+  if not OpenProcessToken(GetCurrentProcess, TOKEN_QUERY, TokenHandle) then
+    Exit;
+
+  try
+    ReturnLength := 0;
+    GetTokenInformation(TokenHandle, TokenGroups, nil, 0, ReturnLength);
+    TokenInformation := GetMemory(ReturnLength);
+    if Assigned(TokenInformation) then
+      try
+        if GetTokenInformation(TokenHandle, TokenGroups, TokenInformation, ReturnLength, ReturnLength) then
+        begin
+          AdminSid := GetAdminSid;
+          try
             for Loop := 0 to TokenInformation^.GroupCount - 1 do
+              {$PUSH}
+              {$RANGECHECKS OFF}
               if EqualSid(TokenInformation^.Groups[Loop].Sid, AdminSid) then
-              begin
-                Result := True;
-                Break;
-              end;
+              {$POP}
+                Exit(True);
+          finally
             FreeSid(AdminSid);
           end;
-        finally
-          FreeMemory(TokenInformation);
         end;
-    finally
-      CloseHandle(TokenHandle);
-    end;
+      finally
+        FreeMemory(TokenInformation);
+      end;
+  finally
+    CloseHandle(TokenHandle);
+  end;
 end;
 
 class function TFunctions.HTML2Color(const HTML: string): Integer;
