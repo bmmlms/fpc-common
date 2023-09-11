@@ -35,6 +35,7 @@ uses
   GraphUtil,
   IdURI,
   LazUTF8,
+  LConvEncoding,
   regexpr,
   ShellAPI,
   ShlObj,
@@ -129,6 +130,7 @@ type
     class function IsHTTPUrl(const s: string): Boolean; static;
     class function FilterHTTPUrls(s: string; out URLs: TStringArray): Boolean; static;
     class function FilterEndsWith(const Source, FilterList: TStringArray; out Results: TStringArray): Boolean; static;
+    class function GetStringGuessEncoding(const Value: PByte; const Len: Integer): string; static;
 
     class function BrowseDialog(Owner: TComponent; Title: string): string; static;
     class procedure PropertiesDialog(Filename: string); static;
@@ -1292,6 +1294,16 @@ begin
         Results += [S];
 
   Result := Length(Results) > 0;
+end;
+
+class function TFunctions.GetStringGuessEncoding(const Value: PByte; const Len: Integer): string;
+var
+  Dummy: Boolean;
+begin
+  SetCodePage(RawByteString(Result), CP_NONE);
+  SetLength(Result, Len);
+  Move(Value^, Result[1], Len);
+  Result := ConvertEncodingToUTF8(Result, GuessEncoding(Result), Dummy);
 end;
 
 class function TFunctions.BrowseDialog(Owner: TComponent; Title: string): string;
