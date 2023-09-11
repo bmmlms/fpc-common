@@ -24,14 +24,17 @@ interface
 
 uses
   Classes,
-  StreamHelper,
+  Generics.Collections,
   Sockets,
+  StreamHelper,
   StrUtils,
   SysUtils,
   Windows;
 
 type
   TTransferEncoding = (teNone, teChunked);
+
+  { THTTPStream }
 
   THTTPStream = class(TSocketStream)
   private
@@ -47,18 +50,19 @@ type
     FHeaderRemoved: Boolean;
     FOnHeaderRemoved: TNotifyEvent;
 
-    procedure GetHeaderType;
-    procedure GetResponseCode;
-    procedure ProcessHeader;
+    procedure GetResponseType(const StatusLine: string);
+    procedure GetResponseStatus(const StatusLine: string);
+    procedure ParseHeader;
   protected
-    FHeader: string;
+    FHeader: TDictionary<string, string>;
     FHeaderType: string;
 
     function FGetRecvDataStream: TMemoryStream; override;
 
     procedure DoHeaderRemoved; virtual;
+    function ParseHeaderField(const Name: string; const Value: PByte; const Len: Integer): string; virtual;
 
-    function GetHeaderData(Name: string): string;
+    function GetHeaderValue(Name: string): string;
   public
     constructor Create;
     destructor Destroy; override;
@@ -78,15 +82,29 @@ type
 
 implementation
 
-procedure THTTPStream.GetResponseCode;
+type
+  THeaderParseState = (hpsPreName, hpsName, hpsPreValue, hpsValue);
+
+procedure THTTPStream.GetResponseType(const StatusLine: string);
+var
+  Header: string;
+begin
+  Header := AnsiLowerCase(StatusLine);
+  if Copy(Header, 1, 4) = 'http' then
+    FHeaderType := 'http'
+  else if Copy(Header, 1, 3) = 'icy' then
+    FHeaderType := 'icy';
+end;
+
+procedure THTTPStream.GetResponseStatus(const StatusLine: string);
 var
   P: Integer;
   Code: string;
 begin
-  P := Pos(' ', FHeader);
+  P := Pos(' ', StatusLine);
   if P > 0 then
   begin
-    Code := Copy(FHeader, P + 1, 3);
+    Code := Copy(StatusLine, P + 1, 3);
     FResponseCode := StrToInt(Code);
   end else
     raise Exception.Create('Status code could not be determined');
@@ -99,7 +117,7 @@ var
 begin
   inherited;
   if not FHeaderRemoved then
-    ProcessHeader;
+    ParseHeader;
 
   if FHeaderRemoved then
     if (FTransferEncoding = teChunked) and (Size > 0) then
@@ -113,7 +131,7 @@ begin
           B := PByte(Int64(B) + 1);
         Seek(Int64(B) - Int64(Memory), soFromBeginning);
 
-        P := PosInStream(#10, Position);
+        P := PosInStream([$0A], Position);
         if (P > -1) and (P - Position > 0) then
         begin
           Len := StrToIntDef('$' + Trim(string(AsString(Position, P - Position))), -1);
@@ -141,38 +159,35 @@ begin
     raise Exception.Create('Header could not be found');
 end;
 
-procedure THTTPStream.GetHeaderType;
-var
-  Header: string;
-begin
-  Header := AnsiLowerCase(FHeader);
-  if Copy(Header, 1, 4) = 'http' then
-    FHeaderType := 'http'
-  else if Copy(Header, 1, 3) = 'icy' then
-    FHeaderType := 'icy';
-end;
-
 constructor THTTPStream.Create;
 begin
   inherited;
+
   FHeaderRemoved := False;
-  FHeader := '';
   FHeaderType := '';
   FTransferEncoding := teNone;
   FContentLength := -1;
   FResponseCode := -1;
   FDeChunkedStream := TMemoryStream.Create;
+  FHeader := TDictionary<string, string>.Create;
 end;
 
 destructor THTTPStream.Destroy;
 begin
   FDeChunkedStream.Free;
+  FHeader.Free;
+
   inherited;
 end;
 
 procedure THTTPStream.DoHeaderRemoved;
 begin
 
+end;
+
+function THTTPStream.ParseHeaderField(const Name: string; const Value: PByte; const Len: Integer): string;
+begin
+  SetString(Result, PChar(Value), Len);
 end;
 
 function THTTPStream.FGetRecvDataStream: TMemoryStream;
@@ -183,59 +198,97 @@ begin
     Result := Self;
 end;
 
-function THTTPStream.GetHeaderData(Name: string): string;
-var
-  n, n2: Integer;
-  Header2: string;
+function THTTPStream.GetHeaderValue(Name: string): string;
 begin
-  Header2 := AnsiLowerCase(FHeader);
-  Name := AnsiLowerCase(Name) + ':';
   Result := '';
-  n := Pos(Name, Header2);
-  if n > 0 then
-  begin
-    n2 := PosEx(#10, FHeader, n);
-    if n2 > 0 then
-      Result := Copy(FHeader, n + Length(Name), n2 - n - Length(Name))
-    else
-      Result := Copy(FHeader, n + Length(Name), Length(FHeader));
-  end;
-  Result := Trim(Result);
+  if FHeader.ContainsKey(Name.ToLower) then
+    Exit(FHeader[Name.ToLower]);
 end;
 
-procedure THTTPStream.ProcessHeader;
+procedure THTTPStream.ParseHeader;
+const
+  NL: TBytes = [$0D, $0A];
+  NLC: set of TByte = [$0D, $0A];
 var
-  i: Integer;
+  HeaderEnd, StatusLineEnd: Integer;
+  StatusLine, Name: string;
+  State: THeaderParseState = hpsPreName;
+  Current, TokenStart: PByte;
 begin
-  i := PosInStream(#13#10#13#10, 0);
-  if i > -1 then
+  HeaderEnd := PosInStream(NL + NL, 0);
+  if HeaderEnd = -1 then
+    Exit;
+
+  StatusLineEnd := PosInStream(NL, 0);
+  if StatusLineEnd = -1 then
+    Exit;
+
+  StatusLine := AsString(0, StatusLineEnd);
+
+  GetResponseStatus(StatusLine);
+  GetResponseType(StatusLine);
+
+  TokenStart := Memory + StatusLineEnd;
+  Current := TokenStart;
+  while Current < Memory + HeaderEnd + 1 do
   begin
-    FHeader := string(AsString(0, i));
-    WriteLog('Header received', FHeader, slDebug);
+    case State of
+      hpsPreName:
+        if not (Current^ in NLC) then
+        begin
+          TokenStart := Current;
+          State := hpsName;
+        end;
+      hpsName:
+        if Current^ = $3A { ':' } then
+        begin
+          SetString(Name, PChar(TokenStart), SizeInt(Current - TokenStart));
+          Name := Name.Trim.ToLower;
+          if Name = '' then
+            raise Exception.Create('Invalid header');
 
-    GetResponseCode;
-    GetHeaderType;
+          TokenStart := Current + 1;
+          State := hpsPreValue;
+        end;
+      hpsPreValue:
+        if Current^ <> $20 { ' ' } then
+        begin
+          TokenStart := Current;
+          State := hpsValue;
+        end;
+      hpsValue:
+        if Current^ in [$0D, $0A] then
+        begin
+          FHeader.Remove(Name);
+          FHeader.Add(Name, ParseHeaderField(Name, TokenStart, SizeInt(Current - TokenStart)).Trim);
 
-    FContentType := LowerCase(GetHeaderData('content-type'));
-
-    if (Pos(';', FContentType) > 0) then
-    begin
-      FContentEncoding := Trim(Copy(FContentType, Pos(';', FContentType) + 1, Length(FContentType)));
-      FContentType := Trim(Copy(FContentType, 1, Pos(';', FContentType) - 1));
+          TokenStart := Current + 1;
+          State := hpsPreName;
+        end;
     end;
 
-    FContentLength := StrToIntDef(GetHeaderData('content-length'), -1);
-    FRedirURL := GetHeaderData('location');
-
-    if LowerCase(GetHeaderData('transfer-encoding')) = 'chunked' then
-      FTransferEncoding := teChunked;
-
-    RemoveRange(0, i + 4);
-    FHeaderRemoved := True;
-    DoHeaderRemoved;
-    if Assigned(FOnHeaderRemoved) then
-      FOnHeaderRemoved(Self);
+    Inc(Current);
   end;
+
+  FContentType := GetHeaderValue('content-type').ToLower;
+
+  if (Pos(';', FContentType) > 0) then
+  begin
+    FContentEncoding := Trim(Copy(FContentType, Pos(';', FContentType) + 1, Length(FContentType)));
+    FContentType := Trim(Copy(FContentType, 1, Pos(';', FContentType) - 1));
+  end;
+
+  FContentLength := StrToIntDef(GetHeaderValue('content-length'), -1);
+  FRedirURL := GetHeaderValue('location');
+
+  if LowerCase(GetHeaderValue('transfer-encoding')) = 'chunked' then
+    FTransferEncoding := teChunked;
+
+  RemoveRange(0, HeaderEnd + 4);
+  FHeaderRemoved := True;
+  DoHeaderRemoved;
+  if Assigned(FOnHeaderRemoved) then
+    FOnHeaderRemoved(Self);
 end;
 
 end.
