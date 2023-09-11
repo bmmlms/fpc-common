@@ -63,7 +63,7 @@ type
 
   TCustomMemoryStreamHelper = class helper for TCustomMemoryStream
   public
-    function PosInStream(const Search: AnsiString; const FromOffset: Int64): Integer;
+    function PosInStream(const Search: TBytes; const FromOffset: Int64): Integer;
     function AsString: AnsiString; overload;
     function AsString(const FromOffset, Count: Int64): AnsiString; overload;
   end;
@@ -425,24 +425,22 @@ end;
 
 { TCustomMemoryStreamHelper }
 
-function TCustomMemoryStreamHelper.PosInStream(const Search: AnsiString; const FromOffset: Int64): Integer;
+function TCustomMemoryStreamHelper.PosInStream(const Search: TBytes; const FromOffset: Int64): Integer;
 var
-  i: Integer;
-  p: Pointer;
+  P: Pointer;
 begin
   Result := -1;
-  p := Pointer(Int64(Memory) + FromOffset);
-  for i := 0 to Size - FromOffset - Length(Search) do
+
+  P := Pointer(Int64(Memory) + FromOffset);
+  if P > Memory + Size then
+    raise Exception.Create('P > Memory + Size');
+
+  while P < Memory + Size - Length(Search) do
   begin
-    if CompareMem(p, @Search[1], Length(Search)) then
-    begin
-      Result := i;
-      Break;
-    end;
-    p += 1;
+    if CompareMem(P, @Search[0], Length(Search)) then
+      Exit(P - Memory);
+    Inc(P);
   end;
-  if Result > -1 then
-    Result := Result + FromOffset;
 end;
 
 function TCustomMemoryStreamHelper.AsString: AnsiString;

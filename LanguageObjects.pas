@@ -492,13 +492,13 @@ begin
   end;
 
   try
-    NL := Stream.PosInStream(#13#00#10#00, LastNL);
+    NL := Stream.PosInStream([$0D, $00, $0A, $00], LastNL);
     while NL > -1 do
     begin
       while NL = LastNL do
       begin
         LastNL := NL + 4;
-        NL := Stream.PosInStream(#13#00#10#00, LastNL);
+        NL := Stream.PosInStream([$0D, $00, $0A, $00], LastNL);
       end;
 
       if NL = -1 then
@@ -506,7 +506,7 @@ begin
 
       Line := LoadFromStream(Stream, LastNL, NL - LastNL);
       LastNL := NL + 4;
-      NL := Stream.PosInStream(#13#00#10#00, LastNL);
+      NL := Stream.PosInStream([$0D, $00, $0A, $00], LastNL);
 
       if LowerCase(Line) = '[settings]' then
       begin
