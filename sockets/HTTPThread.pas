@@ -107,18 +107,19 @@ begin
   begin
     Self.Host := FProxyHost;
     Self.Port := FProxyPort;
-    SendData := SendData + AnsiString(FURL) + ' HTTP/1.1'#13#10;
+    SendData := SendData + FURL + ' HTTP/1.1'#13#10;
   end else
-    SendData := SendData + AnsiString(Res.Data) + ' HTTP/1.1'#13#10;
-  SendData := SendData + 'Host: ' + AnsiString(Host) + #13#10;
+    SendData := SendData + Res.Data + ' HTTP/1.1'#13#10;
+
+  SendData := SendData + 'Host: ' + Host + #13#10;
   SendData := SendData + 'Accept: */*'#13#10;
   SendData := SendData + 'Connection: close'#13#10;
 
   if FPostData <> '' then
-    SendData := SendData + 'Content-Length: ' + AnsiString(IntToStr(Length(FPostData))) + #13#10;
+    SendData := SendData + 'Content-Length: ' + IntToStr(Length(FPostData)) + #13#10;
   SendData := SendData + #13#10;
   if FPostData <> '' then
-    SendData := SendData + AnsiString(FPostData);
+    SendData := SendData + FPostData;
 
   FSendStream.SetData(SendData);
 end;
@@ -191,6 +192,9 @@ begin
 
   FSpeed := 0;
   DoSpeedChange();
+
+  if not FTypedStream.HeaderRemoved then
+    raise Exception.Create('Header could not be found');
 
   if FTypedStream.ContentLength > -1 then
     if FTypedStream.ContentLength <> Received then
