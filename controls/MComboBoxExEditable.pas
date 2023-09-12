@@ -277,7 +277,7 @@ begin
   end;
   anyRect.Top := (ARect.Top + ARect.Bottom - FTextHeight) div 2;
   anyRect.Bottom := anyRect.Top + FTextHeight;
-  DrawText(Canvas.Handle, PChar(ItemsEx[Index].Caption), Length(ItemsEx[Index].Caption), anyRect, aFlags);
+  DrawTextW(Canvas.Handle, PWideChar(UnicodeString(ItemsEx[Index].Caption)), Length(ItemsEx[Index].Caption), anyRect, aFlags);
 end;
 
 constructor TMComboBoxExEditable.Create(TheOwner: TComponent);
