@@ -116,6 +116,7 @@ var
   B: PByte;
 begin
   inherited;
+
   if not FHeaderRemoved then
     ParseHeader;
 
