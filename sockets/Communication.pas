@@ -62,7 +62,7 @@ type
 
     FTransferredCommandID: Cardinal;
     FTransferredCommandHeader: TCommandHeader;
-    FTransferredTransferred: UInt64;
+    FTransferredTransferred: Cardinal;
     FTransferredDirection: TTransferDirection;
 
     procedure Initialize;
@@ -72,7 +72,7 @@ type
     procedure SyncTransferred;
 
     procedure PacketManagerLog(Sender: TSocketThread; Data: string);
-    procedure PacketManagerBytesTransferred(Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal; CommandHeader: TCommandHeader; Transferred: UInt64);
+    procedure PacketManagerBytesTransferred(Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal; CommandHeader: TCommandHeader; Transferred: Cardinal);
   protected
     procedure DoStuff; override;
 
@@ -118,7 +118,7 @@ type
     FHost: string;
     FCheckCertificate: Boolean;
 
-    procedure ThreadBytesTransferred(Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal; CommandHeader: TCommandHeader; Transferred: UInt64);
+    procedure ThreadBytesTransferred(Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal; CommandHeader: TCommandHeader; Transferred: Cardinal);
     procedure ThreadCommandReceived(Socket: TSocketThread; Command: TCommand);
   protected
     procedure ThreadConnected(Sender: TSocketThread); override;
@@ -255,7 +255,7 @@ begin
   FPacketReader.OnBytesTransferred := PacketManagerBytesTransferred;
 end;
 
-procedure TCommandThreadBase.PacketManagerBytesTransferred(Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal; CommandHeader: TCommandHeader; Transferred: UInt64);
+procedure TCommandThreadBase.PacketManagerBytesTransferred(Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal; CommandHeader: TCommandHeader; Transferred: Cardinal);
 begin
   FTransferredCommandID := CommandID;
   FTransferredCommandHeader := CommandHeader;
@@ -339,7 +339,7 @@ begin
     FThread.Terminate;
 end;
 
-procedure TCommandClient.ThreadBytesTransferred(Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal; CommandHeader: TCommandHeader; Transferred: UInt64);
+procedure TCommandClient.ThreadBytesTransferred(Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal; CommandHeader: TCommandHeader; Transferred: Cardinal);
 begin
   if Assigned(FOnBytesTransferred) then
     FOnBytesTransferred(Sender, Direction, CommandID, CommandHeader, Transferred);

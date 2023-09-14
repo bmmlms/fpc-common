@@ -127,10 +127,10 @@ begin
       RemoveTo := 0;
       Seek(0, soFromBeginning);
       repeat
-        B := PByte(Int64(Memory) + Position);
-        while ((B^ = 13) or (B^ = 10)) and (Int64(B) < Int64(Memory) + Size) do
-          B := PByte(Int64(B) + 1);
-        Seek(Int64(B) - Int64(Memory), soFromBeginning);
+        B := PByte(PtrUInt(Memory) + Position);
+        while ((B^ = 13) or (B^ = 10)) and (PtrUInt(B) < PtrUInt(Memory) + Size) do
+          B := PByte(PtrUInt(B) + 1);
+        Seek(PtrUInt(B) - PtrUInt(Memory), soFromBeginning);
 
         P := PosInStream([$0A], Position);
         if (P > -1) and (P - Position > 0) then
@@ -243,7 +243,7 @@ begin
       hpsName:
         if Current^ = $3A { ':' } then
         begin
-          SetString(Name, PChar(TokenStart), SizeInt(Current - TokenStart));
+          SetString(Name, PChar(TokenStart), PtrUInt(Current - TokenStart));
           Name := Name.Trim.ToLower;
           if Name = '' then
             raise Exception.Create('Invalid header');
@@ -261,7 +261,7 @@ begin
         if Current^ in [$0D, $0A] then
         begin
           FHeader.Remove(Name);
-          FHeader.Add(Name, ParseHeaderField(Name, TokenStart, SizeInt(Current - TokenStart)).Trim);
+          FHeader.Add(Name, ParseHeaderField(Name, TokenStart, PtrUInt(Current - TokenStart)).Trim);
 
           TokenStart := Current + 1;
           State := hpsPreName;

@@ -27,7 +27,7 @@ uses
   LazUTF8,
   SysUtils;
 
-{ TStreamHelper }
+  { TStreamHelper }
 
 type
   TStreamHelper = class helper for TStream
@@ -47,6 +47,7 @@ type
     procedure Read(out Value: string; const ReadUTF8: Boolean); overload;
     procedure Read(out Value: TDateTime); overload;
     procedure Read(out Value: UInt64; const LEB: Boolean); overload;
+    procedure Read(out Value: Int64; const LEB: Boolean); overload;
     procedure Read(out Value: Byte); overload;
     procedure Read(out Value: LongWord; const LEB: Boolean); overload;
 
@@ -55,6 +56,7 @@ type
     procedure Write(const Value: string; const WriteUTF8: Boolean); overload;
     procedure Write(const Value: TDateTime); overload;
     procedure Write(const Value: UInt64; const LEB: Boolean); overload;
+    procedure Write(const Value: Int64; const LEB: Boolean); overload;
     procedure Write(const Value: Byte); overload;
     procedure Write(const Value: LongWord; const LEB: Boolean); overload;
   end;
@@ -121,7 +123,7 @@ begin
   raise Exception.Create('Too many bytes');
 end;
 
-function TStreamHelper.ReadLEB32U: UInt32;
+function TStreamHelper.ReadLEB32U: Uint32;
 var
   Shift: Integer = 0;
   R: UInt32 = 0;
@@ -345,6 +347,14 @@ begin
     ReadBuffer(Value, SizeOf(Value));
 end;
 
+procedure TStreamHelper.Read(out Value: Int64; const LEB: Boolean);
+begin
+  if LEB then
+    Value := ReadLEB64S
+  else
+    ReadBuffer(Value, SizeOf(Value));
+end;
+
 procedure TStreamHelper.Read(out Value: Byte);
 begin
   ReadBuffer(Value, SizeOf(Value));
@@ -410,6 +420,14 @@ begin
     WriteBuffer(Value, SizeOf(Value));
 end;
 
+procedure TStreamHelper.Write(const Value: Int64; const LEB: Boolean);
+begin
+  if LEB then
+    WriteLEB64S(Value)
+  else
+    WriteBuffer(Value, SizeOf(Value));
+end;
+
 procedure TStreamHelper.Write(const Value: Byte);
 begin
   WriteBuffer(Value, SizeOf(Value));
@@ -431,7 +449,7 @@ var
 begin
   Result := -1;
 
-  P := Pointer(Int64(Memory) + FromOffset);
+  P := Pointer(PtrUInt(Memory) + FromOffset);
   if P > Memory + Size then
     raise Exception.Create('P > Memory + Size');
 

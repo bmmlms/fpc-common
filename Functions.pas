@@ -92,10 +92,10 @@ type
     class function RemoveFileExt(const s: string): string; static;
     class function StringToMask(s: string): string; static;
     class function Like(AString, APattern: string): Boolean; static;
-    class function MakeSize(Size: UInt64): string; static;
+    class function MakeSize(Size: Int64): string; static;
     class function DiskSpaceOkay(Path: string; MinSpaceGB: Int64): Boolean; static;
     class procedure FindFiles(PathPattern: string; Files: TStringList; SubDirs: Boolean = False; TerminateFlag: PByteBool = nil); static;
-    class function RunProcess(Filename, WorkingDir: string; Timeout: UInt64; var Output: AnsiString; var ExitCode: DWORD; TerminateFlag: PByteBool; KillOnTimeout: Boolean;
+    class function RunProcess(Filename, WorkingDir: string; Timeout: Cardinal; var Output: AnsiString; var ExitCode: DWORD; TerminateFlag: PByteBool; KillOnTimeout: Boolean;
       ReadCallback: TReadCallback = nil): TRunProcessResults; overload; static;
     class function RunProcess(Filename: string; out Handle: Cardinal; Hide: Boolean = False): Boolean; overload; static;
     class function RunProcess(Filename: string; Hide: Boolean = False): Boolean; overload; static;
@@ -109,7 +109,7 @@ type
     class function IsAdmin: LongBool; static;
     class function HTML2Color(const HTML: string): Integer; static;
     class function SimilarColor(const Color: TColor; Diff: Integer): TColor; static;
-    class function GetFileSize(const AFilename: string): Int64; static;
+    class function GetFileSize(const AFilename: string; out Size: Int64): Boolean; static;
     class function CmpInt(const A, B: Int64; R: Boolean = False): Integer; static;
     class function CmpUInt64(const A, B: UInt64; R: Boolean = False): Integer; static;
     class function ParseVersion(const Version: string): TAppVersion; overload; static;
@@ -209,11 +209,11 @@ begin
 
       Result.Port := 0;
       if Length(U.Port) > 0 then
-        try
-          Result.Port := StrToInt(U.Port);
-          Result.PortDetected := True;
-        except
-        end;
+      try
+        Result.Port := StrToInt(U.Port);
+        Result.PortDetected := True;
+      except
+      end;
 
       if not Result.PortDetected then
         if U.Protocol = 'http' then
@@ -376,7 +376,7 @@ begin
   until False;
 end;
 
-class function TFunctions.MakeSize(Size: UInt64): string;
+class function TFunctions.MakeSize(Size: Int64): string;
 begin
   if Size < 1048576 then
     Result := Format('%f KB', [Size / (1024)])
@@ -451,7 +451,7 @@ begin
   end;
 end;
 
-class function TFunctions.RunProcess(Filename, WorkingDir: string; Timeout: UInt64; var Output: AnsiString; var ExitCode: DWORD; TerminateFlag: PByteBool; KillOnTimeout: Boolean;
+class function TFunctions.RunProcess(Filename, WorkingDir: string; Timeout: Cardinal; var Output: AnsiString; var ExitCode: DWORD; TerminateFlag: PByteBool; KillOnTimeout: Boolean;
   ReadCallback: TReadCallback = nil): TRunProcessResults; overload;
 var
   OK: Boolean;
@@ -823,19 +823,18 @@ begin
   Result := GraphUtil.ColorHLSToRGB(H, (Cardinal(L) * Diff) div 100, S);
 end;
 
-class function TFunctions.GetFileSize(const AFilename: string): Int64;
+class function TFunctions.GetFileSize(const AFilename: string; out Size: Int64): Boolean;
 var
   FileStream: TFileStream;
 begin
-  Result := -1;
+  Size := 0;
+  Result := False;
+
   try
     FileStream := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyNone);
     try
-      try
-        Result := FileStream.Size;
-      except
-        Result := 0;
-      end;
+      Size := FileStream.Size;
+      Result := True;
     finally
       FileStream.Free;
     end;
@@ -1562,7 +1561,7 @@ class function TFunctions.ReadDataObjectText(const DataObject: IDataObject; out 
         try
           while PChar(Head)^ <> #0 do
           begin
-            Head := Pointer(Integer(Head) + CharLen);
+            Head := Pointer(PtrUInt(Head) + CharLen);
             Inc(Chars);
           end;
 

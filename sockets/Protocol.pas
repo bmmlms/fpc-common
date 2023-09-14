@@ -70,7 +70,7 @@ type
     property Transferred: Cardinal read FTransferred write FTransferred;
   end;
 
-  TTransferProgressEvent = procedure(Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal; CommandHeader: TCommandHeader; Transferred: UInt64) of object;
+  TTransferProgressEvent = procedure(Sender: TObject; Direction: TTransferDirection; CommandID: Cardinal; CommandHeader: TCommandHeader; Transferred: Cardinal) of object;
 
   TCommandStreamList = class(TList<TCommandStream>)
   public

@@ -137,7 +137,7 @@ type
     FDataTimeout: Cardinal;
     FLastTimeReceived, FLastTimeSent: UInt64;
 
-    FReceived: UInt64;
+    FReceived: Int64;
     FError: Boolean;
 
     FProc: TSocketEvent;
@@ -182,7 +182,7 @@ type
     property LogMsg: string read FLogMsg;
     property LogData: string read FLogData;
     property LogLevel: TSocketLogLevel read FLogLevel;
-    property Received: UInt64 read FReceived;
+    property Received: Int64 read FReceived;
     property Error: Boolean read FError write FError;
 
     property SendLock: SyncObjs.TCriticalSection read FSendLock;

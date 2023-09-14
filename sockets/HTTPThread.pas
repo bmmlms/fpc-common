@@ -33,8 +33,8 @@ uses
 type
   THTTPThread = class(TSocketThread)
   private
-    FSpeed: Integer;
-    FSpeedReceived: Integer;
+    FSpeed: Cardinal;
+    FSpeedReceived: Cardinal;
     FLastReceivedUpdate: UInt64;
     procedure StreamHeaderRemoved(Sender: TObject); virtual;
   protected
@@ -74,7 +74,7 @@ type
 
     property RecvDataStream: TMemoryStream read FGetRecvDataStream;
     property DownloadPercent: Integer read FDownloadPercent;
-    property Speed: Integer read FSpeed;
+    property Speed: Cardinal read FSpeed;
     property PostData: string read FPostData write FSetPostData;
     property ProxyEnabled: Boolean read FProxyEnabled write FSetProxyEnabled;
     property ProxyHost: string read FProxyHost write FSetProxyHost;
