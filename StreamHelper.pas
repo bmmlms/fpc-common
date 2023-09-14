@@ -66,7 +66,6 @@ type
   TCustomMemoryStreamHelper = class helper for TCustomMemoryStream
   public
     function PosInStream(const Search: TBytes; const FromOffset: Int64): Int64;
-    function AsString: AnsiString; overload;
     function AsString(const FromOffset, Count: Int64): AnsiString; overload;
   end;
 
@@ -459,11 +458,6 @@ begin
       Exit(P - Memory);
     Inc(P);
   end;
-end;
-
-function TCustomMemoryStreamHelper.AsString: AnsiString;
-begin
-  Result := AsString(0, Size);
 end;
 
 function TCustomMemoryStreamHelper.AsString(const FromOffset, Count: Int64): AnsiString;
