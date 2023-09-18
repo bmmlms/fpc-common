@@ -74,6 +74,8 @@ type
   TShutdownBlockReasonCreate = function(hWnd: HWND; pwszReason: LPCWSTR): BOOL; stdcall;
   TShutdownBlockReasonDestroy = function(hWnd: HWND): BOOL; stdcall;
 
+  TTzSpecificLocalTimeToSystemTime = function(lpTimeZoneInformation: PTIMEZONEINFORMATION; lpLocalTime, lpUniversalTime: PSYSTEMTIME): BOOL; stdcall;
+
   { TFunctions }
 
   TFunctions = class
@@ -81,6 +83,8 @@ type
   class var
     FShutdownBlockReasonCreate: TShutdownBlockReasonCreate;
     FShutdownBlockReasonDestroy: TShutdownBlockReasonDestroy;
+
+    FTzSpecificLocalTimeToSystemTime: TTzSpecificLocalTimeToSystemTime;
   public
     class function MsgBox(Text, Title: string; uType: Cardinal): Integer; static;
     class function ValidURL(URL: string): Boolean; static;
@@ -147,6 +151,9 @@ type
 
     class function ShutdownBlockReasonCreate(hWnd: HWND; pwszReason: string): Boolean; static;
     class function ShutdownBlockReasonDestroy(hWnd: HWND): Boolean; static;
+
+    class function LocalToUTC(const DateTime: TDateTime): TDateTime; static;
+    class function DateTimeToFileTime(const DateTime: TDateTime): FILETIME; static;
   end;
 
 implementation
@@ -1625,14 +1632,40 @@ begin
   Exit(FShutdownBlockReasonDestroy(hWnd));
 end;
 
+class function TFunctions.LocalToUTC(const DateTime: TDateTime): TDateTime;
 var
-  User32Handle: THandle;
+  ST: SYSTEMTIME;
+begin
+  DateTimeToSystemTime(DateTime, ST);
+  // "TzSpecificLocalTimeToSystemTime takes into account whether daylight saving time (DST) is in effect for the local time to be converted."
+  if not FTzSpecificLocalTimeToSystemTime(nil, @ST, @ST) then
+    raise Exception.Create('TzSpecificLocalTimeToSystemTime() failed: %d'.Format([GetLastError]));
+  Exit(SystemTimeToDateTime(ST));
+end;
+
+class function TFunctions.DateTimeToFileTime(const DateTime: TDateTime): FILETIME;
+var
+  ST: TSystemTime;
+  FT: TFileTime;
+begin
+  DateTimeToSystemTime(DateTime, ST);
+  if not SystemTimeToFileTime(ST, FT) then
+    raise Exception.Create('SystemTimeToFileTime() failed: %d'.Format([GetLastError]));
+  Exit(FT);
+end;
+
+var
+  LibraryHandle: THandle;
 
 initialization
-  User32Handle := GetModuleHandle(user32);
-  if User32Handle <> 0 then
+  LibraryHandle := GetModuleHandle(user32);
+  if LibraryHandle <> 0 then
   begin
-    TFunctions.FShutdownBlockReasonCreate := GetProcAddress(User32Handle, 'ShutdownBlockReasonCreate');
-    TFunctions.FShutdownBlockReasonDestroy := GetProcAddress(User32Handle, 'ShutdownBlockReasonDestroy');
+    TFunctions.FShutdownBlockReasonCreate := GetProcAddress(LibraryHandle, 'ShutdownBlockReasonCreate');
+    TFunctions.FShutdownBlockReasonDestroy := GetProcAddress(LibraryHandle, 'ShutdownBlockReasonDestroy');
   end;
+
+  LibraryHandle := GetModuleHandle(kernel32);
+  if LibraryHandle <> 0 then
+    TFunctions.FTzSpecificLocalTimeToSystemTime := GetProcAddress(LibraryHandle, 'TzSpecificLocalTimeToSystemTime');
 end.
