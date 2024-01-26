@@ -276,14 +276,20 @@ class function TSocketBaseThread.NetRecvTimeout(ctx: Pointer; buf: Pointer; len:
 var
   Socket: TSocket absolute ctx;
   ReadFds: TFdSet;
-  Res: Integer;
+  TimeoutVal: TimeVal;
 begin
+  // This is only relevant for the ssl handshake.
+  // When the handshake is done the socket loop only reads data after doing a successful select().
+  TimeoutVal.tv_sec := 5;
+  TimeoutVal.tv_usec := 0;
+
   FD_ZERO(ReadFds);
   FD_SET(Socket, ReadFds);
-  Res := select(0, @readfds, nil, nil, @timeout);
-  if Res = 0 then
+  Result := select(0, @ReadFds, nil, nil, @TimeoutVal);
+
+  if Result = 0 then
     Exit(-MBEDTLS_ERR_SSL_TIMEOUT)
-  else if Res = SOCKET_ERROR then
+  else if Result = SOCKET_ERROR then
   begin
     Result := WSAGetLastError;
     if (Result = WSAECONNRESET) or (Result = WSAECONNABORTED) then
@@ -485,6 +491,9 @@ var
   entropy: mbedtls_shared;
   ctr_drbg: mbedtls_shared;
 begin
+  TimeoutVal.tv_sec := 0;
+  TimeoutVal.tv_usec := 100000; // 100ms
+
   if FSecure then
   begin
     mbedtls_ssl_init(@ssl);
@@ -522,8 +531,6 @@ begin
             Exit;
 
           Ticks := GetTickCount64;
-          TimeoutVal.tv_sec := 0;
-          TimeoutVal.tv_usec := 100000; // 100ms
           FD_ZERO(WriteFds);
           FD_ZERO(ExceptFds);
           FD_SET(FSocketHandle, WriteFds);
@@ -565,7 +572,6 @@ begin
           raise EExceptionParams.CreateFmt('Function mbedtls_ssl_set_hostname() returned error %d', [Res]);
 
         mbedtls_ssl_set_bio(@ssl, Pointer(FSocketHandle), @TSocketThread.NetSend, nil, @TSocketThread.NetRecvTimeout);
-        mbedtls_ssl_conf_read_timeout(@ssl, TLSTimeout);
 
         Res := mbedtls_ssl_handshake(@ssl);
         while Res <> 0 do
@@ -598,9 +604,6 @@ begin
       while True do
       begin
         DoStuff;
-
-        TimeoutVal.tv_sec := 0;
-        TimeoutVal.tv_usec := 100000; // 100ms
 
         FD_ZERO(ReadFds);
         FD_ZERO(WriteFds);
