@@ -1,20 +1,12 @@
-unit mbedTLS;
-
-{$linklib ..\SubModules\mbedtls\library\libmbedtls.a}
-{$linklib ..\SubModules\mbedtls\library\libmbedx509.a}
-{$linklib ..\SubModules\mbedtls\library\libmbedcrypto.a}
-
-{$linklib libmingwex.a}
-{$linklib libgcc.a}
-{$linklib libmsvcrt.a}
-{$linklib libkernel32.a}
-{$linklib libadvapi32.a}
+unit MbedTLS;
 
 interface
 
 uses
+  AppData,
   Classes,
-  SysUtils;
+  SysUtils,
+  Windows;
 
 type
   size_t = Integer;
@@ -508,65 +500,174 @@ const
   MBEDTLS_ENTROPY_SOURCE_STRONG = 1;
   MBEDTLS_ENTROPY_SOURCE_WEAK = 0;
 
-function mbedtls_ssl_close_notify(ssl: Pmbedtls_ssl_context): Integer; cdecl; external;
-procedure mbedtls_ssl_free(ssl: Pmbedtls_ssl_context); cdecl; external;
-function mbedtls_ssl_get_verify_result(ssl: Pmbedtls_ssl_context): uint32_t; cdecl; external;
-function mbedtls_ssl_get_ciphersuite(const ssl: Pmbedtls_ssl_context): PChar; cdecl; external;
-function mbedtls_ssl_get_version(const ssl: Pmbedtls_ssl_context): PChar; cdecl; external;
-function mbedtls_ssl_get_max_frag_len(const ssl: Pmbedtls_ssl_context): size_t; cdecl; external;
-function mbedtls_ssl_get_peer_cert(const ssl: Pmbedtls_ssl_context): Pmbedtls_x509_crt; cdecl; external;
-function mbedtls_ssl_get_session(const ssl: Pmbedtls_ssl_context; session: Pmbedtls_ssl_session): Integer; cdecl; external;
-function mbedtls_ssl_get_ciphersuite_name(const ciphersuite_id: Integer): PChar; cdecl; external;
-function mbedtls_ssl_get_ciphersuite_id(const ciphersuite_name: PChar): Integer; cdecl; external;
-function mbedtls_ssl_handshake(ssl: Pmbedtls_ssl_context): Integer; cdecl; external;
-function mbedtls_ssl_handshake_client_step(ssl: Pmbedtls_ssl_context): Integer; cdecl; external;
-procedure mbedtls_ssl_init(ssl: Pmbedtls_ssl_context); cdecl; external;
-function mbedtls_ssl_list_ciphersuites: PInteger; cdecl; external;
-function mbedtls_ssl_read(ssl: Pmbedtls_ssl_context; buf: Pointer; len: size_t): Integer; cdecl; external;
-function mbedtls_ssl_set_hostname(ssl: Pmbedtls_ssl_context; hostname: PChar): Integer; cdecl; external;
-procedure mbedtls_ssl_set_bio(ssl: Pmbedtls_ssl_context; p_bio: Pointer; f_send: TNetSendFunc; f_recv: TNetRecvFunc; f_recv_timeout: TNetRecvTimeoutFunc); cdecl; external;
-procedure mbedtls_ssl_set_timer_cb(ssl: Pmbedtls_ssl_context; p_timer: Pointer; f_set_timer: TSetTimerFunc; f_get_timer: TGetTimerFunc); cdecl; external;
-function mbedtls_ssl_setup(ssl: Pmbedtls_ssl_context; conf: Pmbedtls_ssl_config): Integer; cdecl; external;
-function mbedtls_ssl_write(ssl: Pmbedtls_ssl_context; const buf: Pointer; len: size_t): Integer; cdecl; external;
-function mbedtls_ssl_session_reset(ssl: Pmbedtls_ssl_context): Integer; cdecl; external;
-function mbedtls_ssl_set_session(ssl: Pmbedtls_ssl_context; const session: Pmbedtls_ssl_session): Integer; cdecl; external;
-function mbedtls_ssl_get_bytes_avail(ssl: Pmbedtls_ssl_context): size_t; cdecl; external;
+type
 
-procedure mbedtls_ssl_config_init(conf: Pmbedtls_ssl_config); cdecl; external;
-function mbedtls_ssl_config_defaults(conf: Pmbedtls_ssl_config; endpoint: Integer; transport: Integer; preset: Integer): Integer; cdecl; external;
-procedure mbedtls_ssl_config_free(conf: Pmbedtls_ssl_config); cdecl; external;
+  { TMbedTLSLoader }
 
-procedure mbedtls_ssl_conf_authmode(conf: Pmbedtls_ssl_config; authmode: Integer); cdecl; external;
-procedure mbedtls_ssl_conf_ca_chain(conf: Pmbedtls_ssl_config; ca_chain: Pmbedtls_x509_crt; ca_crl: Pmbedtls_x509_crl); cdecl; external;
-procedure mbedtls_ssl_conf_transport(conf: Pmbedtls_ssl_config; transport: Integer); cdecl; external;
-procedure mbedtls_ssl_conf_rng(conf: Pmbedtls_ssl_config; f_rng: TrngFunc; p_rng: Pointer); cdecl; external;
-procedure mbedtls_ssl_conf_dbg(conf: Pmbedtls_ssl_config; f_dbg: TdbgFunc; p_dbg: Pointer); cdecl; external; overload;
-procedure mbedtls_ssl_conf_dbg(conf: Pmbedtls_ssl_config; f_dbg: Pointer; p_dbg: Pointer); cdecl; external; overload;
-procedure mbedtls_ssl_conf_max_version(conf: Pmbedtls_ssl_config; major, minor: Integer); cdecl; external;
-procedure mbedtls_ssl_conf_min_version(conf: Pmbedtls_ssl_config; major, minor: Integer); cdecl; external;
-procedure mbedtls_ssl_conf_session_tickets(conf: Pmbedtls_ssl_config; use_tickets: Integer); cdecl; external;
-procedure mbedtls_ssl_conf_read_timeout(ssl: Pmbedtls_ssl_context; timeout: uint32_t); cdecl; external;
+  TMbedTLSLoader = class
+  private
+    FDLLPath: string;
+    FDLLHandle: THandle;
 
-function mbedtls_entropy_add_source(ctx: Pmbedtls_entropy_context; f_source: TEntropyFunc; p_source: Pointer; threshold: size_t; strong: Integer): Integer; cdecl; external;
-procedure mbedtls_entropy_free(ctx: Pmbedtls_entropy_context); cdecl; external;
-function mbedtls_entropy_func(Data: Pointer; output: PChar; len: size_t): Integer; cdecl; external;
-procedure mbedtls_entropy_init(ctx: Pmbedtls_entropy_context); cdecl; external;
+    procedure Uninitialize;
+  public
+    destructor Destroy; override;
+    function Initialize: Boolean;
+  end;
 
-procedure mbedtls_ctr_drbg_init(ctx: Pmbedtls_ctr_drbg_context); cdecl; external;
-function mbedtls_ctr_drbg_seed(ctx: Pmbedtls_ctr_drbg_context; f_entropy: TEntropyFunc; p_entropy: Pointer; custom: PChar; len: size_t): Integer; cdecl; external;
-function mbedtls_ctr_drbg_random_with_add(p_rng: Pointer; output: PChar; output_len: size_t; additional: PChar; add_len: size_t): Integer; cdecl; external;
-function mbedtls_ctr_drbg_random(p_rng: Pointer; output: PChar; output_len: size_t): Integer; cdecl; external;
-procedure mbedtls_ctr_drbg_free(ctx: Pmbedtls_ctr_drbg_context); cdecl; external;
-
-procedure mbedtls_debug_set_threshold(threshold: Integer); cdecl; external;
-
-procedure mbedtls_x509_crt_init(crt: Pmbedtls_x509_crt); cdecl; external;
-procedure mbedtls_x509_crt_free(crt: Pmbedtls_x509_crt); cdecl; external;
-function mbedtls_x509_crt_parse(chain: Pmbedtls_x509_crt; buf: PChar; buflen: size_t): Integer; cdecl; external;
-function mbedtls_x509_crt_parse_file(chain: Pmbedtls_x509_crt; const path: PChar): Integer; cdecl; external;
-function mbedtls_x509_crt_parse_path(chain: Pmbedtls_x509_crt; const path: PChar): Integer; cdecl; external;
-function mbedtls_x509_crt_verify_info(buf: PChar; size_: size_t; const prefix: PChar; flags: uint32_t): Integer; cdecl; external;
+var
+  mbedtls_ssl_close_notify: function(ssl: Pmbedtls_ssl_context): Integer; cdecl;
+  mbedtls_ssl_free: procedure(ssl: Pmbedtls_ssl_context); cdecl;
+  mbedtls_ssl_get_verify_result: function(ssl: Pmbedtls_ssl_context): uint32_t; cdecl;
+  mbedtls_ssl_get_ciphersuite: function(const ssl: Pmbedtls_ssl_context): PChar; cdecl;
+  mbedtls_ssl_get_version: function(const ssl: Pmbedtls_ssl_context): PChar; cdecl;
+  mbedtls_ssl_get_max_frag_len: function(const ssl: Pmbedtls_ssl_context): size_t; cdecl;
+  mbedtls_ssl_get_peer_cert: function(const ssl: Pmbedtls_ssl_context): Pmbedtls_x509_crt; cdecl;
+  mbedtls_ssl_get_session: function(const ssl: Pmbedtls_ssl_context; session: Pmbedtls_ssl_session): Integer; cdecl;
+  mbedtls_ssl_get_ciphersuite_name: function(const ciphersuite_id: Integer): PChar; cdecl;
+  mbedtls_ssl_get_ciphersuite_id: function(const ciphersuite_name: PChar): Integer; cdecl;
+  mbedtls_ssl_handshake: function(ssl: Pmbedtls_ssl_context): Integer; cdecl;
+  mbedtls_ssl_handshake_client_step: function(ssl: Pmbedtls_ssl_context): Integer; cdecl;
+  mbedtls_ssl_init: procedure(ssl: Pmbedtls_ssl_context); cdecl;
+  mbedtls_ssl_list_ciphersuites: function: PInteger; cdecl;
+  mbedtls_ssl_read: function(ssl: Pmbedtls_ssl_context; buf: Pointer; len: size_t): Integer; cdecl;
+  mbedtls_ssl_set_hostname: function(ssl: Pmbedtls_ssl_context; hostname: PChar): Integer; cdecl;
+  mbedtls_ssl_set_bio: procedure(ssl: Pmbedtls_ssl_context; p_bio: Pointer; f_send: TNetSendFunc; f_recv: TNetRecvFunc; f_recv_timeout: TNetRecvTimeoutFunc); cdecl;
+  mbedtls_ssl_set_timer_cb: procedure(ssl: Pmbedtls_ssl_context; p_timer: Pointer; f_set_timer: TSetTimerFunc; f_get_timer: TGetTimerFunc); cdecl;
+  mbedtls_ssl_setup: function(ssl: Pmbedtls_ssl_context; conf: Pmbedtls_ssl_config): Integer; cdecl;
+  mbedtls_ssl_write: function(ssl: Pmbedtls_ssl_context; const buf: Pointer; len: size_t): Integer; cdecl;
+  mbedtls_ssl_session_reset: function(ssl: Pmbedtls_ssl_context): Integer; cdecl;
+  mbedtls_ssl_set_session: function(ssl: Pmbedtls_ssl_context; const session: Pmbedtls_ssl_session): Integer; cdecl;
+  mbedtls_ssl_get_bytes_avail: function(ssl: Pmbedtls_ssl_context): size_t; cdecl;
+  mbedtls_ssl_config_init: procedure(conf: Pmbedtls_ssl_config); cdecl;
+  mbedtls_ssl_config_defaults: function(conf: Pmbedtls_ssl_config; endpoint: Integer; transport: Integer; preset: Integer): Integer; cdecl;
+  mbedtls_ssl_config_free: procedure(conf: Pmbedtls_ssl_config); cdecl;
+  mbedtls_ssl_conf_authmode: procedure(conf: Pmbedtls_ssl_config; authmode: Integer); cdecl;
+  mbedtls_ssl_conf_ca_chain: procedure(conf: Pmbedtls_ssl_config; ca_chain: Pmbedtls_x509_crt; ca_crl: Pmbedtls_x509_crl); cdecl;
+  mbedtls_ssl_conf_transport: procedure(conf: Pmbedtls_ssl_config; transport: Integer); cdecl;
+  mbedtls_ssl_conf_rng: procedure(conf: Pmbedtls_ssl_config; f_rng: TrngFunc; p_rng: Pointer); cdecl;
+  mbedtls_ssl_conf_dbg: procedure(conf: Pmbedtls_ssl_config; f_dbg: TdbgFunc; p_dbg: Pointer); cdecl;
+  mbedtls_ssl_conf_max_version: procedure(conf: Pmbedtls_ssl_config; major, minor: Integer); cdecl;
+  mbedtls_ssl_conf_min_version: procedure(conf: Pmbedtls_ssl_config; major, minor: Integer); cdecl;
+  mbedtls_ssl_conf_session_tickets: procedure(conf: Pmbedtls_ssl_config; use_tickets: Integer); cdecl;
+  mbedtls_ssl_conf_read_timeout: procedure(ssl: Pmbedtls_ssl_context; timeout: uint32_t); cdecl;
+  mbedtls_entropy_add_source: function(ctx: Pmbedtls_entropy_context; f_source: TEntropyFunc; p_source: Pointer; threshold: size_t; strong: Integer): Integer; cdecl;
+  mbedtls_entropy_free: procedure(ctx: Pmbedtls_entropy_context); cdecl;
+  mbedtls_entropy_func: function(Data: Pointer; output: PChar; len: size_t): Integer; cdecl;
+  mbedtls_entropy_init: procedure(ctx: Pmbedtls_entropy_context); cdecl;
+  mbedtls_ctr_drbg_init: procedure(ctx: Pmbedtls_ctr_drbg_context); cdecl;
+  mbedtls_ctr_drbg_seed: function(ctx: Pmbedtls_ctr_drbg_context; f_entropy: TEntropyFunc; p_entropy: Pointer; custom: PChar; len: size_t): Integer; cdecl;
+  mbedtls_ctr_drbg_random_with_add: function(p_rng: Pointer; output: PChar; output_len: size_t; additional: PChar; add_len: size_t): Integer; cdecl;
+  mbedtls_ctr_drbg_random: function(p_rng: Pointer; output: PChar; output_len: size_t): Integer; cdecl;
+  mbedtls_ctr_drbg_free: procedure(ctx: Pmbedtls_ctr_drbg_context); cdecl;
+  mbedtls_debug_set_threshold: procedure(threshold: Integer); cdecl;
+  mbedtls_x509_crt_init: procedure(crt: Pmbedtls_x509_crt); cdecl;
+  mbedtls_x509_crt_free: procedure(crt: Pmbedtls_x509_crt); cdecl;
+  mbedtls_x509_crt_parse: function(chain: Pmbedtls_x509_crt; buf: PChar; buflen: size_t): Integer; cdecl;
+  mbedtls_x509_crt_parse_file: function(chain: Pmbedtls_x509_crt; const path: PChar): Integer; cdecl;
+  mbedtls_x509_crt_parse_path: function(chain: Pmbedtls_x509_crt; const path: PChar): Integer; cdecl;
+  mbedtls_x509_crt_verify_info: function(buf: PChar; size_: size_t; const prefix: PChar; flags: uint32_t): Integer; cdecl;
 
 implementation
+
+{ TMbedTLSLoader }
+
+procedure TMbedTLSLoader.Uninitialize;
+var
+  i: Integer;
+begin
+  if FDLLHandle <> 0 then
+    FreeLibrary(FDLLHandle);
+
+  try
+    if FDLLPath <> '' then
+      SysUtils.DeleteFile(FDLLPath);
+  except
+  end;
+end;
+
+destructor TMbedTLSLoader.Destroy;
+begin
+  Uninitialize;
+
+  inherited Destroy;
+end;
+
+function TMbedTLSLoader.Initialize: Boolean;
+var
+  Res: TResourceStream;
+begin
+  FDLLPath := ConcatPaths([AppGlobals.TempDir, 'mbedtls.dll']);
+
+  Res := TResourceStream.Create(0, 'MBEDTLS', Windows.RT_RCDATA);
+  try
+    try
+      Res.SaveToFile(FDLLPath);
+    except
+    end;
+  finally
+    Res.Free;
+  end;
+
+  FDLLHandle := LoadLibrary(PChar(FDLLPath));
+
+  if FDLLHandle <> 0 then
+  begin
+    mbedtls_ssl_close_notify := GetProcAddress(FDLLHandle, 'mbedtls_ssl_close_notify');
+    mbedtls_ssl_free := GetProcAddress(FDLLHandle, 'mbedtls_ssl_free');
+    mbedtls_ssl_get_verify_result := GetProcAddress(FDLLHandle, 'mbedtls_ssl_get_verify_result');
+    mbedtls_ssl_get_ciphersuite := GetProcAddress(FDLLHandle, 'mbedtls_ssl_get_ciphersuite');
+    mbedtls_ssl_get_version := GetProcAddress(FDLLHandle, 'mbedtls_ssl_get_version');
+    mbedtls_ssl_get_max_frag_len := GetProcAddress(FDLLHandle, 'mbedtls_ssl_get_max_frag_len');
+    mbedtls_ssl_get_peer_cert := GetProcAddress(FDLLHandle, 'mbedtls_ssl_get_peer_cert');
+    mbedtls_ssl_get_session := GetProcAddress(FDLLHandle, 'mbedtls_ssl_get_session');
+    mbedtls_ssl_get_ciphersuite_name := GetProcAddress(FDLLHandle, 'mbedtls_ssl_get_ciphersuite_name');
+    mbedtls_ssl_get_ciphersuite_id := GetProcAddress(FDLLHandle, 'mbedtls_ssl_get_ciphersuite_id');
+    mbedtls_ssl_handshake := GetProcAddress(FDLLHandle, 'mbedtls_ssl_handshake');
+    mbedtls_ssl_handshake_client_step := GetProcAddress(FDLLHandle, 'mbedtls_ssl_handshake_client_step');
+    mbedtls_ssl_init := GetProcAddress(FDLLHandle, 'mbedtls_ssl_init');
+    mbedtls_ssl_list_ciphersuites := GetProcAddress(FDLLHandle, 'mbedtls_ssl_list_ciphersuites');
+    mbedtls_ssl_read := GetProcAddress(FDLLHandle, 'mbedtls_ssl_read');
+    mbedtls_ssl_set_hostname := GetProcAddress(FDLLHandle, 'mbedtls_ssl_set_hostname');
+    mbedtls_ssl_set_bio := GetProcAddress(FDLLHandle, 'mbedtls_ssl_set_bio');
+    mbedtls_ssl_set_timer_cb := GetProcAddress(FDLLHandle, 'mbedtls_ssl_set_timer_cb');
+    mbedtls_ssl_setup := GetProcAddress(FDLLHandle, 'mbedtls_ssl_setup');
+    mbedtls_ssl_write := GetProcAddress(FDLLHandle, 'mbedtls_ssl_write');
+    mbedtls_ssl_session_reset := GetProcAddress(FDLLHandle, 'mbedtls_ssl_session_reset');
+    mbedtls_ssl_set_session := GetProcAddress(FDLLHandle, 'mbedtls_ssl_set_session');
+    mbedtls_ssl_get_bytes_avail := GetProcAddress(FDLLHandle, 'mbedtls_ssl_get_bytes_avail');
+    mbedtls_ssl_config_init := GetProcAddress(FDLLHandle, 'mbedtls_ssl_config_init');
+    mbedtls_ssl_config_defaults := GetProcAddress(FDLLHandle, 'mbedtls_ssl_config_defaults');
+    mbedtls_ssl_config_free := GetProcAddress(FDLLHandle, 'mbedtls_ssl_config_free');
+    mbedtls_ssl_conf_authmode := GetProcAddress(FDLLHandle, 'mbedtls_ssl_conf_authmode');
+    mbedtls_ssl_conf_ca_chain := GetProcAddress(FDLLHandle, 'mbedtls_ssl_conf_ca_chain');
+    mbedtls_ssl_conf_transport := GetProcAddress(FDLLHandle, 'mbedtls_ssl_conf_transport');
+    mbedtls_ssl_conf_rng := GetProcAddress(FDLLHandle, 'mbedtls_ssl_conf_rng');
+    mbedtls_ssl_conf_dbg := GetProcAddress(FDLLHandle, 'mbedtls_ssl_conf_dbg');
+    mbedtls_ssl_conf_dbg := GetProcAddress(FDLLHandle, 'mbedtls_ssl_conf_dbg');
+    mbedtls_ssl_conf_max_version := GetProcAddress(FDLLHandle, 'mbedtls_ssl_conf_max_version');
+    mbedtls_ssl_conf_min_version := GetProcAddress(FDLLHandle, 'mbedtls_ssl_conf_min_version');
+    mbedtls_ssl_conf_session_tickets := GetProcAddress(FDLLHandle, 'mbedtls_ssl_conf_session_tickets');
+    mbedtls_ssl_conf_read_timeout := GetProcAddress(FDLLHandle, 'mbedtls_ssl_conf_read_timeout');
+    mbedtls_entropy_add_source := GetProcAddress(FDLLHandle, 'mbedtls_entropy_add_source');
+    mbedtls_entropy_free := GetProcAddress(FDLLHandle, 'mbedtls_entropy_free');
+    mbedtls_entropy_func := GetProcAddress(FDLLHandle, 'mbedtls_entropy_func');
+    mbedtls_entropy_init := GetProcAddress(FDLLHandle, 'mbedtls_entropy_init');
+    mbedtls_ctr_drbg_init := GetProcAddress(FDLLHandle, 'mbedtls_ctr_drbg_init');
+    mbedtls_ctr_drbg_seed := GetProcAddress(FDLLHandle, 'mbedtls_ctr_drbg_seed');
+    mbedtls_ctr_drbg_random_with_add := GetProcAddress(FDLLHandle, 'mbedtls_ctr_drbg_random_with_add');
+    mbedtls_ctr_drbg_random := GetProcAddress(FDLLHandle, 'mbedtls_ctr_drbg_random');
+    mbedtls_ctr_drbg_free := GetProcAddress(FDLLHandle, 'mbedtls_ctr_drbg_free');
+    mbedtls_debug_set_threshold := GetProcAddress(FDLLHandle, 'mbedtls_debug_set_threshold');
+    mbedtls_x509_crt_init := GetProcAddress(FDLLHandle, 'mbedtls_x509_crt_init');
+    mbedtls_x509_crt_free := GetProcAddress(FDLLHandle, 'mbedtls_x509_crt_free');
+    mbedtls_x509_crt_parse := GetProcAddress(FDLLHandle, 'mbedtls_x509_crt_parse');
+    mbedtls_x509_crt_parse_file := GetProcAddress(FDLLHandle, 'mbedtls_x509_crt_parse_file');
+    mbedtls_x509_crt_parse_path := GetProcAddress(FDLLHandle, 'mbedtls_x509_crt_parse_path');
+    mbedtls_x509_crt_verify_info := GetProcAddress(FDLLHandle, 'mbedtls_x509_crt_verify_info');
+  end;
+
+  Result := FDLLHandle <> 0;
+end;
 
 end.
