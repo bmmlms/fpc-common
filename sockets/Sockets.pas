@@ -27,7 +27,7 @@ uses
   Generics.Collections,
   Logging,
   StreamHelper,
-  mbedTLS,
+  MbedTLS,
   SyncObjs,
   SysUtils,
   Windows,

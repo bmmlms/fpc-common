@@ -54,7 +54,7 @@ type
     constructor Create(const Path: string; const PathNew: string); overload;
   end;
 
-  TNotificationsEvent = procedure(const Sender: TObject; const Notification: TNotification) of object;
+  TNotificationEvent = procedure(const Sender: TObject; const Notification: TNotification) of object;
 
   { TDirectoryWatcher }
 
@@ -69,15 +69,11 @@ type
     FBuffer: Pointer;
     FOverlap: TOverlapped;
     FFilter: DWORD;
-
     FRenamedPath: string;
-
     FDeleted: TList<TDeletedFile>;
     FNotifications: TList<TNotification>;
-
     FTerminateEvent: THandle;
-
-    FOnNotifications: TNotificationsEvent;
+    FOnNotification: TNotificationEvent;
 
     procedure BeginRead;
     procedure ProcessBuffer(const Buffer: Pointer);
@@ -91,7 +87,7 @@ type
     constructor Create(const Directory: string; const Filter: DWORD);
     destructor Destroy; override;
 
-    property OnNotifications: TNotificationsEvent read FOnNotifications write FOnNotifications;
+    property OnNotification: TNotificationEvent read FOnNotification write FOnNotification;
   end;
 
 implementation
@@ -312,9 +308,9 @@ var
   Notifications: TList<TNotification> absolute NotificationsPtr;
 begin
   try
-    if Assigned(FOnNotifications) then
+    if Assigned(FOnNotification) then
       for Notification in Notifications do
-        FOnNotifications(Self, Notification);
+        FOnNotification(Self, Notification);
   finally
     Notifications.Free;
   end;
