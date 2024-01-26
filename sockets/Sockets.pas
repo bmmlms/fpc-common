@@ -384,7 +384,8 @@ end;
 
 class procedure TSocketThread.FreeCertificates;
 begin
-  mbedtls_x509_crt_free(@FCertChain);
+  if Assigned(mbedtls_x509_crt_free) then
+    mbedtls_x509_crt_free(@FCertChain);
 end;
 
 procedure TSocketThread.DoCommunicationEstablished;
