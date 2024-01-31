@@ -1459,7 +1459,8 @@ type
   TGetShellWindow = function(): HWND; stdcall;
 var
   i: Integer;
-  H, Handle: Cardinal;
+  H: HWND;
+  Handle: THandle;
   R: TRect;
   GetShellWindow: TGetShellWindow;
 begin
