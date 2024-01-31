@@ -85,6 +85,7 @@ type
     FWebLanguages: TStringList;
 
     FLicense: TLicense;
+    FArchitecture: string;
 
     FSkipSave: Boolean;
 
@@ -175,6 +176,7 @@ type
     property SkipSave: Boolean read FSkipSave write FSkipSave;
 
     property License: TLicense read FLicense write FLicense;
+    property Architecture: string read FArchitecture;
   end;
 
 implementation
@@ -188,6 +190,13 @@ begin
   FSkipSave := False;
 
   FLicense := License;
+  {$IF defined(CPU64)}
+  FArchitecture := 'x86_64';
+  {$ELSEIF defined(CPU32)}
+  FArchitecture := 'i386';
+  {$ELSE}
+  Unknown Architecture
+  {$ENDIF}
 
   FCS := SyncObjs.TCriticalSection.Create;
   FAppPath := ExtractFilePath(ParamStr(0));
