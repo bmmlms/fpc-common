@@ -312,8 +312,8 @@ begin
     if Len = 0 then
       Exit;
 
-    P := GetMemory(Len + 2);
-    FillChar(P^, Len + 2, #0);
+    P := GetMemory(Len + SizeOf(WideChar));
+    FillChar(P^, Len + SizeOf(WideChar), #0);
     ReadBuffer(P^, Len);
     Value := WideCharToString(P);
     FreeMemory(P);
@@ -384,7 +384,7 @@ procedure TStreamHelper.Write(const Value: string; const WriteUTF8: Boolean);
 var
   Len: Integer;
   Len2: UInt32;
-  P: Pointer;
+  P: PWideChar;
 begin
   if WriteUTF8 then
   begin
@@ -394,12 +394,12 @@ begin
       WriteBuffer(Value[1], Len2);
   end else
   begin
-    Len := UTF8Length(Value) * 2;
+    Len := UTF8Length(Value) * SizeOf(WideChar);
     WriteBuffer(Len, SizeOf(Len));
     if Len > 0 then
     begin
-      P := GetMem(Len + 1);
-      StringToWideChar(Value, P, Len + 1);
+      P := GetMem(Len + SizeOf(WideChar));
+      StringToWideChar(Value, P, Len + SizeOf(WideChar));
       WriteBuffer(P^, Len);
       FreeMem(P);
     end;
