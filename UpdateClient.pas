@@ -290,9 +290,9 @@ begin
   if Action = uaVersion then
   begin
     if (FLanguage <> '') and (AppGlobals.WebLanguages.IndexOf(LowerCase(FLanguage)) > -1) then
-      URL := AppGlobals.ProjectUpdateLinks[FURLIndex] + '/' + Trim(FLanguage) + '/projekte/update/' + LowerCase(AppGlobals.AppName)
+      URL := '%s/%s/projekte/update/%s?architecture=%s'.Format([AppGlobals.ProjectUpdateLinks[FURLIndex], Trim(FLanguage), LowerCase(AppGlobals.AppName), AppGlobals.Architecture])
     else
-      URL := AppGlobals.ProjectUpdateLinks[FURLIndex] + '/en/projekte/update/' + LowerCase(AppGlobals.AppName);
+      URL := '%s/en/projekte/update/%s?architecture=%s'.Format([AppGlobals.ProjectUpdateLinks[FURLIndex], LowerCase(AppGlobals.AppName), AppGlobals.Architecture]);
 
     FThread := TUpdateThread.Create(Action, URL);
   end else
