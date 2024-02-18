@@ -136,7 +136,7 @@ type
     class function FilterEndsWith(const Source, FilterList: TStringArray; out Results: TStringArray): Boolean; static;
     class function GetStringGuessEncoding(const Value: PByte; const Len: Integer): string; static;
 
-    class function BrowseDialog(Owner: TComponent; Title: string): string; static;
+    class function BrowseDialog(Owner: TComponent; Title: string; out Directory: string): Boolean; static;
     class procedure PropertiesDialog(Filename: string); static;
     class function GetShellFolder(const CSIDL: Integer): string; static;
     class function Recycle(Handle: Cardinal; Filename: string): Boolean; overload; static;
@@ -1312,20 +1312,21 @@ begin
   Result := ConvertEncodingToUTF8(Result, GuessEncoding(Result), Dummy);
 end;
 
-class function TFunctions.BrowseDialog(Owner: TComponent; Title: string): string;
+class function TFunctions.BrowseDialog(Owner: TComponent; Title: string; out Directory: string): Boolean;
 var
   Dlg: TSelectDirectoryDialog;
 begin
-  Result := '';
+  Directory := '';
   Dlg := TSelectDirectoryDialog.Create(Owner);
   try
-    Dlg.Options := [ofEnableSizing, ofPathMustExist];
+    Dlg.Options := [ofEnableSizing];
     Dlg.Title := Title;
 
-    if not Dlg.Execute then
+    Result := Dlg.Execute;
+    if not Result then
       Exit;
 
-    Result := Dlg.FileName;
+    Directory := Dlg.FileName;
   finally
     Dlg.Free;
   end;
