@@ -146,6 +146,7 @@ begin
   Res := TFunctions.ParseURL(URL);
 
   inherited Create(Res.Host, Res.Port, Stream, Res.Secure, CheckCertificate);
+
   FTypedStream := THTTPStream(FRecvStream);
   FTypedStream.OnHeaderRemoved := StreamHeaderRemoved;
   FSpeed := 0;
@@ -157,11 +158,7 @@ begin
   FProxyHost := '';
   FProxyPort := 0;
 
-  {$IFDEF DEBUG}
-  FDataTimeout := 100000;
-  {$ELSE}
-  FDataTimeout := 20000;
-  {$ENDIF}
+  FDataTimeout := {$IFDEF DEBUG}100000{$ELSE}20000{$ENDIF};
 
   SetSendParams;
 end;

@@ -72,8 +72,8 @@ begin
   if GetVersionEx(Ver) then
   begin
     VerRec := TFunctions.ParseVersion(Ver.dwMajorVersion, Ver.dwMinorVersion, 0, 0);
-    if not TFunctions.IsVersionNewer(TFunctions.ParseVersion('5.0.0.0'), VerRec) then
-      TfrmMsgDlg.ShowMsg(nil, Format(_('%s requires at least Windows Vista, earlier versions of windows are not supported.'#13#10 +
+    if VerRec.Major < 10 then
+      TfrmMsgDlg.ShowMsg(nil, Format(_('%s requires at least Windows 10, earlier versions of windows are not supported.'#13#10 +
         'If you continue running %s using a not supported operating system I am not responsible for any problems that might occur.'), [AppGlobals.AppName, AppGlobals.AppName]),
         mtWarning, [mbOK], mbOK, 12);
   end;
@@ -84,10 +84,7 @@ begin
     try
       ProfileSettings.ShowModal;
       if AppGlobals.Portable = poUndefined then
-      begin
-        Result := False;
-        Exit;
-      end;
+        Exit(False);
     finally
       ProfileSettings.Free;
     end;
