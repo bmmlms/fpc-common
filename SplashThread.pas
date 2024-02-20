@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2023 Alexander Nottelmann
+    Copyright (c) 2010-2024 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -233,7 +233,7 @@ begin
   FResourceName := ResourceName;
   FStartPos := TRect.Create(MainLeft, MainTop, MainLeft + MainWidth, MainTop + MainHeight);
 
-  FVersion := '© 2010-2023 A. Nottelmann et al. - V' + Version;
+  FVersion := '© 2010-2024 A. Nottelmann et al. - V' + Version;
   if GitSHA <> '' then
     FVersion := FVersion + '-%s'.Format([GitSHA]);
   if Codename <> '' then

@@ -1,7 +1,7 @@
 {
     ------------------------------------------------------------------------
     mistake.ws common application library
-    Copyright (c) 2010-2023 Alexander Nottelmann
+    Copyright (c) 2010-2024 Alexander Nottelmann
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -146,7 +146,7 @@ begin
 
   case AppGlobals.License of
     alGPL:
-      txtAbout.Text := Format(_('%s'#13#10 + 'Copyright © 2010-2023 Alexander Nottelmann et al.'#13#10#13#10 +
+      txtAbout.Text := Format(_('%s'#13#10 + 'Copyright © 2010-2024 Alexander Nottelmann et al.'#13#10#13#10 +
         'This program is free software: you can redistribute it and/or modify ' + 'it under the terms of the GNU General Public License as published by ' +
         'the Free Software Foundation, either version 3 of the License, or ' + '(at your option) any later version.'#13#10#13#10 +
         'This program is distributed in the hope that it will be useful, ' + 'but WITHOUT ANY WARRANTY; without even the implied warranty of ' +
@@ -154,7 +154,7 @@ begin
         'You should have received a copy of the GNU General Public License ' + 'along with this program. If not, see <http://www.gnu.org/licenses/>.'), [AppGlobals.AppName]);
     alProprietary:
     begin
-      txtAbout.Text := Format(_('%s'#13#10 + 'Copyright © 2010-2023 Alexander Nottelmann'), [AppGlobals.AppName]);
+      txtAbout.Text := Format(_('%s'#13#10 + 'Copyright © 2010-2024 Alexander Nottelmann'), [AppGlobals.AppName]);
       lblGPL.Visible := False;
       txtAbout.Height := txtAbout.Height + lblGPL.Height + (txtAbout.Top - lblGPL.Top - lblGPL.Height);
       txtAbout.Top := lblGPL.Top;
