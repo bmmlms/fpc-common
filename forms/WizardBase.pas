@@ -40,6 +40,7 @@ uses
   MControls,
   MLabeledEdit,
   SettingsStorage,
+  shlobj,
   StdCtrls,
   SysUtils,
   Variants,
@@ -381,7 +382,7 @@ begin
   FStepList[0].Description := Format(_('Welcome to %s!'#13#10'This wizard will guide you through the initial setup.'#13#10'Please select your language now.'), [AppGlobals.AppName]);
 
   lblAppData.Caption := Format(_('Settings will be saved to "%s" and/or to the registry to "%s".'#13#10'This makes sense if the application was installed.'),
-    [TSettingsInstalled.GetDataDir(AppGlobals.AppName), 'HKCU' + TSettingsInstalled.GetRegPath(AppGlobals.AppName)]);
+    [TSettingsInstalled.GetDataDir(CSIDL_APPDATA, AppGlobals.AppName), 'HKCU' + TSettingsInstalled.GetRegPath(AppGlobals.AppName)]);
   lblPortable.Caption := Format(_('Settings will be saved to application folder which is "%s" at the moment.'#13#10'This makes sense if the application will be used in portable mode.'), [TSettingsPortable.GetDataDir]);
   lblTop.Caption := _(FActiveSetup.FCaption);
 end;

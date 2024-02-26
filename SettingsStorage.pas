@@ -90,6 +90,7 @@ type
     FAppPath: string;
 
     FDataDir: string;
+    FAddonDir: string;
     FDataDirOverridden: Boolean;
     FDataFile: string;
     FIgnoreFields: TStringList;
@@ -120,6 +121,7 @@ type
     function PrepareSave: Boolean; virtual; abstract;
 
     property DataDir: string read FDataDir;
+    property AddonDir: string read FAddonDir;
     property DataDirOverridden: Boolean read FDataDirOverridden;
     property DataFile: string read FDataFile;
     property IgnoreFields: TStringList read FIgnoreFields;
@@ -134,7 +136,7 @@ type
 
     class function Active(AppName: string): Boolean;
     class function GetRegPath(AppName: string): string;
-    class function GetDataDir(AppName: string): string;
+    class function GetDataDir(CSIDL: Integer; AppName: string): string;
 
     procedure GetData(Lst: TSettingsList); overload; override;
     function DeleteProfile: Boolean; override;
@@ -233,8 +235,12 @@ begin
   begin
     FDataDirOverridden := True;
     FDataDir := Param.Values[0];
+    FAddonDir := Param.Values[0];
   end else
-    FDataDir := GetDataDir(AppName);
+  begin
+    FDataDir := GetDataDir(CSIDL_APPDATA, AppName);
+    FAddonDir := GetDataDir(CSIDL_LOCAL_APPDATA, AppName);
+  end;
 
   FDataFile := GetFilePath('data.dat');
 end;
@@ -370,9 +376,9 @@ begin
   GetDataInternal(FRegPath, Lst, Length(FRegPath));
 end;
 
-class function TSettingsInstalled.GetDataDir(AppName: string): string;
+class function TSettingsInstalled.GetDataDir(CSIDL: Integer; AppName: string): string;
 begin
-  Result := TFunctions.GetShellFolder(CSIDL_APPDATA);
+  Result := TFunctions.GetShellFolder(CSIDL);
   if (Trim(Result) <> '') then
     Result := ConcatPaths([Result, AppName]);
 end;
@@ -543,8 +549,12 @@ begin
   begin
     FDataDirOverridden := True;
     FDataDir := Param.Values[0];
+    FAddonDir := Param.Values[0];
   end else
+  begin
     FDataDir := GetDataDir;
+    FAddonDir := GetDataDir;
+  end;
 
   FIniFile := GetFilePath('settings.ini');
   FDataFile := GetFilePath('data.dat');
