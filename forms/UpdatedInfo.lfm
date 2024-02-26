@@ -1,18 +1,18 @@
 object frmUpdatedInfo: TfrmUpdatedInfo
-  Left = 0
-  Height = 225
-  Top = 0
-  Width = 350
+  Left = 81
+  Height = 265
+  Top = 306
+  Width = 380
   AutoSize = True
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   BorderWidth = 4
   Caption = 'Update installed'
-  ClientHeight = 225
-  ClientWidth = 350
+  ClientHeight = 245
+  ClientWidth = 380
   Color = clBtnFace
-  Constraints.MinHeight = 225
-  Constraints.MinWidth = 350
+  Constraints.MinHeight = 245
+  Constraints.MinWidth = 380
   KeyPreview = True
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
@@ -20,14 +20,15 @@ object frmUpdatedInfo: TfrmUpdatedInfo
   Position = poScreenCenter
   ShowHint = True
   ShowInTaskBar = stAlways
+  LCLVersion = '3.0.0.3'
   object txtInfo: TMemo
     Left = 4
-    Height = 100
+    Height = 140
     Top = 4
-    Width = 342
+    Width = 372
     Align = alClient
     Color = clBtnFace
-    Constraints.MinHeight = 100
+    Constraints.MinHeight = 120
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 0
@@ -35,25 +36,26 @@ object frmUpdatedInfo: TfrmUpdatedInfo
   object pnlNav: TPanel
     Left = 4
     Height = 34
-    Top = 187
-    Width = 342
+    Top = 227
+    Width = 372
     Align = alBottom
     AutoSize = True
     BorderSpacing.Top = 8
     BevelOuter = bvNone
     ClientHeight = 34
-    ClientWidth = 342
+    ClientWidth = 372
+    ParentBackground = False
     TabOrder = 2
     object Bevel2: TBevel
       Left = 0
       Height = 4
       Top = 0
-      Width = 342
+      Width = 372
       Align = alTop
       Shape = bsTopLine
     end
     object btnClose: TBitBtn
-      Left = 242
+      Left = 272
       Height = 30
       Top = 4
       Width = 100
@@ -69,8 +71,8 @@ object frmUpdatedInfo: TfrmUpdatedInfo
   object chkNotShowAgain: TCheckBox
     Left = 4
     Height = 19
-    Top = 160
-    Width = 342
+    Top = 200
+    Width = 372
     Align = alBottom
     BorderSpacing.Top = 4
     Caption = '&Don''t show this message again'
@@ -79,8 +81,8 @@ object frmUpdatedInfo: TfrmUpdatedInfo
   object btnDonate: TImage
     Left = 4
     Height = 48
-    Top = 108
-    Width = 342
+    Top = 148
+    Width = 372
     Align = alBottom
     AutoSize = True
     BorderSpacing.Top = 4
