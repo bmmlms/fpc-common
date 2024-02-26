@@ -162,8 +162,8 @@ class function TFunctions.MsgBox(Text, Title: string; uType: Cardinal): Integer;
 var
   ParentHandle: THandle = 0;
 begin
-  if Assigned(Screen.ActiveForm) then
-    ParentHandle := Screen.ActiveForm.Handle;
+  if Assigned(Screen.FocusedForm) then
+    ParentHandle := Screen.FocusedForm.Handle;
 
   Result := MessageBox(ParentHandle, PChar(Text), PChar(Title), uType);
 end;
