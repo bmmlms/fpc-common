@@ -144,7 +144,7 @@ procedure TSplashThread.FocusAppWindow;
 begin
   FindAppWindow;
   if FAppWindow > 0 then
-    SetActiveWindow(FAppWindow);
+    SetForegroundWindow(FAppWindow);
 end;
 
 procedure TSplashThread.SetAlpha(Value: Byte);
