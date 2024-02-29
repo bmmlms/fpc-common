@@ -37,7 +37,8 @@ uses
   MControls,
   StdCtrls,
   SysUtils,
-  Variants;
+  Variants,
+  Windows;
 
 type
 
@@ -83,7 +84,7 @@ end;
 procedure TfrmUpdatedInfo.FormCreate(Sender: TObject);
 var
   P, P2: TPicture;
-  P3: TBitmap;
+  P3: Graphics.TBitmap;
 begin
   Language.Translate(Self);
 
@@ -96,7 +97,7 @@ begin
   begin
     P := TPicture.Create;
     P2 := TPicture.Create;
-    P3 := TBitmap.Create;
+    P3 := Graphics.TBitmap.Create;
     try
       if Language.CurrentLanguage.ID = 'de' then
         P.LoadFromResourceName(HINSTANCE, 'DONATE_DE')
@@ -126,7 +127,7 @@ end;
 
 procedure TfrmUpdatedInfo.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
-  if Key = 27 then
+  if Key = VK_ESCAPE then
   begin
     Key := 0;
     Close;
