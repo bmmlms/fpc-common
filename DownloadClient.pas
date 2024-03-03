@@ -26,6 +26,7 @@ uses
   AppData,
   AppDataBase,
   Classes,
+  Forms,
   HTTPThread,
   LanguageObjects,
   Sockets,
@@ -91,13 +92,10 @@ end;
 procedure TDownloadThread.DoEnded;
 begin
   inherited;
-  if FTypedStream.ResponseCode = 200 then
-  begin
-    if (RecvDataStream.Size = FTypedStream.ContentLength) and (RecvDataStream.Size > 1024) then
-      Sync(FOnFileDownloaded)
-    else
-      Sync(FOnError);
-  end else
+
+  if (FTypedStream.ResponseCode = 200) and (RecvDataStream.Size = FTypedStream.ContentLength) and (RecvDataStream.Size > 1024) then
+    Sync(FOnFileDownloaded)
+  else if not Terminated then
     Sync(FOnError);
 end;
 
@@ -118,8 +116,8 @@ end;
 
 destructor TDownloadClient.Destroy;
 begin
-  if FThread <> nil then
-    FThread.Terminate;
+  Kill;
+
   inherited;
 end;
 
@@ -130,15 +128,12 @@ end;
 
 procedure TDownloadClient.Kill;
 begin
-  if FThread <> nil then
-  begin
-    try
-      TerminateThread(FThread.Handle, 1);
-      FThread.Free;
-    except
-    end;
-    FThread := nil;
-  end;
+  if not Assigned(FThread) then
+    Exit;
+
+  FThread.Terminate;
+  while Assigned(FThread) do
+    Application.ProcessMessages;
 end;
 
 procedure TDownloadClient.Start;

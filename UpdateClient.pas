@@ -175,7 +175,7 @@ begin
       uaUpdate:
         if (RecvDataStream.Size = FTypedStream.ContentLength) and (RecvDataStream.Size > 1024) then
           Sync(FOnUpdateDownloaded)
-        else if (not Terminated) then
+        else if not Terminated then
           Sync(FOnError);
     end;
   end else if not Terminated then
@@ -214,16 +214,12 @@ end;
 
 procedure TUpdateClient.Kill;
 begin
-  if FThread <> nil then
-  begin
-    try
-      FThread.Terminate;
-      while FThread <> nil do
-        Application.ProcessMessages;
-    except
-    end;
-    FThread := nil;
-  end;
+  if not Assigned(FThread) then
+    Exit;
+
+  FThread.Terminate;
+  while Assigned(FThread) do
+    Application.ProcessMessages;
 end;
 
 procedure TUpdateClient.RunUpdate(Handle: Cardinal);
