@@ -34,7 +34,7 @@ type
 
   TWakeupEvent = class
   private
-    FHandle: Cardinal;
+    FHandle: THandle;
   public
     constructor Create(Time: TDateTime);
     destructor Destroy; override;
