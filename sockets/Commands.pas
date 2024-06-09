@@ -194,6 +194,7 @@ function TCommand.Get: TBytes;
 var
   S: TMemoryStream;
 begin
+  Result := [];
   S := TMemoryStream.Create;
   try
     DoGet(S);

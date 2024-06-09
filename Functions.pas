@@ -397,6 +397,9 @@ class function TFunctions.DiskSpaceOkay(Path: string; MinSpaceGB: Int64): Boolea
 var
   Res: Int64;
 begin
+  if MinSpaceGB <= 0 then
+    Exit(True);
+
   Path := LowerCase(Path);
   if (Length(Path) = 0) or (not CharInSet(Path[1], ['a'..'z'])) then
     Exit(True);
@@ -1306,6 +1309,7 @@ class function TFunctions.GetStringGuessEncoding(const Value: PByte; const Len: 
 var
   Dummy: Boolean;
 begin
+  Result := '';
   SetCodePage(RawByteString(Result), CP_NONE);
   SetLength(Result, Len);
   Move(Value^, Result[1], Len);
