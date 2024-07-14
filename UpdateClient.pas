@@ -245,7 +245,7 @@ begin
   ConditionMask := VerSetConditionMask(ConditionMask, VER_MAJORVERSION, OP);
   ConditionMask := VerSetConditionMask(ConditionMask, VER_MINORVERSION, OP);
 
-  // Bei >= Vista gehts über das Manifest, ansonsten 'runas'...
+  // Bei >= Vista gehts Ã¼ber das Manifest, ansonsten 'runas'...
   if TFunctions.IsAdmin then
     TFunctions.RunProcess('"' + FUpdateFile + '" /NOICONS /SP /SILENT /UPDATE /RUN /PATH="' + AppGlobals.AppPath + '"')
   else

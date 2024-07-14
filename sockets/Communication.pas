@@ -55,7 +55,7 @@ type
     FOnCommandReceived: TCommandEvent;
     FOnBytesTransferred: TTransferProgressEvent;
 
-    // Für CommandReceived-Event
+    // FÃ¼r CommandReceived-Event
     FID: Cardinal;
     FCommandHeader: TCommandHeader;
     FCommand: TCommand;
@@ -177,7 +177,7 @@ end;
 
 procedure TCommandThreadBase.DoReceivedCommand(ID: Cardinal; CommandHeader: TCommandHeader; Command: TCommand);
 begin
-  // Fertiges Command Bytes rübergeben
+  // Fertiges Command Bytes rÃ¼bergeben
   if Assigned(FOnBytesTransferred) then
     FOnBytesTransferred(Self, tdReceive, ID, CommandHeader, CommandHeader.CommandLength);
 end;

@@ -91,7 +91,7 @@ type
   protected
     FVersion: Cardinal;
     FCommandType: TCommandTypes; // Wird nicht von hier versendet im Stream oder so!
-    // analog zum commandtype hier drüber sollte hier auch noch die version gemirrort werden.
+    // analog zum commandtype hier drÃ¼ber sollte hier auch noch die version gemirrort werden.
     FStream: TStream;
 
     procedure DoGet(S: TMemoryStream); virtual;

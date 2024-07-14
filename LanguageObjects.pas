@@ -589,7 +589,7 @@ begin
             end;
             Entry := TEntry.Create(GetSafe(Copy(Line, 9, Length(Line) - 8)), Self);
             FEntries.Add(Entry);
-          end else if (LowerCase(Copy(Line, 1, 10)) = 'occurence=') or (LowerCase(Copy(Line, 1, 10)) = 'occurance=') then // Hatte früher einen kleinen Rechtschreibfehler...
+          end else if (LowerCase(Copy(Line, 1, 10)) = 'occurence=') or (LowerCase(Copy(Line, 1, 10)) = 'occurance=') then // Hatte frÃ¼her einen kleinen Rechtschreibfehler...
           begin
             if Entry <> nil then
               try
@@ -884,7 +884,7 @@ var
 }
 begin
   // T.Benz 10.02.2012
-  // Die Verwaltung des Speichers überlasse ich der Stringliste
+  // Die Verwaltung des Speichers Ã¼berlasse ich der Stringliste
 {  GetMem(P, StrLen(szLoc) + 1);
   ZeroMemory(P, StrLen(szLoc) + 1);
   StrCopy(P, szLoc);
@@ -913,7 +913,7 @@ begin
         for i := 0 to Locales.Count - 1 do
         begin
           // T.Benz 10.02.2012
-          // ich überlasse die Verwaltung des Speichers der Stringliste
+          // ich Ã¼berlasse die Verwaltung des Speichers der Stringliste
           // das FreeMem verursachte in einigen anderen Programmteilen
           // Schutzverletzungen
           {
@@ -1379,12 +1379,12 @@ begin
   if C is IPreTranslatable then
     (C as IPreTranslatable).PreTranslate;
 
-  // Ignore-List überprüfen
+  // Ignore-List Ã¼berprÃ¼fen
   for i := 0 to FIgnoreClassList.Count - 1 do
     if (FIgnoreClassList[i] = C.ClassType) or (C.InheritsFrom(FIgnoreClassList[i])) then
       Exit;
 
-  // Prüfen, ob das Objekt schon in der Liste ist.
+  // PrÃ¼fen, ob das Objekt schon in der Liste ist.
   // Das sollte StackOverflow-Exceptions verhindern.
   for i := 0 to Translated.Count - 1 do
     if Translated[i] = C then
@@ -1412,7 +1412,7 @@ begin
           if (Cl <> nil) and (Cl.ClassName <> 'TAction') then
             if Cl.InheritsFrom(TStrings) then
             begin
-              // Spezialbehandlung für TStrings, siehe
+              // Spezialbehandlung fÃ¼r TStrings, siehe
               // http://www.delphipraxis.net/152626-rtti-memo-lines-tstrings.html
               NewValue := TranslateString(Cl, Owner, 'Text', TStrings(Cl).Text);
               // Ohne <> Vergleich werden sonst bei z.B. TComboBox Index auf -1 gesetzt
