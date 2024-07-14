@@ -106,7 +106,6 @@ type
     class function GetCPUCount: DWord; static;
     class function BeautifyFilePath(const s: string; MaxPathChars: Integer): string; static;
     class function HashString(Value: string): Cardinal; static;
-    class function IsAnsi(const s: string): Boolean; static;
     class function OccurenceCount(C: Char; Str: string): Integer; static;
     class function PatternReplace(S: string; ReplaceList: TPatternReplaceArray): string; static;
     class function PatternReplaceNew(S: string; ReplaceList: TPatternReplaceArray): string; static;
@@ -170,7 +169,7 @@ end;
 
 class function TFunctions.ValidURL(URL: string): Boolean;
 begin
-  Result := IsAnsi(URL);
+  Result := IsPureAscii(URL);
   if Result then
     Result := ParseURL(URL).Success;
 end;
@@ -648,24 +647,6 @@ begin
     if (x <> 0) then
       Result := Result xor (x shr 24);
     Result := Result and (not x);
-  end;
-end;
-
-class function TFunctions.IsAnsi(const s: string): Boolean;
-var
-  P: PByte;
-begin
-  Result := True;
-
-  if S.Length = 0 then
-    Exit;
-
-  P := @s[1];
-  while P < @s[1] + Length(s) do
-  begin
-    if P^ > 127 then
-      Exit(False);
-    P += 1;
   end;
 end;
 
