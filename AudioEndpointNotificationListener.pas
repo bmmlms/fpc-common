@@ -98,7 +98,7 @@ type
 
 implementation
 
-{ TDeviceNotificationListener }
+{ TAudioEndpointNotificationListener }
 
 destructor TAudioEndpointNotificationListener.Destroy;
 begin

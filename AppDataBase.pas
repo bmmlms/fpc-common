@@ -77,6 +77,7 @@ type
     FAppPath: string;
     FAppName: string;
     FAppVersion: TAppVersion;
+    FProductVersion: string;
     FTempDir: string;
     FPortableAllowed: Boolean;
     FPortable: TPortable;
@@ -113,7 +114,6 @@ type
     FProjectDonateLink: string;
     FProjectThanksText: string;
 
-    FGitSHA: string;
     FCodename: string;
 
     procedure InitOnlyOne; virtual;
@@ -144,7 +144,7 @@ type
     property AppPath: string read FAppPath;
     property AppName: string read FAppName;
     property AppVersion: TAppVersion read FAppVersion;
-    property GitSHA: string read FGitSHA;
+    property ProductVersion: string read FProductVersion;
     property Codename: string read FCodename;
     property TempDir: string read FTempDir;
     property ProjectUpdateLinks: TStringDynArray read FProjectUpdateLinks;
@@ -190,13 +190,7 @@ begin
   FSkipSave := False;
 
   FLicense := License;
-  {$IF defined(CPU64)}
-  FArchitecture := 'x86_64';
-  {$ELSEIF defined(CPU32)}
-  FArchitecture := 'i386';
-  {$ELSE}
-  Unknown Architecture
-  {$ENDIF}
+  FArchitecture := {$IF defined(CPU64)}'x86_64'{$ELSEIF defined(CPU32)}'i386'{$ELSE}{$ERROR Unknown architecture}{$ENDIF};
 
   FCS := SyncObjs.TCriticalSection.Create;
   FAppPath := ExtractFilePath(ParamStr(0));
@@ -643,7 +637,9 @@ begin
     FAppVersion.Build := 0;
   end;
 
-  if (FAppVersion.Major = 0) and (FAppVersion.Minor = 0) and (FAppVersion.Revision = 0) and (FAppVersion.Build = 0) then
+  FProductVersion := TFunctions.GetProductVersion;
+
+  if ((FAppVersion.Major = 0) and (FAppVersion.Minor = 0) and (FAppVersion.Revision = 0) and (FAppVersion.Build = 0)) or (FProductVersion = '') then
     raise Exception.Create(Format(_('The version of the application could not be determined.'#13#10 + 'Please ask for support at %s.'#13#10 + 'The application will be terminated.'), [FProjectForumLink]));
 end;
 

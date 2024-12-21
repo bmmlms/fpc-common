@@ -136,9 +136,7 @@ begin
   Self.Caption := Caption;
   lblAbout.Caption := AppGlobals.AppName;
 
-  lblVersion.Caption := _('Version') + ' ' + AppGlobals.AppVersion.AsString;
-  if AppGlobals.GitSHA <> '' then
-    lblVersion.Caption := lblVersion.Caption + '-%s'.Format([AppGlobals.GitSHA]);
+  lblVersion.Caption := _('Version') + ' ' + AppGlobals.ProductVersion;
   if AppGlobals.Codename <> '' then
     lblVersion.Caption := lblVersion.Caption + ' ''%s'''.Format([AppGlobals.Codename]);
 

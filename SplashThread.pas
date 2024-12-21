@@ -72,7 +72,7 @@ type
   protected
     procedure Execute; override;
   public
-    constructor Create(WindowClass, ResourceName, Codename, Version, GitSHA: string; MainLeft, MainTop, MainWidth, MainHeight: Integer);
+    constructor Create(WindowClass, ResourceName, Codename, Version: string; MainLeft, MainTop, MainWidth, MainHeight: Integer);
     destructor Destroy; override;
   end;
 
@@ -222,7 +222,7 @@ begin
   Result := DefWindowProc(FHandle, uMsg, wParam, lParam);
 end;
 
-constructor TSplashThread.Create(WindowClass, ResourceName, Codename, Version, GitSHA: string; MainLeft, MainTop, MainWidth, MainHeight: Integer);
+constructor TSplashThread.Create(WindowClass, ResourceName, Codename, Version: string; MainLeft, MainTop, MainWidth, MainHeight: Integer);
 begin
   inherited Create(False);
 
@@ -234,8 +234,6 @@ begin
   FStartPos := TRect.Create(MainLeft, MainTop, MainLeft + MainWidth, MainTop + MainHeight);
 
   FVersion := '© 2010-2024 A. Nottelmann et al. - V' + Version;
-  if GitSHA <> '' then
-    FVersion := FVersion + '-%s'.Format([GitSHA]);
   if Codename <> '' then
     FVersion := FVersion + ' ''%s'''.Format([Codename]);
 end;

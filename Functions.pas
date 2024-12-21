@@ -29,6 +29,7 @@ uses
   Controls,
   DateUtils,
   Dialogs,
+  FileInfo,
   FileUtil,
   Forms,
   Graphics,
@@ -123,6 +124,7 @@ type
     class function TryUnRelativePath(const s: string): string; static;
     class function FixPathName(Path: string): string; static;
     class function GetFileVersion(Filename: string): TAppVersion; static;
+    class function GetProductVersion: string; static;
     class function ShortenString(Str: string; Len: Integer): string; static;
     class procedure Explode(const Separator, S: string; Lst: TStringList); static;
     class function RegExReplace(RegEx, ReplaceWith, Data: string): string; static;
@@ -1112,6 +1114,20 @@ begin
 
   if (Result.Major = 0) and (Result.Minor = 0) and (Result.Revision = 0) and (Result.Build = 0) then
     raise Exception.Create('');
+end;
+
+class function TFunctions.GetProductVersion: string;
+var
+  FileVersionInfo: TFileVersionInfo;
+begin
+  Result := '';
+  FileVersionInfo := TFileVersionInfo.Create(nil);
+  try
+    FileVersionInfo.ReadFileInfo;
+    Result := FileVersionInfo.VersionStrings.Values['ProductVersion'];
+  finally
+    FileVersionInfo.Free;
+  end;
 end;
 
 class function TFunctions.ShortenString(Str: string; Len: Integer): string;
