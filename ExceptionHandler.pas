@@ -44,16 +44,18 @@ type
 implementation
 
 var
-  DesktopDir, AppVersion: string;
+  DesktopDir, ProductVersion: string;
 
 procedure UnhandledException(Obj: TObject; Addr: Pointer; FrameCount: Longint; Frames: PPointer);
+const
+  Architecture: string = {$IF defined(CPU64)}'x86_64'{$ELSEIF defined(CPU32)}'i386'{$ELSE}{$ERROR Unknown architecture}{$ENDIF};
 var
   i: LongInt;
   SL: TStringList;
 begin
   SL := TStringList.Create;
   try
-    SL.Add('Version: %s'.Format([AppVersion]));
+    SL.Add('Version: %s (%s)'.Format([ProductVersion, Architecture]));
     if Obj is Exception then
       SL.Add('%s: %s'.Format([Exception(Obj).ClassName, Exception(Obj).Message]));
     SL.Add('  %s'.Format([StringReplace(Trim(BackTraceStrFunc(Addr)), '  ', ' ', [rfReplaceAll])]));
@@ -83,7 +85,7 @@ end;
 constructor TExceptionHandler.Create;
 begin
   DesktopDir := TFunctions.GetShellFolder(CSIDL_DESKTOPDIRECTORY);
-  AppVersion := TFunctions.GetFileVersion(Application.ExeName).AsString;
+  ProductVersion := TFunctions.GetProductVersion;
 
   ExceptProc := @UnhandledException;
   Application.AddOnExceptionHandler(HandleException);
