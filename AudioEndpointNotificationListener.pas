@@ -67,26 +67,31 @@ type
     function UnregisterEndpointNotificationCallback(const Client: IMMNotificationClient): HRESULT; stdcall;
   end;
 
-  { TAudioEndpointNotificationListener }
-
-  TAudioEndpointNotificationListener = class(TInterfacedObject, IMMNotificationClient)
-  const
-    CLASS_IMMDeviceEnumerator: TGUID = '{BCDE0395-E52F-467C-8E3D-C4579291692E}';
-    WM_DEFAULT_DEVICE_CHANGED = WM_USER + 47;
+  { TMMNotificationClient }
+  TMMNotificationClient = class(TInterfacedObject, IMMNotificationClient)
   private
     FWndHandle: HWND;
-    FMMDeviceEnumerator: IMMDeviceEnumerator;
-    FOnDefaultDeviceChanged: TNotifyEvent;
-
-    procedure WndProc(var Msg: TMessage);
   protected
     function OnDeviceStateChanged(pwstrDeviceId: LPWSTR; dwNewState: DWORD): HRESULT; stdcall;
     function OnDeviceAdded(pwstrDeviceId: LPWSTR): HRESULT; stdcall;
     function OnDeviceRemoved(pwstrDeviceId: LPWSTR): HRESULT; stdcall;
-    function OnDefaultDeviceChangedInternal(flow: EDataFlow; role: ERole; pwstrDefaultDeviceId: LPWSTR): HRESULT; stdcall;
+    function OnDefaultDeviceChanged(flow: EDataFlow; role: ERole; pwstrDefaultDeviceId: LPWSTR): HRESULT; stdcall;
     function OnPropertyValueChanged(pwstrDeviceId: LPWSTR; const key: TPropertyKey): HRESULT; stdcall;
+  public
+    constructor Create(WndHandle: HWND);
+  end;
 
-    function IMMNotificationClient.OnDefaultDeviceChanged = OnDefaultDeviceChangedInternal;
+  { TAudioEndpointNotificationListener }
+
+  TAudioEndpointNotificationListener = class
+  private
+    FWndHandle: HWND;
+    // These fields must be declared as interface types to make use of interface reference counting
+    FMMDeviceEnumerator: IMMDeviceEnumerator;
+    FMMNotificationClient: IMMNotificationClient;
+    FOnDefaultDeviceChanged: TNotifyEvent;
+
+    procedure WndProc(var Msg: TMessage);
   public
     destructor Destroy; override;
 
@@ -96,7 +101,46 @@ type
     property OnDefaultDeviceChanged: TNotifyEvent read FOnDefaultDeviceChanged write FOnDefaultDeviceChanged;
   end;
 
+const
+  CLASS_IMMDeviceEnumerator: TGUID = '{BCDE0395-E52F-467C-8E3D-C4579291692E}';
+  WM_DEFAULT_DEVICE_CHANGED = WM_USER + 47;
+
 implementation
+
+{ TMMNotificationClient }
+
+constructor TMMNotificationClient.Create(WndHandle: HWND);
+begin
+  FWndHandle := WndHandle;
+end;
+
+function TMMNotificationClient.OnDeviceStateChanged(pwstrDeviceId: LPWSTR; dwNewState: DWORD): HRESULT; stdcall;
+begin
+  Result := S_OK;
+end;
+
+function TMMNotificationClient.OnDeviceAdded(pwstrDeviceId: LPWSTR): HRESULT; stdcall;
+begin
+  Result := S_OK;
+end;
+
+function TMMNotificationClient.OnDeviceRemoved(pwstrDeviceId: LPWSTR): HRESULT; stdcall;
+begin
+  Result := S_OK;
+end;
+
+function TMMNotificationClient.OnDefaultDeviceChanged(flow: EDataFlow; role: ERole; pwstrDefaultDeviceId: LPWSTR): HRESULT; stdcall;
+begin
+  if (Flow = eRender) and (role = eMultimedia) then
+    PostMessage(FWndHandle, WM_DEFAULT_DEVICE_CHANGED, 0, 0);
+
+  Result := S_OK;
+end;
+
+function TMMNotificationClient.OnPropertyValueChanged(pwstrDeviceId: LPWSTR; const key: TPropertyKey): HRESULT; stdcall;
+begin
+  Result := S_OK;
+end;
 
 { TAudioEndpointNotificationListener }
 
@@ -117,20 +161,23 @@ begin
     raise Exception.Create('AllocateHWnd() failed: %s'.Format([SysErrorMessage(GetLastError)]));
 
   FMMDeviceEnumerator := CreateComObject(CLASS_IMMDeviceEnumerator) as IMMDeviceEnumerator;
+  FMMNotificationClient := TMMNotificationClient.Create(FWndHandle);
 
-  if not Succeeded(FMMDeviceEnumerator.RegisterEndpointNotificationCallback(Self)) then
+  if not Succeeded(FMMDeviceEnumerator.RegisterEndpointNotificationCallback(FMMNotificationClient)) then
   begin
-    FreeAndNil(FMMDeviceEnumerator);
-    WidgetSet.DeallocateHWnd(FWndHandle);
-    FWndHandle := 0;
+    Stop;
+
     raise Exception.Create('RegisterEndpointNotificationCallback() failed');
   end;
 end;
 
 procedure TAudioEndpointNotificationListener.Stop;
 begin
-  if Assigned(FMMDeviceEnumerator) then
-    FMMDeviceEnumerator.UnregisterEndpointNotificationCallback(Self);
+  if Assigned(FMMDeviceEnumerator) and Assigned(FMMNotificationClient) then
+    FMMDeviceEnumerator.UnregisterEndpointNotificationCallback(FMMNotificationClient);
+
+  FMMDeviceEnumerator := nil;
+  FMMNotificationClient := nil;
 
   if FWndHandle <> 0 then
   begin
@@ -149,34 +196,6 @@ begin
     Msg.Result := 0;
   end else
     Msg.Result := DefWindowProc(FWndHandle, Msg.Msg, Msg.WParam, Msg.LParam);
-end;
-
-function TAudioEndpointNotificationListener.OnDeviceStateChanged(pwstrDeviceId: LPWSTR; dwNewState: DWORD): HRESULT; stdcall;
-begin
-  Result := S_OK;
-end;
-
-function TAudioEndpointNotificationListener.OnDeviceAdded(pwstrDeviceId: LPWSTR): HRESULT; stdcall;
-begin
-  Result := S_OK;
-end;
-
-function TAudioEndpointNotificationListener.OnDeviceRemoved(pwstrDeviceId: LPWSTR): HRESULT; stdcall;
-begin
-  Result := S_OK;
-end;
-
-function TAudioEndpointNotificationListener.OnDefaultDeviceChangedInternal(flow: EDataFlow; role: ERole; pwstrDefaultDeviceId: LPWSTR): HRESULT; stdcall;
-begin
-  if (Flow = eRender) and (role = eMultimedia) then
-    PostMessage(FWndHandle, WM_DEFAULT_DEVICE_CHANGED, 0, 0);
-
-  Result := S_OK;
-end;
-
-function TAudioEndpointNotificationListener.OnPropertyValueChanged(pwstrDeviceId: LPWSTR; const key: TPropertyKey): HRESULT; stdcall;
-begin
-  Result := S_OK;
 end;
 
 end.
