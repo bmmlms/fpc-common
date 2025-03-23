@@ -153,7 +153,7 @@ object frmAbout: TfrmAbout
               Width = 291
               Align = alTop
               BorderSpacing.Top = 4
-              Caption = 'Copyright © 2010-2024 Alexander Nottelmann et al.'
+              Caption = 'Copyright © 2010-2025 Alexander Nottelmann et al.'
               ParentColor = False
             end
             object lblVersion: TLabel
