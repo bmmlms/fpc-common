@@ -160,6 +160,7 @@ begin
   FMute.AllowAllUp := True;
   FMute.Down := True;
   FMute.OnClick := MuteClick;
+  FMute.BorderSpacing.Right := Scale96ToFont(4);
   FMute.Parent := Self;
 
   FTrackBar := TMSeekBar.Create(Self);
