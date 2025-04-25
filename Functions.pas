@@ -626,7 +626,6 @@ end;
 
 class function TFunctions.BeautifyFilePath(const s: string; MaxPathChars: Integer): string;
 var
-  i: Integer;
   CharSep: Integer;
 begin
   Result := s;

@@ -573,8 +573,6 @@ implementation
 { TMbedTLSLoader }
 
 procedure TMbedTLSLoader.Uninitialize;
-var
-  i: Integer;
 begin
   if FDLLHandle <> 0 then
     FreeLibrary(FDLLHandle);

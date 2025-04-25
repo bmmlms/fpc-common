@@ -572,7 +572,6 @@ procedure TAppDataBase.GetRunningFromInstalledLocation;
   const
     UninstallPath = 'Software\Microsoft\Windows\CurrentVersion\Uninstall';
   var
-    i: Integer;
     Reg: TRegistry;
     KeyName: UnicodeString;
     TmpKeyNames: TUnicodeStringArray = [];
