@@ -115,7 +115,7 @@ begin
   if not Assigned(Images) then
     Exit;
 
-  FBuffer.Canvas.Brush.Color := clWindow;
+  FBuffer.Canvas.Brush.Color := GetDefaultColor(dctBrush);
   FBuffer.Canvas.Brush.Style := bsSolid;
   FBuffer.Canvas.FillRect(0, 0, Scale96ToFont(16), Scale96ToFont(16));
 

@@ -167,7 +167,7 @@ begin
     end;
   end;
 
-  Bmp.Canvas.Brush.Color := clBtnFace;
+  Bmp.Canvas.Brush.Color := GetDefaultColor(dctBrush);
   Bmp.Canvas.FillRect(R);
 end;
 
