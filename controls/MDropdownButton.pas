@@ -36,6 +36,7 @@ type
     class procedure WSRegisterClass; override;
     function HandleAllocated: Boolean;
     procedure CalculatePreferredSize(var PreferredWidth, PreferredHeight: integer; WithThemeSpace: Boolean); override;
+  public
     procedure Click; override;
   published
     property PopupMenu: TPopupMenu read FPopupMenu write FPopupMenu;

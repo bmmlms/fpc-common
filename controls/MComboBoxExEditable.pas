@@ -186,12 +186,9 @@ end;
 // Copied from base class with modified drawing of icons
 procedure TMComboBoxExEditable.DrawItem(Index: Integer; ARect: TRect; State: StdCtrls.TOwnerDrawState);
 const
-  caThemes: array [Boolean] of TThemedButton = (tbPushButtonDisabled, tbPushButtonNormal);
   cItemIndent: SmallInt = 2;
 var
-  aDetail: TThemedElementDetails;
   aDropped: Boolean;
-  aEnabled: Boolean;
   aFlags: Cardinal;
   aFocusedEditableMainItemNoDD: Boolean;
   aImgPoint: TPoint;
@@ -202,7 +199,6 @@ var
   ImagesSize: TSize;
 begin
   aDropped := DroppedDown;
-  aEnabled := IsEnabled;
   aMainItem := (ARect.Left > 0);
   {$IF DEFINED(LCLWin32) or DEFINED(LCLWin64)}
   aFocusedEditableMainItemNoDD := (Focused and aMainItem and not aDropped);
@@ -216,7 +212,7 @@ begin
     Canvas.Brush.Style := bsSolid;
     Canvas.FillRect(ARect);
   end;
-  aDetail := ThemeServices.GetElementDetails(caThemes[aEnabled]);
+
   if FNeedMeasure then
   begin
     FTextHeight := Canvas.TextHeight('ŠjÁÇ');

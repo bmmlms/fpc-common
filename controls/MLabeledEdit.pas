@@ -28,7 +28,6 @@ type
   TMLabeledControl<T> = class(TCustomPanel)
   private
     FCaption: string;
-    FEdit: TEdit;
     FLabel: TLabel;
 
     procedure FSetCaption(Value: string);

@@ -10,7 +10,6 @@ uses
   ExtCtrls,
   Forms,
   Graphics,
-  GraphUtil,
   Math,
   Menus,
   MVirtualTree,
@@ -172,10 +171,50 @@ begin
 end;
 
 procedure TMSeekBar.PaintGripper(const Bmp: Graphics.TBitmap; const ClipRect: TRect);
+
+  procedure DrawButton(Canvas: TCanvas; R: TRect; State: TButtonState);
+  var
+    uType, uState: Integer;
+    Details: TThemedElementDetails;
+    Win: TThemedButton;
+  begin
+    if ThemeServices.ThemesEnabled then
+    begin
+      case State of
+        bsDown:
+          Win := tbPushButtonPressed;
+        bsHot:
+          Win := tbPushButtonHot;
+        else
+          Win := tbPushButtonNormal;
+      end;
+
+      R.Left := R.Left - 1;
+      R.Right := R.Right + 1;
+
+      Details := ThemeServices.GetElementDetails(Win);
+      ThemeServices.DrawElement(Canvas.Handle, Details, R);
+    end else
+    begin
+      uType := DFC_BUTTON;
+      uState := DFCS_BUTTONPUSH;
+
+      case State of
+        bsDown:
+          uState := uState or DFCS_PUSHED;
+        bsHot:
+          uState := uState or DFCS_MONO;
+        else
+          uState := uState or DFCS_FLAT;
+      end;
+
+      DrawFrameControl(Canvas.Handle, R, uType, uState);
+    end;
+  end;
+
 var
   i, P: Integer;
   R: TRect;
-  D: TThemedElementDetails;
   Pt: TPoint;
 begin
   if FMax <= 0 then
@@ -205,16 +244,14 @@ begin
 
   case GetGripperState of
     gsHot:
-      Bmp.Canvas.Brush.Color := ColorAdjustLuma(clScrollBar, -30, False);
+      DrawButton(Bmp.Canvas, R, bsHot);
     gsDown:
-      Bmp.Canvas.Brush.Color := ColorAdjustLuma(clScrollBar, -60, False);
+      DrawButton(Bmp.Canvas, R, bsDown);
     else
-      Bmp.Canvas.Brush.Color := clScrollBar;
+      DrawButton(Bmp.Canvas, R, bsUp);
   end;
 
-  Bmp.Canvas.FillRect(R);
-
-  Bmp.Canvas.Pen.Color := IfThen<TColor>(GetGripperState <> gsNormal, GetHighLightColor(clBtnShadow, 50), clBtnShadow);
+  Bmp.Canvas.Pen.Color := IfThen<TColor>(GetGripperState <> gsNormal, clBtnShadow, clBtnText);
 
   for i := 0 to 2 do
     if FOrientation = sbHorizontal then
