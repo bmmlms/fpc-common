@@ -148,19 +148,19 @@ end;
 function TStreamHelper.ReadLEB64S: Int64;
 var
   Shift: Integer = 0;
-  R: UInt64 = 0;
+  R: Int64 = 0;
   B, Expected: Byte;
 begin
   while Shift < 64 do
   begin
     B := ReadByte;
-    R := R or (UInt64(B and $7f) shl Shift);
+    R := R or (Int64(B and $7f) shl Shift);
     if B and $80 = 0 then
     begin
       if Shift + 7 < 64 then
       begin
         if B and $40 <> 0 then
-          R := R or (UInt64.MaxValue shl (Shift + 7));
+          R := R or (Int64.MaxValue shl (Shift + 7));
       end else
       begin
         Expected := Ash64(R, Shift);
@@ -262,7 +262,6 @@ begin
       Break;
   until False;
 end;
-
 
 function TStreamHelper.WriteLEB64S(Value: Int64): Byte;
 var
