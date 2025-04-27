@@ -200,7 +200,7 @@ object frmAbout: TfrmAbout
         BorderSpacing.Top = 4
         BorderSpacing.Bottom = 4
         Caption = '-'
-        Font.Color = 9585669
+        Font.Color = 16351260
         Font.Style = [fsUnderline]
         ParentColor = False
         ParentFont = False
