@@ -10,12 +10,11 @@ object frmSettingsBase: TfrmSettingsBase
   ClientHeight = 874
   ClientWidth = 1618
   Color = clBtnFace
+  ShowHint = True
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnKeyDown = FormKeyDown
   OnShow = FormShow
-  ShowHint = True
-  LCLVersion = '2.2.6.0'
   object FlowPanelPages: TFlowPanel
     Left = 105
     Height = 824
@@ -40,6 +39,7 @@ object frmSettingsBase: TfrmSettingsBase
     BevelOuter = bvNone
     ClientHeight = 34
     ClientWidth = 1610
+    ParentBackground = False
     TabOrder = 0
     object Bevel2: TBevel
       Left = 0
@@ -59,8 +59,8 @@ object frmSettingsBase: TfrmSettingsBase
       Caption = '&OK'
       Constraints.MinHeight = 30
       Constraints.MinWidth = 100
-      OnClick = btnOKClick
       TabOrder = 0
+      OnClick = btnOKClick
     end
   end
   object pnlLeft: TPanel
@@ -71,6 +71,7 @@ object frmSettingsBase: TfrmSettingsBase
     Align = alLeft
     BorderSpacing.Right = 8
     BevelOuter = bvNone
+    ParentBackground = False
     TabOrder = 1
   end
   object pnlGeneral: TPanel
@@ -81,6 +82,7 @@ object frmSettingsBase: TfrmSettingsBase
     ChildSizing.VerticalSpacing = 4
     ClientHeight = 331
     ClientWidth = 320
+    ParentBackground = False
     TabOrder = 2
     Visible = False
     object lblPortable: TLabel
@@ -110,8 +112,8 @@ object frmSettingsBase: TfrmSettingsBase
       Width = 318
       Align = alTop
       Caption = 'Use HTTP proxy'
-      OnClick = chkProxyClick
       TabOrder = 2
+      OnClick = chkProxyClick
     end
     object chkCheckCertificate: TCheckBox
       Left = 1
@@ -136,8 +138,8 @@ object frmSettingsBase: TfrmSettingsBase
       Control.Align = alClient
       Control.ItemHeight = 17
       Control.ItemsEx = <>
-      Control.OnChange = lstLanguagesChange
       Control.TabOrder = 0
+      Control.OnChange = lstLanguagesChange
     end
     object txtHost: TMLabeledEdit
       Left = 1
@@ -165,7 +167,10 @@ object frmSettingsBase: TfrmSettingsBase
       Control.Top = 18
       Control.Width = 318
       Control.Align = alClient
+      Control.MaxValue = 65535
+      Control.MinValue = 1
       Control.TabOrder = 0
+      Control.Value = 1
     end
     object pnlProfileBottom: TPanel
       Left = 1
@@ -178,6 +183,7 @@ object frmSettingsBase: TfrmSettingsBase
       BevelOuter = bvNone
       ClientHeight = 112
       ClientWidth = 318
+      ParentBackground = False
       TabOrder = 6
       object pnlProfileButtons: TPanel
         Left = 0
@@ -189,6 +195,7 @@ object frmSettingsBase: TfrmSettingsBase
         ChildSizing.VerticalSpacing = 4
         ClientHeight = 112
         ClientWidth = 99
+        ParentBackground = False
         TabOrder = 0
         object btnCopyProfile: TButton
           Left = 0
@@ -198,8 +205,8 @@ object frmSettingsBase: TfrmSettingsBase
           Align = alBottom
           AutoSize = True
           Caption = '&Copy profile'
-          OnClick = btnCopyProfileClick
           TabOrder = 0
+          OnClick = btnCopyProfileClick
         end
         object btnExportProfile: TButton
           Left = 0
@@ -209,8 +216,8 @@ object frmSettingsBase: TfrmSettingsBase
           Align = alBottom
           AutoSize = True
           Caption = '&Export profile'
-          OnClick = btnExportProfileClick
           TabOrder = 1
+          OnClick = btnExportProfileClick
         end
         object btnImportProfile: TButton
           Left = 0
@@ -220,8 +227,8 @@ object frmSettingsBase: TfrmSettingsBase
           Align = alBottom
           AutoSize = True
           Caption = '&Import profile'
-          OnClick = btnImportProfileClick
           TabOrder = 2
+          OnClick = btnImportProfileClick
         end
         object btnDeleteProfile: TButton
           Left = 0
@@ -231,8 +238,8 @@ object frmSettingsBase: TfrmSettingsBase
           Align = alBottom
           AutoSize = True
           Caption = '&Delete profile'
-          OnClick = btnDeleteProfileClick
           TabOrder = 3
+          OnClick = btnDeleteProfileClick
         end
       end
     end
