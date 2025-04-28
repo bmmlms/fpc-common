@@ -10,6 +10,7 @@ uses
   ExtCtrls,
   Forms,
   Graphics,
+  GraphUtil,
   Math,
   Menus,
   MVirtualTree,
@@ -31,7 +32,7 @@ type
 
     FPositionBeforeDrag: Int64;
 
-    FGripperPos, FLastGripperPos: Integer;
+    FLastGripperPos: Integer;
     FDragFrom: Integer;
     FGripperVisible: Boolean;
     FGripperDown: Boolean;
@@ -43,17 +44,19 @@ type
     FSetting: Boolean;
     FOnPositionChanged: TNotifyEvent;
 
-    procedure PaintBackground(const Bmp: Graphics.TBitmap; const ClipRect: TRect);
-    procedure PaintGripper(const Bmp: Graphics.TBitmap; const ClipRect: TRect);
+    procedure PaintBackground(const Bmp: Graphics.TBitmap; const Rect: TRect);
+    procedure PaintGripper(const Bmp: Graphics.TBitmap; const Rect: TRect);
 
+    function GetBackgroundRect: TRect;
+    function GetGripperRect: TRect;
     function GetGripperState: TGripperStates;
 
     procedure FSetPosition(Value: Int64);
     procedure FSetGripperVisible(Value: Boolean);
 
-    procedure WMEraseBkgnd(var Msg: TWMEraseBkgnd); message WM_ERASEBKGND;
     procedure WMMouseWheel(var Msg: TWMMouseWheel); message WM_MOUSEWHEEL;
   protected
+    procedure EraseBackground(DC: HDC); override;
     procedure Paint; override;
     procedure MouseMove(Shift: TShiftState; X: Integer; Y: Integer); override;
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X: Integer; Y: Integer); override;
@@ -87,7 +90,6 @@ end;
 procedure TMSeekBar.Paint;
 var
   Bmp: Graphics.TBitmap;
-  R, ClipRect: TRect;
 begin
   inherited;
 
@@ -96,27 +98,21 @@ begin
     Bmp.Width := ClientWidth;
     Bmp.Height := ClientHeight;
 
-    R := TRect.Create(0, 0, Bmp.Width, Bmp.Height);
-
     if ThemeServices.ThemesEnabled then
       ThemeServices.DrawParentBackground(Handle, BMP.Canvas.Handle, nil, False)
     else
     begin
+      Bmp.Transparent := True;
+      Bmp.TransparentColor := clFuchsia;
       Bmp.Canvas.Brush.Style := bsSolid;
-      Bmp.Canvas.Brush.Color := clBtnFace;
-      Bmp.Canvas.FillRect(R);
+      Bmp.Canvas.Brush.Color := Bmp.TransparentColor;
+      Bmp.Canvas.FillRect(TRect.Create(0, 0, Bmp.Width, Bmp.Height));
     end;
 
-    ClipRect := R;
-    ClipRect.Top := BorderSpacing.Top;
-    ClipRect.Bottom := ClipRect.Bottom - BorderSpacing.Bottom;
-    ClipRect.Left := BorderSpacing.Left;
-    ClipRect.Right := ClipRect.Right - BorderSpacing.Right;
-
-    PaintBackground(Bmp, ClipRect);
+    PaintBackground(Bmp, GetBackgroundRect);
 
     if FGripperVisible then
-      PaintGripper(Bmp, ClipRect);
+      PaintGripper(Bmp, GetGripperRect);
 
     Canvas.Draw(0, 0, Bmp);
   finally
@@ -124,53 +120,29 @@ begin
   end;
 end;
 
-procedure TMSeekBar.PaintBackground(const Bmp: Graphics.TBitmap; const ClipRect: TRect);
+procedure TMSeekBar.PaintBackground(const Bmp: Graphics.TBitmap; const Rect: TRect);
 var
   R: TRect;
 begin
-  Bmp.Canvas.Brush.Color := clBlack;
-  Bmp.Canvas.Pen.Color := clBlack;
+  R := Rect;
 
-  case FOrientation of
-    sbHorizontal:
-    begin
-      // Rand links und oben
-      Bmp.Canvas.MoveTo(0, ClipRect.Height div 2 + 3); // Unten links
-      Bmp.Canvas.LineTo(0, ClipRect.Height div 2 - 3); // Nach oben malen
-      Bmp.Canvas.LineTo(ClipRect.Width - Bmp.Canvas.Pen.Width, ClipRect.Height div 2 - 3); // Nach rechts malen
-      // Rand rechts und unten
-      Bmp.Canvas.Pen.Color := clGray;
-      Bmp.Canvas.LineTo(ClipRect.Width - Bmp.Canvas.Pen.Width, ClipRect.Height div 2 + 3);
-      Bmp.Canvas.LineTo(0, ClipRect.Height div 2 + 3);
-
-      R.Left := Canvas.Pen.Width;
-      R.Top := ClipRect.Height div 2 - 3 + Bmp.Canvas.Pen.Width;
-      R.Bottom := ClipRect.Height div 2 + 3;
-      R.Right := ClipRect.Width - Bmp.Canvas.Pen.Width;
-    end;
-    sbVertical:
-    begin
-      // Rand links und oben
-      Bmp.Canvas.MoveTo(ClipRect.Width div 2 - 3, ClipRect.Height - Bmp.Canvas.Pen.Width);
-      Bmp.Canvas.LineTo(ClipRect.Width div 2 - 3, 0);
-      Bmp.Canvas.LineTo(ClipRect.Width div 2 + 3, 0);
-      // Rand rechts und unten
-      Bmp.Canvas.Pen.Color := clGray;
-      Bmp.Canvas.LineTo(ClipRect.Width div 2 + 3, ClipRect.Height - Bmp.Canvas.Pen.Width);
-      Bmp.Canvas.LineTo(ClipRect.Width div 2 - 3, ClipRect.Height - Bmp.Canvas.Pen.Width);
-
-      R.Left := ClipRect.Width div 2 - 3 + Canvas.Pen.Width;
-      R.Top := Bmp.Canvas.Pen.Width;
-      R.Bottom := ClipRect.Height - Bmp.Canvas.Pen.Width;
-      R.Right := ClipRect.Width div 2 + 3 - Bmp.Canvas.Pen.Width;
-    end;
+  if FOrientation = sbHorizontal then
+  begin
+    R.Top := R.Top + R.Height div 2 - 3;
+    R.Bottom := R.Top + 6;
+  end else
+  begin
+    R.Left := R.Left + R.Width div 2 - 3;
+    R.Right := R.Left + 6;
   end;
 
-  Bmp.Canvas.Brush.Color := GetDefaultColor(dctBrush);
-  Bmp.Canvas.FillRect(R);
+  Bmp.Canvas.Brush.Color := clWindow;
+  Bmp.Canvas.Pen.Width := 1;
+  Bmp.Canvas.Pen.Color := ColorAdjustLuma(clWindowFrame, 100, False);
+  Bmp.Canvas.Rectangle(R);
 end;
 
-procedure TMSeekBar.PaintGripper(const Bmp: Graphics.TBitmap; const ClipRect: TRect);
+procedure TMSeekBar.PaintGripper(const Bmp: Graphics.TBitmap; const Rect: TRect);
 
   procedure DrawButton(Canvas: TCanvas; R: TRect; State: TButtonState);
   var
@@ -189,8 +161,15 @@ procedure TMSeekBar.PaintGripper(const Bmp: Graphics.TBitmap; const ClipRect: TR
           Win := tbPushButtonNormal;
       end;
 
-      R.Left := R.Left - 1;
-      R.Right := R.Right + 1;
+      if FOrientation = sbHorizontal then
+      begin
+        R.Left := R.Left - 1;
+        R.Right := R.Right + 1;
+      end else
+      begin
+        R.Top := R.Top - 1;
+        R.Bottom := R.Bottom + 1;
+      end;
 
       Details := ThemeServices.GetElementDetails(Win);
       ThemeServices.DrawElement(Canvas.Handle, Details, R);
@@ -213,45 +192,24 @@ procedure TMSeekBar.PaintGripper(const Bmp: Graphics.TBitmap; const ClipRect: TR
   end;
 
 var
-  i, P: Integer;
-  R: TRect;
+  i: Integer;
   Pt: TPoint;
 begin
   if FMax <= 0 then
     Exit;
 
-  if FOrientation = sbHorizontal then
-  begin
-    P := Trunc((FPosition / FMax) * (ClipRect.Width - ClipRect.Height));
-
-    R.Top := ClipRect.Top;
-    R.Left := P + ClipRect.Left;
-    R.Bottom := ClipRect.Height;
-    R.Right := P + ClipRect.Height;
-
-    Pt := TPoint.Create(R.Left + ClipRect.Height div 2 - 2, ClipRect.Height div 2 - 3);
-  end else
-  begin
-    P := Trunc((FPosition / FMax) * (ClipRect.Height - ClipRect.Width));
-
-    R.Top := P + ClipRect.Top;
-    R.Left := ClipRect.Left;
-    R.Bottom := P + ClipRect.Width;
-    R.Right := ClipRect.Width;
-
-    Pt := TPoint.Create(ClipRect.Width div 2 - 3, R.Top + ClipRect.Width div 2 - 2);
-  end;
-
   case GetGripperState of
     gsHot:
-      DrawButton(Bmp.Canvas, R, bsHot);
+      DrawButton(Bmp.Canvas, Rect, bsHot);
     gsDown:
-      DrawButton(Bmp.Canvas, R, bsDown);
+      DrawButton(Bmp.Canvas, Rect, bsDown);
     else
-      DrawButton(Bmp.Canvas, R, bsUp);
+      DrawButton(Bmp.Canvas, Rect, bsUp);
   end;
 
   Bmp.Canvas.Pen.Color := IfThen<TColor>(GetGripperState <> gsNormal, clBtnShadow, clBtnText);
+
+  Pt := TPoint.Create(Rect.Left + Rect.Width div 2 - 3, Rect.Top + Rect.Height div 2 - 2);
 
   for i := 0 to 2 do
     if FOrientation = sbHorizontal then
@@ -268,9 +226,30 @@ begin
   FLastGripperPos := FPosition;
 end;
 
-procedure TMSeekBar.WMEraseBkgnd(var Msg: TWMEraseBkgnd);
+function TMSeekBar.GetBackgroundRect: TRect;
 begin
-  Msg.Result := 1;
+  Result := TRect.Create(TPoint.Create(BorderSpacing.Left, BorderSpacing.Top), ClientWidth - BorderSpacing.Left - BorderSpacing.Right, ClientHeight - BorderSpacing.Top - BorderSpacing.Bottom);
+end;
+
+function TMSeekBar.GetGripperRect: TRect;
+var
+  P: Integer;
+begin
+  Result := GetBackgroundRect;
+
+  if FOrientation = sbHorizontal then
+  begin
+    P := Trunc((FPosition / FMax) * (Result.Width - Result.Height));
+
+    Result.Left := Result.Left + P;
+    Result.Right := Result.Left + Result.Height;
+  end else
+  begin
+    P := Trunc((FPosition / FMax) * (Result.Height - Result.Width));
+
+    Result.Top := Result.Top + P;
+    Result.Bottom := Result.Top + Result.Width;
+  end;
 end;
 
 procedure TMSeekBar.WMMouseWheel(var Msg: TWMMouseWheel);
@@ -293,35 +272,19 @@ begin
     Repaint;
 end;
 
+procedure TMSeekBar.EraseBackground(DC: HDC);
+begin
+
+end;
+
 function TMSeekBar.GetGripperState: TGripperStates;
-var
-  P: LongInt;
-  R: TRect;
 begin
   Result := gsUnknown;
 
   if not FGripperVisible then
     Exit;
 
-  if FOrientation = sbHorizontal then
-  begin
-    P := Trunc((FPosition / FMax) * (ClientWidth - 20));
-
-    R.Top := 2;
-    R.Left := P;
-    R.Bottom := ClientHeight;
-    R.Right := 20 + R.Left;
-  end else
-  begin
-    P := Trunc((FPosition / FMax) * (ClientHeight - 20));
-
-    R.Top := P;
-    R.Left := 2;
-    R.Bottom := P + 20;
-    R.Right := ClientWidth;
-  end;
-
-  if not FGripperDown and PtInRect(R, ScreenToClient(Mouse.CursorPos)) then
+  if not FGripperDown and PtInRect(GetGripperRect, ScreenToClient(Mouse.CursorPos)) then
     Result := gsHot
   else if FGripperDown then
     Result := gsDown
@@ -353,12 +316,6 @@ begin
     Exit;
 
   FPosition := Value;
-  if FMax = 0 then
-    FGripperPos := 0
-  else if FOrientation = sbHorizontal then
-    FGripperPos := Trunc((FPosition / FMax) * (ClientWidth - 20))
-  else
-    FGripperPos := Trunc((FPosition / FMax) * (ClientHeight - 20));
 
   if FNotifyOnMove then
     if Assigned(FOnPositionChanged) then
@@ -370,51 +327,48 @@ end;
 
 procedure TMSeekBar.MouseDown(Button: TMouseButton; Shift: TShiftState; X: Integer; Y: Integer);
 var
-  V: Integer;
+  BackgroundRect, GripperRect: TRect;
 begin
   inherited;
 
-  if not FGripperVisible then
+  if (not FGripperVisible) or (Button <> mbLeft) then
     Exit;
 
-  if Button = mbLeft then
+  BackgroundRect := GetBackgroundRect;
+  GripperRect := GetGripperRect;
+
+  FGripperDown := True;
+
+  if PtInRect(GripperRect, ScreenToClient(Mouse.CursorPos)) then
   begin
-    FGripperDown := True;
+    if FOrientation = sbHorizontal then
+      FDragFrom := X - GripperRect.Left
+    else
+      FDragFrom := Y - GripperRect.Top;
+
+    Repaint;
+
+    FSetting := True;
+  end else if PtInRect(BackgroundRect, ScreenToClient(Mouse.CursorPos)) then
+  begin
+    FDragFrom := (IfThen<Integer>(FOrientation = sbHorizontal, GripperRect.Width, GripperRect.Height)) div 2;
 
     if FOrientation = sbHorizontal then
-    begin
-      V := X;
-      FGripperPos := Trunc((FPosition / FMax) * (ClientWidth - 20));
-    end else
-    begin
-      V := Y;
-      FGripperPos := Trunc((FPosition / FMax) * (ClientHeight - 20));
-    end;
-
-    if (V > FGripperPos) and (V < FGripperPos + 20) then
-      FDragFrom := Min(Abs(V - FGripperPos), Abs(FGripperPos - V))
+      FPosition := Trunc((X - BorderSpacing.Left - FDragFrom) / (BackgroundRect.Width - GripperRect.Width) * FMax)
     else
-    begin
-      FDragFrom := 10;
+      FPosition := Trunc((Y - BorderSpacing.Top - FDragFrom) / (BackgroundRect.Height - GripperRect.Height) * FMax);
 
-      if FPositionBeforeDrag = -1 then
-        FPositionBeforeDrag := FPosition;
+    if FPositionBeforeDrag = -1 then
+      FPositionBeforeDrag := FPosition;
 
-      if FOrientation = sbHorizontal then
-        FPosition := Trunc(((V - FDragFrom) / (ClientWidth - 20)) * Max)
-      else
-        FPosition := Trunc(((V - FDragFrom) / (ClientHeight - 20)) * Max);
-      FGripperPos := V - FDragFrom;
+    if FPosition < 0 then
+      FPosition := 0;
+    if FPosition > FMax then
+      FPosition := FMax;
 
-      if FPosition < 0 then
-        FPosition := 0;
-      if FPosition > FMax then
-        FPosition := FMax;
-
-      if FNotifyOnDown then
-        if Assigned(FOnPositionChanged) then
-          FOnPositionChanged(Self);
-    end;
+    if FNotifyOnDown then
+      if Assigned(FOnPositionChanged) then
+        FOnPositionChanged(Self);
 
     Repaint;
 
@@ -432,14 +386,9 @@ begin
       FPositionBeforeDrag := FPosition;
 
     if FOrientation = sbHorizontal then
-    begin
-      FPosition := Trunc(((X - FDragFrom) / (ClientWidth - 20)) * Max);
-      FGripperPos := X - FDragFrom;
-    end else
-    begin
-      FPosition := Trunc(((Y - FDragFrom) / (ClientHeight - 20)) * Max);
-      FGripperPos := Y - FDragFrom;
-    end;
+      FPosition := Trunc(((X - BorderSpacing.Left - FDragFrom) / (GetBackgroundRect.Width - GetGripperRect.Width)) * FMax)
+    else
+      FPosition := Trunc(((Y - BorderSpacing.Top - FDragFrom) / (GetBackgroundRect.Height - GetGripperRect.Height)) * FMax);
 
     if FPosition < 0 then
       FPosition := 0;
