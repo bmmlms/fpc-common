@@ -16,6 +16,7 @@ uses
   MVirtualTree,
   SysUtils,
   Themes,
+  UxTheme,
   VirtualTrees,
   Windows;
 
@@ -56,7 +57,6 @@ type
 
     procedure WMMouseWheel(var Msg: TWMMouseWheel); message WM_MOUSEWHEEL;
   protected
-    procedure EraseBackground(DC: HDC); override;
     procedure Paint; override;
     procedure MouseMove(Shift: TShiftState; X: Integer; Y: Integer); override;
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X: Integer; Y: Integer); override;
@@ -64,6 +64,7 @@ type
     procedure MouseLeave; override;
   public
     constructor Create(AOwner: TComponent); override;
+    procedure EraseBackground(DC: HDC); override;
     property Max: Int64 read FMax write FMax;
     property Position: Int64 read FPosition write FSetPosition;
     property PositionBeforeDrag: Int64 read FPositionBeforeDrag write FPositionBeforeDrag;
@@ -98,8 +99,8 @@ begin
     Bmp.Width := ClientWidth;
     Bmp.Height := ClientHeight;
 
-    if ThemeServices.ThemesEnabled then
-      ThemeServices.DrawParentBackground(Handle, BMP.Canvas.Handle, nil, False)
+    if Assigned(@DrawThemeParentBackground) then
+      DrawThemeParentBackground(Handle, Bmp.Canvas.Handle, nil)
     else
     begin
       Bmp.Transparent := True;
