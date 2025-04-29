@@ -648,14 +648,18 @@ begin
             if FSecure then
             begin
               if Res = -MBEDTLS_ERR_NET_CONN_RESET then
-                raise Exception.Create('Connection closed')
+                // Break loop, don't throw exception since this prevents following HTTP Location headers.
+                // In case the response could not be parsed DoDisconnected() will throw an exception later.
+                Break
               else if (Res <> -MBEDTLS_ERR_SSL_WANT_READ) and (Res <> -MBEDTLS_ERR_SSL_WANT_WRITE) then
                 raise EExceptionParams.CreateFmt('Function mbedtls_ssl_read() returned error %d', [Res]);
             end else
             begin
               Res := WSAGetLastError;
               if (Res = WSAECONNRESET) or (Res = WSAECONNABORTED) then
-                raise Exception.Create('Connection closed')
+                // Break loop, don't throw exception since this prevents following HTTP Location headers.
+                // In case the response could not be parsed DoDisconnected() will throw an exception later.
+                Break
               else
                 raise EExceptionParams.CreateFmt('Function recv() returned error %d', [Res]);
             end;
