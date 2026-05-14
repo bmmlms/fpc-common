@@ -34,7 +34,7 @@ uses
   Forms,
   Graphics,
   GraphUtil,
-  IdURI,
+  URIParser,
   LazUTF8,
   LConvEncoding,
   regexpr,
@@ -192,7 +192,7 @@ end;
 
 class function TFunctions.ParseURL(URL: string): TParseURLRes;
 var
-  U: TIdURI;
+  U: TURI;
 begin
   Result.URL := '';
   Result.Host := '';
@@ -202,38 +202,30 @@ begin
   Result.Secure := False;
   Result.Success := False;
 
-  if (Copy(LowerCase(URL), 0, 7) <> 'http://') and (Copy(LowerCase(URL), 0, 8) <> 'https://') then
+  if (Copy(LowerCase(URL), 1, 7) <> 'http://') and (Copy(LowerCase(URL), 1, 8) <> 'https://') then
     URL := 'http://' + URL;
 
-  U := TIdURI.Create(URL);
+  U := ParseURI(URL);
   try
-    try
-      Result.URL := U.URI;
-      Result.Host := U.Host;
-      Result.Data := U.Path + U.Document;
-      if Length(U.Params) > 0 then
-        Result.Data := Result.Data + '?' + U.Params;
-      Result.Secure := U.Protocol = 'https';
+    Result.URL := URL;
+    Result.Host := U.Host;
+    Result.Data := U.Path + U.Document;
+    if Length(U.Params) > 0 then
+      Result.Data := Result.Data + '?' + U.Params;
+    Result.Secure := LowerCase(U.Protocol) = 'https';
 
-      Result.Port := 0;
-      if Length(U.Port) > 0 then
-      try
-        Result.Port := StrToInt(U.Port);
-        Result.PortDetected := True;
-      except
-      end;
+    Result.Port := U.Port;
+    if Result.Port <> 0 then
+      Result.PortDetected := True;
 
-      if not Result.PortDetected then
-        if U.Protocol = 'http' then
-          Result.Port := 80
-        else if U.Protocol = 'https' then
-          Result.Port := 443;
+    if not Result.PortDetected then
+      if LowerCase(U.Protocol) = 'http' then
+        Result.Port := 80
+      else if LowerCase(U.Protocol) = 'https' then
+        Result.Port := 443;
 
-      Result.Success := (Length(Result.Host) > 0) and (Result.Port > 0);
-    except
-    end;
-  finally
-    U.Free;
+    Result.Success := (Length(Result.Host) > 0) and (Result.Port > 0);
+  except
   end;
 end;
 
