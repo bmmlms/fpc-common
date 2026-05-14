@@ -45,6 +45,8 @@ type
 
 implementation
 
+{$MINENUMSIZE 4}
+
 function RegisterDeviceNotificationW(hRecipient: HANDLE; NotificationFilter: Pointer; Flags: DWORD): HDEVNOTIFY; stdcall; external user32;
 function UnregisterDeviceNotification(Handle: HDEVNOTIFY): BOOL; stdcall; external user32;
 
@@ -123,7 +125,7 @@ var
   Notification: PDeviceNotification;
   DeviceName: string;
 begin
-  if (Msg.msg = WM_DEVICECHANGE) and ((Msg.wParam = DBT_DEVICEARRIVAL) or (Msg.wParam = DBT_DEVICEREMOVECOMPLETE)) and (PDevBroadcastHdr(Msg.lParam)^.dbch_devicetype = DBT_DEVTYP_DEVICEINTERFACE) then
+  if (Msg.msg = WM_DEVICECHANGE) and ((Msg.wParam = DBT_DEVICEARRIVAL) or (Msg.wParam = DBT_DEVICEREMOVECOMPLETE)) and (Msg.lParam <> 0) and (PDevBroadcastHdr(Msg.lParam)^.dbch_devicetype = DBT_DEVTYP_DEVICEINTERFACE) then
   begin
     DevBroadcastDeviceInterface := PDevBroadcastDeviceInterfaceW(Msg.lParam);
 
@@ -139,26 +141,35 @@ begin
       SetTimer(FWndHandle, 0, 500, nil);
 
     Msg.Result := 0;
-  end else if Msg.msg = WM_TIMER then
+  end else if (Msg.msg = WM_TIMER) and (Msg.wParam = 0) then
   begin
     KillTimer(FWndHandle, 0);
 
-    for Notification in FDeviceAddedNotifications do
+    while FDeviceAddedNotifications.Count > 0 do
     begin
-      if Assigned(FOnDeviceNotification) then
-        FOnDeviceNotification(dntAdded, Notification.DeviceClass, Notification.DeviceName);
-      Dispose(Notification);
+      Notification := FDeviceAddedNotifications[0];
+      FDeviceAddedNotifications.Delete(0);
+      try
+        if Assigned(FOnDeviceNotification) then
+          FOnDeviceNotification(dntAdded, Notification.DeviceClass, Notification.DeviceName);
+      finally
+        Dispose(Notification);
+      end;
     end;
 
-    FDeviceAddedNotifications.Clear;
+    Msg.Result := 0;
   end else
-    Msg.Result := DefWindowProc(FWndHandle, Msg.Msg, Msg.WParam, Msg.LParam);
+    Msg.Result := DefWindowProc(FWndHandle, Msg.msg, Msg.wParam, Msg.lParam);
 end;
 
 procedure TDeviceNotificationListener.AddAddedEvent(const DeviceClass: TGUID; const DeviceName: string);
 var
   Notification: PDeviceNotification;
 begin
+  for Notification in FDeviceAddedNotifications do
+    if Notification.DeviceName = DeviceName then
+      Exit;
+
   New(Notification);
   Notification.DeviceClass := DeviceClass;
   Notification.DeviceName := DeviceName;
