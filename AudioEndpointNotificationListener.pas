@@ -1,5 +1,7 @@
 unit AudioEndpointNotificationListener;
 
+{$MINENUMSIZE 4}
+
 interface
 
 uses
@@ -22,6 +24,7 @@ type
   { IPropertyStore }
 
   IPropertyStore = interface(IUnknown)
+    ['{886d8eeb-8cf2-4446-8d02-cdba1dbdcf99}']
     function GetCount(out cProps: DWORD): HRESULT; stdcall;
     function GetAt(iProp: DWORD; out key: TPropertyKey): HRESULT; stdcall;
     function GetValue(const key: TPropertyKey; out Value: TPropVariant): HRESULT; stdcall;
@@ -111,6 +114,8 @@ implementation
 
 constructor TMMNotificationClient.Create(WndHandle: HWND);
 begin
+  inherited Create;
+
   FWndHandle := WndHandle;
 end;
 
