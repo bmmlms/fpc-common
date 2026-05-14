@@ -75,20 +75,23 @@ end;
 
 procedure TMComboBoxExEditable.AlignEdit(var Msg: TMessage);
 var
-  EditTextRect: TRect;
   ComboBoxInfo: TComboboxInfo;
+  EditWindowRect: TRect;
+  EditHeight: Integer;
 begin
   ComboBoxInfo.cbSize := SizeOf(ComboBoxInfo);
-  GetComboBoxInfo(Handle, @ComboBoxInfo);
+  if not GetComboBoxInfo(Handle, @ComboBoxInfo) then
+    Exit;
 
   FEditRect := ComboBoxInfo.rcItem;
 
-  SendMessage(ComboBoxInfo.hwndItem, EM_GETRECT, 0, LPARAM(@EditTextRect));
+  Windows.GetWindowRect(ComboBoxInfo.hwndItem, EditWindowRect);
+  EditHeight := EditWindowRect.Bottom - EditWindowRect.Top;
 
   if Assigned(Images) then
-    MoveWindow(ComboBoxInfo.hwndItem, Scale96ToFont(20) + FEditRect.Left, ClientRect.Height div 2 - EditTextRect.Height div 2, FEditRect.Width - Scale96ToFont(20) - FEditRect.Left, EditTextRect.Height, False)
+    MoveWindow(ComboBoxInfo.hwndItem, Scale96ToFont(20) + FEditRect.Left, ClientRect.Height div 2 - EditHeight div 2, FEditRect.Width - Scale96ToFont(20) - FEditRect.Left, EditHeight, False)
   else
-    MoveWindow(ComboBoxInfo.hwndItem, FEditRect.Left, ClientRect.Height div 2 - EditTextRect.Height div 2, FEditRect.Width, EditTextRect.Height, False);
+    MoveWindow(ComboBoxInfo.hwndItem, FEditRect.Left, ClientRect.Height div 2 - EditHeight div 2, FEditRect.Width, EditHeight, False);
 
   Repaint;
 end;
@@ -109,22 +112,28 @@ begin
 end;
 
 procedure TMComboBoxExEditable.WMPaint(var Msg: TLMPaint);
+var
+  ScaledSize: Integer;
 begin
   inherited;
 
   if not Assigned(Images) then
     Exit;
 
+  ScaledSize := Scale96ToFont(16);
+  if (FBuffer.Width <> ScaledSize) or (FBuffer.Height <> ScaledSize) then
+    FBuffer.SetSize(ScaledSize, ScaledSize);
+
   FBuffer.Canvas.Brush.Color := GetDefaultColor(dctBrush);
   FBuffer.Canvas.Brush.Style := bsSolid;
-  FBuffer.Canvas.FillRect(0, 0, Scale96ToFont(16), Scale96ToFont(16));
+  FBuffer.Canvas.FillRect(0, 0, ScaledSize, ScaledSize);
 
   if (not DroppedDown) and (ItemIndex > -1) then
-    Images.Resolution[Scale96ToFont(16)].Draw(FBuffer.Canvas, 0, 0, ItemsEx[ItemIndex].ImageIndex, gdeNormal)
+    Images.Resolution[ScaledSize].Draw(FBuffer.Canvas, 0, 0, ItemsEx[ItemIndex].ImageIndex, True)
   else if FItemIndexBeforeDropDown > -1 then
-    Images.Resolution[Scale96ToFont(16)].Draw(FBuffer.Canvas, 0, 0, ItemsEx[FItemIndexBeforeDropDown].ImageIndex, gdeNormal);
+    Images.Resolution[ScaledSize].Draw(FBuffer.Canvas, 0, 0, ItemsEx[FItemIndexBeforeDropDown].ImageIndex, True);
 
-  Canvas.Draw(FEditRect.Left + 2, ClientRect.Height div 2 - Scale96ToFont(16) div 2, FBuffer);
+  Canvas.Draw(FEditRect.Left + 2, ClientRect.Height div 2 - ScaledSize div 2, FBuffer);
 end;
 
 procedure TMComboBoxExEditable.Select;
