@@ -78,7 +78,6 @@ type
 
     procedure DoReceivedData(Buf: Pointer; Len: Integer); override;
     procedure DoReceivedCommand(ID: Cardinal; CommandHeader: TCommandHeader; Command: TCommand); virtual;
-    procedure DoException(E: Exception); override;
   public
     constructor Create(Handle: Cardinal; Stream: TSocketStream); overload; override;
     constructor Create(Host: string; Port: Integer; Stream: TSocketStream; Secure, CheckCertificate: Boolean); overload; override;
@@ -167,12 +166,6 @@ begin
   FPacketReader.Free;
 
   inherited;
-end;
-
-procedure TCommandThreadBase.DoException(E: Exception);
-begin
-  inherited;
-
 end;
 
 procedure TCommandThreadBase.DoReceivedCommand(ID: Cardinal; CommandHeader: TCommandHeader; Command: TCommand);
