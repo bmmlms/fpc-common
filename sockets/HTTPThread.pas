@@ -227,10 +227,10 @@ begin
 
   if FTypedStream.ContentLength > 0 then
   begin
-    p := Round(Received / FTypedStream.ContentLength * 100);
-    if p <> FDownloadPercent then
+    P := Round(Received / FTypedStream.ContentLength * 100);
+    if P <> FDownloadPercent then
     begin
-      FDownloadPercent := p;
+      FDownloadPercent := P;
       DoDownloadPercentProgress;
     end;
   end;
