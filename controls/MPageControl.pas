@@ -450,12 +450,15 @@ begin
 
     Text := NewText;
     Item.pszText := PChar(Text);
+
+    inherited;
+
+    Item.pszText := Org;
+
+    Exit;
   end;
 
   inherited;
-
-  if Org <> nil then
-    Item.pszText := Org;
 end;
 
 procedure TMPageControl.MouseMove(Shift: TShiftState; X, Y: Integer);
