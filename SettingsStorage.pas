@@ -1061,9 +1061,14 @@ var
   C: SizeInt;
 begin
   Result := TSettingsList.Create;
-  Stream.Read(C, False);
-  for i := 0 to C - 1 do
-    Result.Add(TDataEntry.Load(Stream));
+  try
+    Stream.Read(C, False);
+    for i := 0 to C - 1 do
+      Result.Add(TDataEntry.Load(Stream));
+  except
+    Result.Free;
+    raise;
+  end;
 end;
 
 procedure TSettingsList.Save(Stream: TMemoryStream);
