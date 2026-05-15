@@ -24,10 +24,10 @@ interface
 
 uses
   Classes,
-  StreamHelper,
   Functions,
   HTTPStream,
   Sockets,
+  StreamHelper,
   SysUtils;
 
 type
