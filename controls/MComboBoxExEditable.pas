@@ -142,7 +142,10 @@ begin
 
   ScaledSize := Scale96ToFont(16);
   if (FBuffer.Width <> ScaledSize) or (FBuffer.Height <> ScaledSize) then
-    FBuffer.SetSize(ScaledSize, ScaledSize);
+  begin
+    FBuffer.Width := ScaledSize;
+    FBuffer.Height := ScaledSize;
+  end;
 
   FBuffer.Canvas.Brush.Color := GetDefaultColor(dctBrush);
   FBuffer.Canvas.Brush.Style := bsSolid;
@@ -313,7 +316,6 @@ begin
   FItemIndexBeforeDropDown := -2;
   TCustomComboBox(Self).Style := csOwnerDrawEditableFixed;
   FBuffer := Graphics.TBitmap.Create;
-  FBuffer.SetSize(Scale96ToFont(16), Scale96ToFont(16));
 
   FWinControlFlags += [wcfEraseBackground];
 
