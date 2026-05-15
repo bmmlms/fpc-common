@@ -69,7 +69,7 @@ type
     property Position: Int64 read FPosition write FSetPosition;
     property PositionBeforeDrag: Int64 read FPositionBeforeDrag write FPositionBeforeDrag;
     property Orientation: TScrollBarKind read FOrientation write FOrientation;
-    property GripperVisible: Boolean read FGripperDown write FSetGripperVisible;
+    property GripperVisible: Boolean read FGripperVisible write FSetGripperVisible;
     property NotifyOnMove: Boolean read FNotifyOnMove write FNotifyOnMove;
     property NotifyOnDown: Boolean read FNotifyOnDown write FNotifyOnDown;
     property OnPositionChanged: TNotifyEvent read FOnPositionChanged write FOnPositionChanged;
@@ -238,15 +238,21 @@ var
 begin
   Result := GetBackgroundRect;
 
-  if FOrientation = sbHorizontal then
+  if (FMax > 0) and (FOrientation = sbHorizontal) then
   begin
-    P := Trunc((FPosition / FMax) * (Result.Width - Result.Height));
+    if Result.Width > Result.Height then
+      P := Trunc((FPosition / FMax) * (Result.Width - Result.Height))
+    else
+      P := 0;
 
     Result.Left := Result.Left + P;
     Result.Right := Result.Left + Result.Height;
-  end else
+  end else if (FMax > 0) then
   begin
-    P := Trunc((FPosition / FMax) * (Result.Height - Result.Width));
+    if Result.Height > Result.Width then
+      P := Trunc((FPosition / FMax) * (Result.Height - Result.Width))
+    else
+      P := 0;
 
     Result.Top := Result.Top + P;
     Result.Bottom := Result.Top + Result.Width;
@@ -354,10 +360,19 @@ begin
   begin
     FDragFrom := (IfThen<Integer>(FOrientation = sbHorizontal, GripperRect.Width, GripperRect.Height)) div 2;
 
-    if FOrientation = sbHorizontal then
+  if FOrientation = sbHorizontal then
+  begin
+    if BackgroundRect.Width > GripperRect.Width then
       FPosition := Trunc((X - BorderSpacing.Left - FDragFrom) / (BackgroundRect.Width - GripperRect.Width) * FMax)
     else
-      FPosition := Trunc((Y - BorderSpacing.Top - FDragFrom) / (BackgroundRect.Height - GripperRect.Height) * FMax);
+      FPosition := 0;
+  end else
+  begin
+    if BackgroundRect.Height > GripperRect.Height then
+      FPosition := Trunc((Y - BorderSpacing.Top - FDragFrom) / (BackgroundRect.Height - GripperRect.Height) * FMax)
+    else
+      FPosition := 0;
+  end;
 
     if FPositionBeforeDrag = -1 then
       FPositionBeforeDrag := FPosition;
@@ -387,9 +402,18 @@ begin
       FPositionBeforeDrag := FPosition;
 
     if FOrientation = sbHorizontal then
-      FPosition := Trunc(((X - BorderSpacing.Left - FDragFrom) / (GetBackgroundRect.Width - GetGripperRect.Width)) * FMax)
-    else
-      FPosition := Trunc(((Y - BorderSpacing.Top - FDragFrom) / (GetBackgroundRect.Height - GetGripperRect.Height)) * FMax);
+    begin
+      if GetBackgroundRect.Width > GetGripperRect.Width then
+        FPosition := Trunc(((X - BorderSpacing.Left - FDragFrom) / (GetBackgroundRect.Width - GetGripperRect.Width)) * FMax)
+      else
+        FPosition := 0;
+    end else
+    begin
+      if GetBackgroundRect.Height > GetGripperRect.Height then
+        FPosition := Trunc(((Y - BorderSpacing.Top - FDragFrom) / (GetBackgroundRect.Height - GetGripperRect.Height)) * FMax)
+      else
+        FPosition := 0;
+    end;
 
     if FPosition < 0 then
       FPosition := 0;
