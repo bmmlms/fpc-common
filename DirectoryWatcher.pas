@@ -202,11 +202,10 @@ begin
         SleepEx(INFINITE, True);
       end;
     finally
+      FNotifications.Clear;
+      FDeleted.Clear;
       CloseHandle(FDirHandle);
     end;
-
-    FNotifications.Clear;
-    FDeleted.Clear;
   end;
 end;
 
