@@ -128,7 +128,7 @@ procedure THTTPThread.StreamHeaderRemoved(Sender: TObject);
 begin
   DoHeaderRemoved;
 
-  // Das muss hier bleiben, wegen Vergleich mit Received
+  // This must remain here due to comparison with Received
   // in DoDisconnected()..
   FReceived := FTypedStream.Size;
 end;

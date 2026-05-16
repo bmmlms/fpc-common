@@ -295,7 +295,7 @@ begin
   StringRes := nil;
   PatternRes := nil;
   repeat
-    repeat // ohne vorangegangenes "*"
+    repeat // without preceding "*"
       case PatternPtr^ of
         #0:
         begin

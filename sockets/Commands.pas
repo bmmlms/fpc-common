@@ -48,7 +48,7 @@ type
     ctGetMonitorStreamsResponse, ctGetMonitorStreams,
     ctSyncWishlist,
     ctSearchCharts, ctSearchChartsResponse,
-    ctHereIsADummyForARemovedCommand1, ctHereIsADummyForARemovedCommand2, // Das muss so bleiben, damit Client und Server das selbe Enum kennen!
+    ctHereIsADummyForARemovedCommand1, ctHereIsADummyForARemovedCommand2, // This must remain so that client and server know the same enum!
     ctStreamAnalyzationData,
     ctGenerateAuthToken, ctGenerateAuthTokenResponse,
     ctPing, ctPingResponse,
@@ -92,6 +92,8 @@ type
     FVersion: Cardinal;
     FCommandType: TCommandTypes; // Wird nicht von hier versendet im Stream oder so!
     // analog zum commandtype hier drüber sollte hier auch noch die version gemirrort werden.
+    FCommandType: TCommandTypes; // Not sent from here in stream or so!
+    // analog to commandtype here above the version should also be mirrored here.
     FStream: TStream;
 
     procedure DoGet(S: TMemoryStream); virtual;

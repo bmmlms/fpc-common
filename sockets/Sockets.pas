@@ -644,7 +644,7 @@ begin
             Break;
           end else if Res < 0 then
           begin
-            // Fehler
+            // Error
             if FSecure then
             begin
               if Res = -MBEDTLS_ERR_NET_CONN_RESET then
@@ -665,7 +665,7 @@ begin
             end;
           end else if Res > 0 then
           begin
-            // Alles cremig
+            // Everything fine
             FReceived := FReceived + Res;
             FLastTimeReceived := Ticks;
             FRecvStream.Seek(0, soFromEnd);
