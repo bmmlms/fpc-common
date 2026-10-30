@@ -90,8 +90,6 @@ type
   class var FCommands: TList<TCommandRegistration>;
   protected
     FVersion: Cardinal;
-    FCommandType: TCommandTypes; // Wird nicht von hier versendet im Stream oder so!
-    // analog zum commandtype hier drüber sollte hier auch noch die version gemirrort werden.
     FCommandType: TCommandTypes; // Not sent from here in stream or so!
     // analog to commandtype here above the version should also be mirrored here.
     FStream: TStream;

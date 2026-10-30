@@ -159,6 +159,7 @@ begin
   FProxyPort := 0;
 
   FDataTimeout := {$IFDEF DEBUG}100000{$ELSE}20000{$ENDIF};
+  FDataTimeout := 20000;
 
   SetSendParams;
 end;
@@ -177,6 +178,29 @@ end;
 
 procedure THTTPThread.DoException(E: Exception);
 begin
+  if FTypedStream.RedirURL <> '' then
+  begin
+    FRaisedException := nil;
+    FError := False;
+    Exit;
+  end;
+
+  if (E is ESocketClosedException) and FTypedStream.HeaderRemoved then
+  begin
+    if (FTypedStream.ContentLength = -1) and (FTypedStream.TransferEncoding = teNone) and (FTypedStream.HeaderType = hhtHTTP) then
+    begin
+      if FTypedStream.Size > 0 then
+      begin
+        FRaisedException := nil;
+        FError := False;
+        if Assigned(OnDisconnected) then
+          Sync(OnDisconnected);
+        DoDisconnected;
+        Exit;
+      end;
+    end;
+  end;
+
   inherited;
 
   FSpeed := 0;
@@ -193,8 +217,11 @@ begin
   if not FTypedStream.HeaderRemoved then
     raise Exception.Create('Header could not be found');
 
-  if FTypedStream.ContentLength > -1 then
-    if FTypedStream.ContentLength <> Received then
+  if (FTypedStream.HeaderType = hhtHTTP) and (FTypedStream.ResponseCode >= 300) and (FTypedStream.ResponseCode < 400) and (FTypedStream.RedirURL = '') then
+    raise EHTTPException.Create('Response was HTTP redirect but without location header', FTypedStream.ResponseCode);
+
+  if (FTypedStream.RedirURL = '') and (FTypedStream.ContentLength > -1) then
+    if FTypedStream.ContentLength <> FTypedStream.RecvStream.Size then
       raise Exception.Create('ContentLength <> Received');
 end;
 

@@ -26,8 +26,8 @@ uses
   Classes,
   Generics.Collections,
   Logging,
-  StreamHelper,
   MbedTLS,
+  StreamHelper,
   SyncObjs,
   SysUtils,
   Windows,
@@ -57,6 +57,9 @@ type
   ESSLException = class(Exception)
   end;
 
+  ESocketClosedException = class(Exception)
+  end;
+
   TSocketStream = class(TMemoryStream)
   private
     FDebugMsg, FDebugData: string;
@@ -70,6 +73,7 @@ type
   public
     procedure Process(Received: Cardinal); virtual;
 
+    function HandlePeerClose: Boolean; virtual;
     procedure Disconnected; virtual;
 
     property RecvStream: TMemoryStream read FGetRecvDataStream;
@@ -114,8 +118,8 @@ type
     FSecure: Boolean;
     FCheckCertificate: Boolean;
     FUseSynchronize: Boolean;
+  protected
     FRaisedException: Exception;
-
     FLogMsg: string;
     FLogData: string;
     FLogLevel: TSocketLogLevel;
@@ -156,10 +160,7 @@ type
     procedure DoConnecting; virtual;
     procedure DoConnected; virtual;
     procedure DoDisconnected; virtual;
-    procedure DoBeforeEndedEvent;
-    procedure DoDisconnectedEvent;
     procedure DoEnded; virtual;
-    procedure DoEndedEvent;
     procedure DoReceivedData(Buf: Pointer; Len: Integer); virtual;
     procedure DoException(E: Exception); virtual;
     procedure DoSecured; virtual;
@@ -413,30 +414,12 @@ end;
 
 procedure TSocketThread.DoDisconnected;
 begin
-  if Assigned(FOnDisconnected) then
-    Sync(FOnDisconnected);
-end;
-
-procedure TSocketThread.DoBeforeEndedEvent;
-begin
-  if Assigned(FOnBeforeEnded) then
-    Sync(FOnBeforeEnded);
-end;
-
-procedure TSocketThread.DoDisconnectedEvent;
-begin
 
 end;
 
 procedure TSocketThread.DoEnded;
 begin
   FRecvStream.Disconnected;
-end;
-
-procedure TSocketThread.DoEndedEvent;
-begin
-  if Assigned(FOnEnded) then
-    Sync(FOnEnded);
 end;
 
 procedure TSocketThread.DoException(E: Exception);
@@ -525,11 +508,8 @@ begin
         connect(FSocketHandle, Addr, SizeOf(Addr));
 
         StartTime := GetTickCount64;
-        while True do
+        while not Terminated do
         begin
-          if Terminated then
-            Exit;
-
           Ticks := GetTickCount64;
           FD_ZERO(WriteFds);
           FD_ZERO(ExceptFds);
@@ -639,27 +619,21 @@ begin
             Res := recv(FSocketHandle, Buf, BufSize, 0);
 
           if (Res = 0) or (FSecure and (Res = -MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY)) then
-          begin
-            // Verbindung wurde geschlossen
-            Break;
-          end else if Res < 0 then
+            raise ESocketClosedException.Create('Connection closed')
+          else if Res < 0 then
           begin
             // Error
             if FSecure then
             begin
               if Res = -MBEDTLS_ERR_NET_CONN_RESET then
-                // Break loop, don't throw exception since this prevents following HTTP Location headers.
-                // In case the response could not be parsed DoDisconnected() will throw an exception later.
-                Break
+                raise ESocketClosedException.Create('Connection closed')
               else if (Res <> -MBEDTLS_ERR_SSL_WANT_READ) and (Res <> -MBEDTLS_ERR_SSL_WANT_WRITE) then
                 raise EExceptionParams.CreateFmt('Function mbedtls_ssl_read() returned error %d', [Res]);
             end else
             begin
               Res := WSAGetLastError;
               if (Res = WSAECONNRESET) or (Res = WSAECONNABORTED) then
-                // Break loop, don't throw exception since this prevents following HTTP Location headers.
-                // In case the response could not be parsed DoDisconnected() will throw an exception later.
-                Break
+                raise ESocketClosedException.Create('Connection closed')
               else
                 raise EExceptionParams.CreateFmt('Function recv() returned error %d', [Res]);
             end;
@@ -714,9 +688,22 @@ begin
           Sleep(30);
       end;
 
+      if Assigned(FOnDisconnected) then
+        Sync(FOnDisconnected);
+
       DoDisconnected;
-      DoDisconnectedEvent;
     except
+      on E: ESocketClosedException do
+      begin
+        if FRecvStream.HandlePeerClose then
+        begin
+          if Assigned(FOnDisconnected) then
+            Sync(FOnDisconnected);
+
+          DoDisconnected;
+        end else
+          DoException(E);
+      end;
       on E: Exception do
         DoException(E);
     end;
@@ -729,18 +716,23 @@ begin
       mbedtls_entropy_free(@entropy);
     end;
 
+    if FSocketHandle <> INVALID_SOCKET then
+      closesocket(FSocketHandle);
+
     try
-      DoBeforeEndedEvent;
+      if Assigned(FOnBeforeEnded) then
+        Sync(FOnBeforeEnded);
+
       DoEnded;
-      DoEndedEvent;
+
+      if Assigned(FOnEnded) then
+        Sync(FOnEnded);
     except
       on E: Exception do
       begin
         DoException(E);
       end;
     end;
-    if FSocketHandle <> INVALID_SOCKET then
-      closesocket(FSocketHandle);
   end;
 end;
 
@@ -821,6 +813,7 @@ end;
 
 procedure TSocketServerThread.DoClientConnected(SocketHandle: Cardinal; var SocketThread: TSocketThread);
 begin
+  SocketThread := nil;
   try
     SocketThread := FThreadType.Create(SocketHandle, FStreamType.Create as TSocketStream);
     try
@@ -943,6 +936,11 @@ begin
 end;
 
 { TSocketStream }
+
+function TSocketStream.HandlePeerClose: Boolean;
+begin
+  Result := False;
+end;
 
 procedure TSocketStream.Disconnected;
 begin

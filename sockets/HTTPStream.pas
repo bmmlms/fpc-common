@@ -32,7 +32,17 @@ uses
   Windows;
 
 type
+  THTTPHeaderType = (hhtUnknown, hhtHTTP, hhtICY);
+
   TTransferEncoding = (teNone, teChunked);
+
+  EHTTPException = class(Exception)
+  private
+    FResponseCode: Integer;
+  public
+    constructor Create(const Msg: string; AResponseCode: Integer);
+    property ResponseCode: Integer read FResponseCode;
+  end;
 
   { THTTPStream }
 
@@ -46,6 +56,7 @@ type
     FRedirURL: string;
 
     FDeChunkedStream: TMemoryStream;
+    FChunkedBodyComplete: Boolean;
 
     FHeaderRemoved: Boolean;
     FOnHeaderRemoved: TNotifyEvent;
@@ -55,7 +66,7 @@ type
     procedure ParseHeader;
   protected
     FHeader: TDictionary<string, string>;
-    FHeaderType: string;
+    FHeaderType: THTTPHeaderType;
 
     function FGetRecvDataStream: TMemoryStream; override;
 
@@ -67,9 +78,10 @@ type
     constructor Create;
     destructor Destroy; override;
     procedure Process(Received: Cardinal); override;
+    function HandlePeerClose: Boolean; override;
 
     property HeaderRemoved: Boolean read FHeaderRemoved;
-    property HeaderType: string read FHeaderType;
+    property HeaderType: THTTPHeaderType read FHeaderType;
     property ResponseCode: Integer read FResponseCode;
     property ContentType: string read FContentType;
     property ContentEncoding: string read FContentEncoding;
@@ -89,11 +101,13 @@ procedure THTTPStream.GetResponseType(const StatusLine: string);
 var
   Header: string;
 begin
-  Header := AnsiLowerCase(StatusLine);
-  if Copy(Header, 1, 4) = 'http' then
-    FHeaderType := 'http'
-  else if Copy(Header, 1, 3) = 'icy' then
-    FHeaderType := 'icy';
+  Header := StatusLine.ToLower;
+  if Header.StartsWith('http') then
+    FHeaderType := hhtHTTP
+  else if Header.StartsWith('icy') then
+    FHeaderType := hhtICY
+  else
+    FHeaderType := hhtUnknown;
 end;
 
 procedure THTTPStream.GetResponseStatus(const StatusLine: string);
@@ -113,7 +127,7 @@ end;
 procedure THTTPStream.Process(Received: Cardinal);
 var
   P, Len, RemoveTo: Integer;
-  B: PByte;
+  S: string;
 begin
   inherited;
 
@@ -126,34 +140,45 @@ begin
       FDeChunkedStream.Seek(0, soFromEnd);
       RemoveTo := 0;
       Seek(0, soFromBeginning);
-      repeat
-        B := PByte(PtrUInt(Memory) + Position);
-        while ((B^ = 13) or (B^ = 10)) and (PtrUInt(B) < PtrUInt(Memory) + Size) do
-          B := PByte(PtrUInt(B) + 1);
-        Seek(PtrUInt(B) - PtrUInt(Memory), soFromBeginning);
-
+      while True do
+      begin
         P := PosInStream([$0A], Position);
-        if (P > -1) and (P - Position > 0) then
+        if P = -1 then
+          Break;
+
+        S := Trim(string(AsString(Position, P - Position)));
+        if S = '' then
         begin
-          Len := StrToIntDef('$' + Trim(string(AsString(Position, P - Position))), -1);
-          if Len = -1 then
-            raise Exception.Create('Error dechunking response');
-          if Len = 0 then
-          begin
-            Clear;
+          Seek(P + 1, soFromBeginning);
+          Continue;
+        end;
+
+        Len := StrToIntDef('$' + S, -1);
+        if Len = -1 then
+          raise Exception.Create('Error dechunking response: Invalid chunk size');
+
+        if Len = 0 then
+        begin
+          if (Size < P + 3) or (PByte(Memory + P + 1)^ <> $0D) or (PByte(Memory + P + 2)^ <> $0A) then
             Break;
-          end;
-          if Size >= Len + P + 1 then
-          begin
-            Seek(P + 1, soFromBeginning);
-            FDeChunkedStream.CopyFrom(Self, Len);
-            RemoveTo := Position;
-          end else
-            Len := -1;
-        end else
-          Len := -1;
-      until (Len = 0) or (Len = -1);
-      RemoveRange(0, RemoveTo);
+
+          FChunkedBodyComplete := True;
+          RemoveTo := 0;
+          Clear;
+          Break;
+        end;
+
+        if Size >= (P + 1 + Len) then
+        begin
+          Seek(P + 1, soFromBeginning);
+          FDeChunkedStream.CopyFrom(Self, Len);
+          RemoveTo := Position;
+        end
+        else
+          Break;
+      end;
+      if RemoveTo > 0 then
+        RemoveRange(0, RemoveTo);
     end;
 
   if (not HeaderRemoved) and (Size > 5192) then
@@ -165,8 +190,9 @@ begin
   inherited;
 
   FHeaderRemoved := False;
-  FHeaderType := '';
+  FHeaderType := hhtUnknown;
   FTransferEncoding := teNone;
+  FChunkedBodyComplete := False;
   FContentLength := -1;
   FResponseCode := -1;
   FDeChunkedStream := TMemoryStream.Create;
@@ -194,9 +220,27 @@ end;
 function THTTPStream.FGetRecvDataStream: TMemoryStream;
 begin
   if FTransferEncoding = teChunked then
-    Result := FDechunkedStream
+    Result := FDeChunkedStream
   else
     Result := Self;
+end;
+
+function THTTPStream.HandlePeerClose: Boolean;
+begin
+  Result := FHeaderRemoved and
+    (((FResponseCode >= 300) and (FResponseCode < 400) and (FRedirURL <> '')) or
+     ((FHeaderType = hhtHTTP) and
+      (((FTransferEncoding = teChunked) and FChunkedBodyComplete) or
+       ((FTransferEncoding = teNone) and (FContentLength >= 0) and (RecvStream.Size = FContentLength)) or
+       ((FTransferEncoding = teNone) and (FContentLength = -1) and (RecvStream.Size > 0)))));
+end;
+
+{ EHTTPException }
+
+constructor EHTTPException.Create(const Msg: string; AResponseCode: Integer);
+begin
+  inherited Create(Msg);
+  FResponseCode := AResponseCode;
 end;
 
 function THTTPStream.GetHeaderValue(Name: string): string;
@@ -212,7 +256,7 @@ const
   NLC: set of TByte = [$0D, $0A];
 var
   HeaderEnd, StatusLineEnd: Integer;
-  StatusLine, Name: string;
+  StatusLine, Name, Val: string;
   State: THeaderParseState = hpsPreName;
   Current, TokenStart: PByte;
 begin
@@ -228,6 +272,9 @@ begin
 
   GetResponseStatus(StatusLine);
   GetResponseType(StatusLine);
+
+  if (FResponseCode >= 400) and (FResponseCode < 600) then
+    raise EHTTPException.Create(Format('HTTP error %d', [FResponseCode]), FResponseCode);
 
   TokenStart := Memory + StatusLineEnd;
   Current := TokenStart;
@@ -250,6 +297,10 @@ begin
 
           TokenStart := Current + 1;
           State := hpsPreValue;
+        end else if Current^ in NLC then
+        begin
+          TokenStart := Current + 1;
+          State := hpsPreName;
         end;
       hpsPreValue:
         if Current^ <> $20 { ' ' } then
@@ -260,8 +311,9 @@ begin
       hpsValue:
         if Current^ in [$0D, $0A] then
         begin
+          Val := ParseHeaderField(Name, TokenStart, PtrUInt(Current - TokenStart)).Trim;
           FHeader.Remove(Name);
-          FHeader.Add(Name, ParseHeaderField(Name, TokenStart, PtrUInt(Current - TokenStart)).Trim);
+          FHeader.Add(Name, Val);
 
           TokenStart := Current + 1;
           State := hpsPreName;
@@ -282,7 +334,10 @@ begin
   FContentLength := StrToIntDef(GetHeaderValue('content-length'), -1);
   FRedirURL := GetHeaderValue('location');
 
-  if LowerCase(GetHeaderValue('transfer-encoding')) = 'chunked' then
+  if FRedirURL = '' then
+    FRedirURL := GetHeaderValue('uri');
+
+  if GetHeaderValue('transfer-encoding') = 'chunked' then
     FTransferEncoding := teChunked;
 
   RemoveRange(0, HeaderEnd + 4);
