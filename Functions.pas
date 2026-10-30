@@ -873,7 +873,7 @@ begin
   for i := 0 to High(Dots) do
     if Dots[i] < i then
       raise Exception.Create('Error parsing version.');
-  Result.Major := StrToInt(Copy(string(Version), 0, Dots[0] - 1));
+  Result.Major := StrToInt(Copy(string(Version), 1, Dots[0] - 1));
   Result.Minor := StrToInt(Copy(string(Version), Dots[0] + 1, Dots[1] - 1 - Dots[0]));
   Result.Revision := StrToInt(Copy(string(Version), Dots[1] + 1, Dots[2] - 1 - Dots[1]));
   Result.Build := StrToInt(Copy(string(Version), Dots[2] + 1, Length(Version) - Dots[2]));
